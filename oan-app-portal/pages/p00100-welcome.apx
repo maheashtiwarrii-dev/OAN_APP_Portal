@@ -1,0 +1,111 @@
+page 100 (
+    name: Welcome
+    alias: WELCOME
+    title: Oracle Alumni Network
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        authentication: public
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region hero (
+        name: Oracle Alumni Network
+        type: staticContent
+        source {
+            htmlCode:
+                ```html
+                <p style="font-size:18px;">Connect the right people, skills, knowledge, opportunities and ideas within the OAN community.</p>
+                <p>Consolidate &rarr; Discover &rarr; Connect &rarr; Collaborate &rarr; Grow</p>
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/hero
+            templateOptions: #DEFAULT#
+        }
+        image {
+            fileUrl: #APP_FILES#icons/app-icon-512.png
+        }
+    )
+
+    region what-you-get (
+        name: What you get as a member
+        type: staticContent
+        source {
+            htmlCode:
+                ```html
+                <ul>
+                  <li><strong>Knowledge Library</strong> - curated OAN sales, training and best-practice content in one place.</li>
+                  <li><strong>Discussions</strong> - questions, answers and announcements from the community.</li>
+                  <li><strong>Regional chapters</strong> - your local OAN community, from region down to city.</li>
+                  <li><strong>Your professional profile</strong> - you decide who sees each section.</li>
+                </ul>
+                <p>Membership is for former Oracle employees. Every application is reviewed by a chapter or platform administrator.</p>
+                <p style="font-size:12px;">OAN is an independent alumni community and is not affiliated with or endorsed by Oracle Corporation.</p>
+                ```
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    button register (
+        buttonName: REGISTER
+        label: Create an OAN account
+        layout {
+            sequence: 10
+            region: @what-you-get
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 101
+                clearCache: 101
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button sign-in (
+        buttonName: SIGN_IN
+        label: Sign in
+        layout {
+            sequence: 20
+            region: @what-you-get
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 1
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+)

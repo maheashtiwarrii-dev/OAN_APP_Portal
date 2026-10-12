@@ -1,0 +1,75 @@
+--------------------------------------------------------------------------------
+-- OAN Portal - database install (Phase 1). Run with SQLcl as OAN_DEPLOY[OAN_DATA]:
+--   sql -cloudconfig Wallet_oan.zip oan_deploy[oan_data]/***@oan_high @db/install.sql
+-- Then, as OAN_APP:   @db/grants/20_app_synonyms.sql
+-- Then, as OAN_DATA:  @db/grants/30_assert_no_table_grants.sql
+-- (Task 0.16 wraps these steps in a Liquibase changelog; this script is the ordered source.)
+--------------------------------------------------------------------------------
+whenever sqlerror exit failure rollback
+set define on verify off serveroutput on
+
+prompt == DDL
+@@ddl/010_taxonomy.sql
+@@ddl/020_identity.sql
+@@ddl/030_chapters_registration.sql
+@@ddl/040_profile_network.sql
+@@ddl/050_content_community.sql
+@@ddl/060_ops.sql
+@@ddl/070_pd_registry.sql
+@@ddl/080_text_indexes.sql
+
+prompt == Packages (bodies with forward references compile at the end)
+whenever sqlerror continue
+@@packages/100_oan_util.sql
+@@packages/110_oan_audit_pkg.sql
+@@packages/120_oan_ctx_pkg.sql
+@@packages/130_oan_vis.sql
+@@packages/140_oan_throttle_pkg.sql
+@@packages/150_oan_notify_pkg.sql
+@@packages/160_oan_security_pkg.sql
+@@packages/170_oan_chapter_pkg.sql
+@@packages/180_oan_auth_pkg.sql
+@@packages/190_oan_registration_pkg.sql
+@@packages/200_oan_profile_pkg.sql
+@@packages/210_oan_taxonomy_pkg.sql
+@@packages/220_oan_file_pkg.sql
+@@packages/230_oan_library_pkg.sql
+@@packages/240_oan_forum_pkg.sql
+@@packages/250_oan_moderation_pkg.sql
+@@packages/260_oan_privacy_pkg.sql
+@@packages/270_oan_search_pkg.sql
+@@packages/280_oan_jobs_pkg.sql
+@@packages/290_oan_error_pkg.sql
+
+prompt == Secure views
+@@views/300_secure_views.sql
+@@views/310_admin_queue_views.sql
+
+prompt == Recompile and verify
+exec dbms_utility.compile_schema(schema => user, compile_all => false);
+whenever sqlerror exit failure rollback
+declare
+  l_invalid varchar2(4000);
+begin
+  select listagg(object_type || ' ' || object_name, ', ') within group (order by object_name)
+    into l_invalid
+    from user_objects
+   where status = 'INVALID' and object_name not like 'UT\_%' escape '\';
+  if l_invalid is not null then
+    raise_application_error(-20998, 'Invalid objects after install: ' || l_invalid);
+  end if;
+end;
+/
+
+prompt == Grants to OAN_APP
+@@grants/10_app_grants.sql
+
+prompt == Reference data
+@@seed/500_seed_reference.sql
+
+prompt == Tests (requires utPLSQL; skipped in PROD)
+whenever sqlerror continue
+@@tests/ut_oan_vis.sql
+@@tests/ut_oan_registry_auth.sql
+
+prompt Install complete. Run 20_app_synonyms.sql as OAN_APP, then 30_assert_no_table_grants.sql.

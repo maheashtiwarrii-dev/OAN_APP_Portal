@@ -1,0 +1,209 @@
+page 9999 (
+    name: Login Page
+    alias: LOGIN
+    title: OAN Portal - Sign In
+    appearance {
+        pageTemplate: @/login
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    security {
+        authentication: public
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region sign-in (
+        name: Sign in to OAN Portal
+        type: staticContent
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        appearance {
+            template: @/login
+            templateOptions: #DEFAULT#
+        }
+        image {
+            fileUrl: #APP_FILES#icons/app-icon-512.png
+        }
+    )
+
+    region other-options (
+        name: Other options
+        type: staticContent
+        source {
+            htmlCode:
+                ```html
+                <p class="u-textCenter">New to OAN? <a href="f?p=&APP_ID.:101:&APP_SESSION.">Create an account</a></p>
+                <p class="u-textCenter"><a href="f?p=&APP_ID.:103:&APP_SESSION.">Forgot your password?</a> &middot; <a href="f?p=&APP_ID.:100:&APP_SESSION.">About OAN</a></p>
+                <p class="u-textCenter u-color-gray" style="font-size:12px">OAN is an independent alumni community and is not affiliated with or endorsed by Oracle Corporation.</p>
+                ```
+        }
+        layout {
+            sequence: 30
+            slot: contentBody
+        }
+        appearance {
+            template: @/blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P9999_USERNAME (
+        type: textField
+        label {
+            label: Email
+            alignment: right
+        }
+        settings {
+            trimSpaces: leadingAndTrailing
+        }
+        layout {
+            sequence: 10
+            region: @sign-in
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/hidden
+            templateOptions: #DEFAULT#
+            icon: fa-envelope-o
+            width: 40
+            valuePlaceholder: Email
+        }
+        validation {
+            maxLength: 320
+        }
+        sessionState {
+            storage: request
+        }
+    )
+
+    pageItem P9999_PASSWORD (
+        type: password
+        label {
+            label: Password
+            alignment: right
+        }
+        layout {
+            sequence: 20
+            region: @sign-in
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/hidden
+            templateOptions: #DEFAULT#
+            icon: fa-key
+            width: 40
+            valuePlaceholder: Password
+        }
+        validation {
+            maxLength: 200
+        }
+        sessionState {
+            storage: request
+        }
+    )
+
+    button login (
+        buttonName: LOGIN
+        label: Sign In
+        layout {
+            sequence: 40
+            region: @sign-in
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--stretch
+            ]
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button sign-in-google (
+        buttonName: SIGN_IN_GOOGLE
+        label: Sign in with Google
+        layout {
+            sequence: 50
+            region: @sign-in
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text-with-icon
+            templateOptions: [
+                #DEFAULT#
+                t-Button--stretch
+                t-Button--iconLeft
+            ]
+            icon: fa-google
+        }
+        behavior {
+            action: redirectUrl
+            targetUrl: f?p=&APP_ID.:1:&APP_SESSION.:APEX_AUTHENTICATION=OAN_GOOGLE
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button sign-in-linkedin (
+        buttonName: SIGN_IN_LINKEDIN
+        label: Sign in with LinkedIn
+        layout {
+            sequence: 60
+            region: @sign-in
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text-with-icon
+            templateOptions: [
+                #DEFAULT#
+                t-Button--stretch
+                t-Button--iconLeft
+            ]
+            icon: fa-linkedin
+        }
+        behavior {
+            action: redirectUrl
+            targetUrl: f?p=&APP_ID.:1:&APP_SESSION.:APEX_AUTHENTICATION=OAN_LINKEDIN
+            warnOnUnsavedChanges: doNotCheck
+        }
+        config {
+            buildOption: @linkedin
+        }
+    )
+
+    process clear-page-s-cache (
+        name: Clear Page(s) Cache
+        type: clearSessionState
+        execution {
+            sequence: 30
+        }
+    )
+
+    process login (
+        name: Login
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                -- OAN_LOCAL: oan_auth_pkg.authenticate verifies; post-auth swaps APP_USER to the generated key
+                apex_authentication.login(
+                    p_username => lower(trim(:P9999_USERNAME)),
+                    p_password => :P9999_PASSWORD );
+                ```
+        }
+        execution {
+            sequence: 20
+        }
+    )
+
+)

@@ -1,0 +1,212 @@
+page 32 (
+    name: New Topic
+    alias: NEW-TOPIC
+    title: Start a new topic
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: true
+    }
+    security {
+        authorizationScheme: @is-active
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region topic (
+        name: Start a topic
+        type: staticContent
+        source {
+            htmlCode: <p>Keep it professional and follow the Community Guidelines. Never post confidential information.</p>
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P32_FORUM_ID (
+        type: selectList
+        label {
+            label: Forum
+        }
+        lov {
+            type: sharedComponent
+            lov: @oan-forums
+        }
+        layout {
+            sequence: 10
+            region: @topic
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+        }
+    )
+
+    pageItem P32_TYPE (
+        type: radioGroup
+        label {
+            label: Type
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:Discussion;DISCUSSION,Question (an answer can be accepted);QUESTION
+        }
+        layout {
+            sequence: 20
+            region: @topic
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        default {
+            type: static
+            staticValue: DISCUSSION
+        }
+    )
+
+    pageItem P32_TITLE (
+        type: textField
+        label {
+            label: Title
+        }
+        layout {
+            sequence: 30
+            region: @topic
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+            maxLength: 300
+        }
+    )
+
+    pageItem P32_BODY (
+        type: textarea
+        label {
+            label: Message
+        }
+        layout {
+            sequence: 40
+            region: @topic
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+            maxLength: 32000
+        }
+    )
+
+    pageItem P32_MENTIONS (
+        type: selectMany
+        label {
+            label: Mention members (optional)
+        }
+        lov {
+            type: sharedComponent
+            lov: @oan-members
+        }
+        layout {
+            sequence: 50
+            region: @topic
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P32_NEW_ID (
+        type: hidden
+        layout {
+            sequence: 60
+            region: @topic
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: restricted
+        }
+    )
+
+    button post (
+        buttonName: POST
+        label: Post topic
+        layout {
+            sequence: 10
+            region: @topic
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process post (
+        name: Create topic
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                :P32_NEW_ID := oan_forum_pkg.create_thread(
+                    p_forum_id    => :P32_FORUM_ID,
+                    p_title       => :P32_TITLE,
+                    p_body        => :P32_BODY,
+                    p_thread_type => :P32_TYPE,
+                    p_mention_ids => :P32_MENTIONS);
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        serverSideCondition {
+            whenButtonPressed: @post
+        }
+    )
+
+    branch to-topic (
+        name: To the new topic
+        behavior {
+            type: pageOrUrl
+            target: {
+                page: 31
+                clearCache: 31
+                items: {
+                    P31_ID: &P32_NEW_ID.
+                }
+            }
+        }
+        execution {
+            point: afterProcessing
+            sequence: 10
+        }
+    )
+
+)

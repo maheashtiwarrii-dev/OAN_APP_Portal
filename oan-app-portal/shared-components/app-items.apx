@@ -1,0 +1,35 @@
+appItem LINK_INTENT (
+    security {
+        sessionStateProtection: restricted
+    }
+    comments {
+        comments: Raw link-intent token set by oan_auth_pkg.start_link before Switch in Session; consumed in post-auth (P07).
+    }
+)
+
+appItem REAUTH_INTENT (
+    security {
+        sessionStateProtection: restricted
+    }
+    comments {
+        comments: Y while a social re-authentication is in progress (NFR-01 re-auth gate).
+    }
+)
+
+appItem APP_USER_DISPLAY (
+    security {
+        sessionStateProtection: restricted
+    }
+    comments {
+        comments: Member display name for the navigation bar; set after authentication.
+    }
+)
+
+appItem REAUTH_RETURN_PAGE (
+    security {
+        sessionStateProtection: restricted
+    }
+    comments {
+        comments: Page to return to after re-authentication (see page 108).
+    }
+)

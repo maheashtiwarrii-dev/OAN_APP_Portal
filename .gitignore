@@ -1,0 +1,26 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+
+# Secrets and wallets (plan 0.5 / 0.15, Q10). Never commit these.
+*.sso
+*.p12
+*.jks
+cwallet.*
+ewallet.*
+Wallet_*.zip
+wallet/
+.env
+.env.*
+deployments/*.local.json
+oan-app-portal/deployments/*.local.json
+
+# Raw content exports for curation (Q20). Must never enter git.
+raw-exports/
+curation/
+
+# Runtime / tool output
+.apexlang/runtime/
+artifacts/
+*.log

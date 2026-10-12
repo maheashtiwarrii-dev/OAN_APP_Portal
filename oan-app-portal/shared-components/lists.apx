@@ -1,0 +1,439 @@
+list navigation-bar (
+    name: Navigation Bar
+
+    entry notifications (
+        label: Notifications
+        icon {
+            imageIconCssClasses: fa-bell
+        }
+        layout {
+            sequence: 5
+        }
+        link {
+            target: {
+                page: 50
+            }
+        }
+        security {
+            authorizationScheme: @is-active
+        }
+    )
+
+    entry app-user (
+        label: &APP_USER_DISPLAY.
+        icon {
+            imageIconCssClasses: fa-user
+        }
+        layout {
+            sequence: 10
+        }
+        link {
+            target: {
+                type: url
+                url: #
+            }
+        }
+        userDefinedAttributes {
+            2: has-username
+        }
+        serverSideCondition {
+            type: userIsAuthenticated
+        }
+    )
+
+    entry account-settings (
+        label: Account settings
+        icon {
+            imageIconCssClasses: fa-gear
+        }
+        layout {
+            sequence: 15
+            parentEntry: @app-user
+        }
+        link {
+            target: {
+                page: 12
+            }
+        }
+        security {
+            authorizationScheme: @is-signed-in
+        }
+    )
+
+    entry privacy-centre (
+        label: Privacy centre
+        icon {
+            imageIconCssClasses: fa-user-secret
+        }
+        layout {
+            sequence: 17
+            parentEntry: @app-user
+        }
+        link {
+            target: {
+                page: 60
+            }
+        }
+        security {
+            authorizationScheme: @is-signed-in
+        }
+    )
+
+    entry list_item (
+        label: ---
+        layout {
+            sequence: 20
+            parentEntry: @app-user
+        }
+        link {
+            target: {
+                type: url
+                url: separator
+            }
+        }
+        serverSideCondition {
+            type: userIsAuthenticated
+        }
+    )
+
+    entry sign-out (
+        label: Sign Out
+        icon {
+            imageIconCssClasses: fa-sign-out
+        }
+        layout {
+            sequence: 30
+            parentEntry: @app-user
+        }
+        link {
+            target: {
+                type: url
+                url: &LOGOUT_URL.
+            }
+        }
+        serverSideCondition {
+            type: userIsAuthenticated
+        }
+    )
+
+)
+
+list navigation-menu (
+    name: Navigation Menu
+
+    entry home (
+        label: Home
+        icon {
+            imageIconCssClasses: fa-home
+        }
+        layout {
+            sequence: 10
+        }
+        link {
+            target: {
+                page: 1
+            }
+        }
+        security {
+            authorizationScheme: @is-active
+        }
+    )
+
+    entry application-status (
+        label: My application
+        icon {
+            imageIconCssClasses: fa-hourglass-half
+        }
+        layout {
+            sequence: 15
+        }
+        link {
+            target: {
+                page: 2
+            }
+        }
+        security {
+            authorizationScheme: @is-pending
+        }
+    )
+
+    entry library (
+        label: Knowledge Library
+        icon {
+            imageIconCssClasses: fa-book
+        }
+        layout {
+            sequence: 20
+        }
+        link {
+            target: {
+                page: 20
+            }
+        }
+        security {
+            authorizationScheme: @is-active
+        }
+    )
+
+    entry discussions (
+        label: Discussions
+        icon {
+            imageIconCssClasses: fa-comments-o
+        }
+        layout {
+            sequence: 30
+        }
+        link {
+            target: {
+                page: 30
+            }
+        }
+        security {
+            authorizationScheme: @is-active
+        }
+    )
+
+    entry search (
+        label: Search
+        icon {
+            imageIconCssClasses: fa-search
+        }
+        layout {
+            sequence: 40
+        }
+        link {
+            target: {
+                page: 40
+            }
+        }
+        security {
+            authorizationScheme: @is-active
+        }
+    )
+
+    entry my-profile (
+        label: My profile
+        icon {
+            imageIconCssClasses: fa-id-card-o
+        }
+        layout {
+            sequence: 50
+        }
+        link {
+            target: {
+                page: 10
+            }
+        }
+        security {
+            authorizationScheme: @is-signed-in
+        }
+    )
+
+    entry my-decisions (
+        label: Moderation decisions
+        icon {
+            imageIconCssClasses: fa-gavel
+        }
+        layout {
+            sequence: 60
+        }
+        link {
+            target: {
+                page: 81
+            }
+        }
+        security {
+            authorizationScheme: @is-active
+        }
+    )
+
+    entry administration (
+        label: Administration
+        icon {
+            imageIconCssClasses: fa-shield
+        }
+        layout {
+            sequence: 100
+        }
+        link {
+            target: {
+                page: 1000
+            }
+        }
+        security {
+            authorizationScheme: @can-moderate-queue
+        }
+    )
+
+    entry approvals (
+        label: Approval queue
+        icon {
+            imageIconCssClasses: fa-user-plus
+        }
+        layout {
+            sequence: 110
+            parentEntry: @administration
+        }
+        link {
+            target: {
+                page: 1010
+            }
+        }
+        security {
+            authorizationScheme: @can-approve
+        }
+    )
+
+    entry moderation (
+        label: Moderation queue
+        icon {
+            imageIconCssClasses: fa-flag
+        }
+        layout {
+            sequence: 120
+            parentEntry: @administration
+        }
+        link {
+            target: {
+                page: 1050
+            }
+        }
+        security {
+            authorizationScheme: @can-moderate-queue
+        }
+    )
+
+    entry users (
+        label: Users and roles
+        icon {
+            imageIconCssClasses: fa-users
+        }
+        layout {
+            sequence: 130
+            parentEntry: @administration
+        }
+        link {
+            target: {
+                page: 1020
+            }
+        }
+        security {
+            authorizationScheme: @administration-rights
+        }
+    )
+
+    entry chapters (
+        label: Chapters
+        icon {
+            imageIconCssClasses: fa-sitemap
+        }
+        layout {
+            sequence: 140
+            parentEntry: @administration
+        }
+        link {
+            target: {
+                page: 1030
+            }
+        }
+        security {
+            authorizationScheme: @administration-rights
+        }
+    )
+
+    entry taxonomy (
+        label: Taxonomy
+        icon {
+            imageIconCssClasses: fa-tags
+        }
+        layout {
+            sequence: 150
+            parentEntry: @administration
+        }
+        link {
+            target: {
+                page: 1040
+            }
+        }
+        security {
+            authorizationScheme: @administration-rights
+        }
+    )
+
+    entry library-import (
+        label: Library import
+        icon {
+            imageIconCssClasses: fa-upload
+        }
+        layout {
+            sequence: 160
+            parentEntry: @administration
+        }
+        link {
+            target: {
+                page: 1060
+            }
+        }
+        security {
+            authorizationScheme: @administration-rights
+        }
+    )
+
+    entry privacy-requests (
+        label: Privacy requests
+        icon {
+            imageIconCssClasses: fa-user-secret
+        }
+        layout {
+            sequence: 170
+            parentEntry: @administration
+        }
+        link {
+            target: {
+                page: 1100
+            }
+        }
+        security {
+            authorizationScheme: @is-privacy-officer
+        }
+    )
+
+    entry audit-log (
+        label: Audit log
+        icon {
+            imageIconCssClasses: fa-history
+        }
+        layout {
+            sequence: 180
+            parentEntry: @administration
+        }
+        link {
+            target: {
+                page: 1080
+            }
+        }
+        security {
+            authorizationScheme: @is-moderator
+        }
+    )
+
+    entry settings (
+        label: Settings and jobs
+        icon {
+            imageIconCssClasses: fa-sliders
+        }
+        layout {
+            sequence: 190
+            parentEntry: @administration
+        }
+        link {
+            target: {
+                page: 1070
+            }
+        }
+        security {
+            authorizationScheme: @administration-rights
+        }
+    )
+
+)

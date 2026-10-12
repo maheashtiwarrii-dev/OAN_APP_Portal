@@ -1,0 +1,86 @@
+app OAN-APP-PORTAL (
+    name: OAN Portal
+    version: Release 1.0 - Phase 1
+    logo {
+        type: text
+        text: OAN Portal
+    }
+    databaseSession {
+        initPlsqlCode: oan_ctx_pkg.set_viewer;
+        cleanupPlsqlCode: oan_ctx_pkg.clear_viewer;
+        parsingSchema: OAN_APP
+    }
+    security {
+        referrerPolicy: strictOriginWhenCrossOrigin
+        httpResponseHeaders: Strict-Transport-Security: max-age=31536000; includeSubDomains#NEWLINE#X-Content-Type-Options: nosniff#NEWLINE#Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; frame-ancestors 'none'; form-action 'self' https://accounts.google.com https://www.linkedin.com
+        deepLinking: false
+        embedInFrames: deny
+        browserCache: false
+    }
+    navigation {
+        homeUrl: {
+            page: 1
+        }
+        loginUrl: {
+            page: LOGIN
+        }
+    }
+    navigationMenu {
+        listTemplate: @/side-navigation-menu
+        templateOptions: [
+            #DEFAULT#
+            t-TreeNav--styleA
+            js-navCollapsed--hidden
+        ]
+        list: @navigation-menu
+    }
+    navigationBar {
+        list: @navigation-bar
+        listTemplate: @/navigation-bar
+        templateOptions: #DEFAULT#
+    }
+    userInterface {
+        currentTheme: @universal-theme
+        globalPage: 0
+        addBuiltWithApexToFooter: false
+    }
+    appFormatMasks {
+        date: DS
+        timestamp: DS
+        timestampTimeZone: DS
+    }
+    errorHandling {
+        errorHandlingFunctionName: oan_error_pkg.handle
+    }
+    authentication {
+        scheme: @oan-local
+    }
+    authorization {
+        sourceForRoleOrGroupSchemes: accessControlUserRoleAssignments
+        scheme: mustNotBePublicUser
+    }
+    sessionManagement {
+        maxSessionLength: 28800
+        maxSessionIdleTime: 1800
+        sessionTimeoutWarning: 120
+        rejoinSessions: false
+    }
+    sessionStateProtection {
+        enabled: true
+        checksumSalt: D819E7567C693889CC18B990789909689E9EDCF5C4EC745C8D18A4A2A5EF34AB
+    }
+    globalization {
+        autoTimeZone: true
+    }
+    runtime {
+        allowFeedback: false
+        debugging: false
+    }
+
+    substitution APP_NAME (
+        value {
+            staticValue: OAN Portal
+        }
+    )
+
+)

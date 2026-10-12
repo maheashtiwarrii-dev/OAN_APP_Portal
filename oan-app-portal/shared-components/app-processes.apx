@@ -1,0 +1,52 @@
+appProcess set-display-name (
+    name: Set display name
+    type: executeCode
+    execution {
+        point: afterAuthentication
+        sequence: 10
+    }
+    source {
+        location: localDatabase
+        language: plsql
+        plsqlCode:
+            ```plsql
+            -- APP_USER is an opaque generated key (NFR-01); show the member's name instead
+            oan_ctx_pkg.set_viewer;
+            select coalesce(trim(first_name || ' ' || last_name), 'New member')
+              into :APP_USER_DISPLAY
+              from oan_my_account_v;
+            exception
+              when no_data_found then :APP_USER_DISPLAY := 'New member';
+            ```
+    }
+)
+
+appProcess enforce-terms-reacceptance (
+    name: Enforce terms re-acceptance (FR-01 AC4)
+    type: executeCode
+    execution {
+        point: beforeHeader
+        sequence: 20
+    }
+    source {
+        location: localDatabase
+        language: plsql
+        plsqlCode:
+            ```plsql
+            -- FR-01 AC4: a new Terms/Privacy/Guidelines version forces re-acceptance at next use
+            declare
+                l_cnt number;
+            begin
+                select count(*) into l_cnt from oan_my_terms_pending_v;
+                if l_cnt > 0 then
+                    apex_util.redirect_url(apex_page.get_url(p_page => 106));
+                end if;
+            end;
+            ```
+    }
+    serverSideCondition {
+        type: expression
+        language: plsql
+        plsqlExpression: :APP_USER != 'nobody' and :APP_PAGE_ID not in (0, 51, 100, 101, 102, 103, 104, 105, 106, 107, 9000, 9001, 9999)
+    }
+)

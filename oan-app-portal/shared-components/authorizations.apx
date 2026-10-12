@@ -1,0 +1,114 @@
+authorization is-active (
+    name: IS_ACTIVE
+    type: plSqlFunctionBody
+    settings {
+        plsqlFunctionBody: return sys_context('OAN_CTX','VIEWER_TYPE') = 'MEMBER';
+    }
+    advanced {
+        evaluationType: perPageView
+    }
+    error {
+        errorMessage: This page is available to approved OAN members.
+    }
+)
+
+authorization is-signed-in (
+    name: IS_SIGNED_IN
+    type: plSqlFunctionBody
+    settings {
+        plsqlFunctionBody: return sys_context('OAN_CTX','VIEWER_ID') is not null;
+    }
+    advanced {
+        evaluationType: perPageView
+    }
+    error {
+        errorMessage: Please sign in.
+    }
+)
+
+authorization is-pending (
+    name: IS_PENDING
+    type: plSqlFunctionBody
+    settings {
+        plsqlFunctionBody: return sys_context('OAN_CTX','VIEWER_TYPE') = 'PENDING';
+    }
+    advanced {
+        evaluationType: perPageView
+    }
+    error {
+        errorMessage: This page is only for applications in progress.
+    }
+)
+
+authorization administration-rights (
+    name: Administration Rights
+    type: plSqlFunctionBody
+    settings {
+        plsqlFunctionBody: return sys_context('OAN_CTX','IS_ADMIN') = 'Y';
+    }
+    advanced {
+        evaluationType: perPageView
+    }
+    error {
+        errorMessage: Insufficient privileges, user is not a Platform Admin.
+    }
+    comments {
+        comments: Scaffold version returned TRUE for everyone (NFR-02 defect, plan 2.4). Now checks the ADMIN ACL role via OAN_CTX.
+    }
+)
+
+authorization is-moderator (
+    name: IS_MODERATOR
+    type: plSqlFunctionBody
+    settings {
+        plsqlFunctionBody: return sys_context('OAN_CTX','IS_MODERATOR') = 'Y' or sys_context('OAN_CTX','IS_ADMIN') = 'Y';
+    }
+    advanced {
+        evaluationType: perPageView
+    }
+    error {
+        errorMessage: Insufficient privileges, moderators only.
+    }
+)
+
+authorization can-approve (
+    name: CAN_APPROVE
+    type: plSqlFunctionBody
+    settings {
+        plsqlFunctionBody: return sys_context('OAN_CTX','IS_ADMIN') = 'Y' or sys_context('OAN_CTX','IS_CHAPTER_ADMIN') = 'Y';
+    }
+    advanced {
+        evaluationType: perPageView
+    }
+    error {
+        errorMessage: Insufficient privileges, approvers only.
+    }
+)
+
+authorization can-moderate-queue (
+    name: CAN_MODERATE_QUEUE
+    type: plSqlFunctionBody
+    settings {
+        plsqlFunctionBody: return sys_context('OAN_CTX','IS_MODERATOR') = 'Y' or sys_context('OAN_CTX','IS_ADMIN') = 'Y' or sys_context('OAN_CTX','IS_CHAPTER_ADMIN') = 'Y';
+    }
+    advanced {
+        evaluationType: perPageView
+    }
+    error {
+        errorMessage: Insufficient privileges.
+    }
+)
+
+authorization is-privacy-officer (
+    name: IS_PRIVACY_OFFICER
+    type: plSqlFunctionBody
+    settings {
+        plsqlFunctionBody: return sys_context('OAN_CTX','IS_PRIVACY') = 'Y' or sys_context('OAN_CTX','IS_ADMIN') = 'Y';
+    }
+    advanced {
+        evaluationType: perPageView
+    }
+    error {
+        errorMessage: Insufficient privileges, privacy officer only.
+    }
+)

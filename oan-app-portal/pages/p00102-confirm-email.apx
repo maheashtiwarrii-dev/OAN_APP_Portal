@@ -1,0 +1,110 @@
+page 102 (
+    name: Confirm Email
+    alias: CONFIRM-EMAIL
+    title: Confirm your email address
+    appearance {
+        pageTemplate: @/login
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    security {
+        authentication: public
+        pageAccessProtection: unrestricted
+        formAutoComplete: false
+    }
+    comments {
+        comments: Target of emailed links (verify / email change). Arguments come from email, so no URL checksum; the single-use hashed token is the protection (NFR-01).
+    }
+
+    region result (
+        name: Email confirmation
+        type: staticContent
+        source {
+            htmlCode:
+                ```html
+                <p>&P102_RESULT.</p>
+                <p><a href="f?p=&APP_ID.:9999:&APP_SESSION.">Continue to sign in</a></p>
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        appearance {
+            template: @/login
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P102_TOKEN (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @result
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: unrestricted
+        }
+    )
+
+    pageItem P102_KIND (
+        type: hidden
+        layout {
+            sequence: 20
+            region: @result
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: unrestricted
+        }
+    )
+
+    pageItem P102_RESULT (
+        type: hidden
+        layout {
+            sequence: 30
+            region: @result
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: restricted
+        }
+    )
+
+    process confirm (
+        name: Confirm token
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                begin
+                    case :P102_KIND
+                        when 'VERIFY' then
+                            oan_registration_pkg.verify_email(:P102_TOKEN);
+                            :P102_RESULT := 'Thank you - your email is verified. Sign in to complete your membership application.';
+                        when 'EMAIL_CHANGE' then
+                            oan_auth_pkg.confirm_email_change(:P102_TOKEN);
+                            :P102_RESULT := 'Thank you - this confirmation is recorded. The change completes once both your old and new addresses are confirmed.';
+                        when 'EMAIL_CHANGE_OLD' then
+                            oan_auth_pkg.confirm_email_change(:P102_TOKEN);
+                            :P102_RESULT := 'Thank you - this confirmation is recorded. The change completes once both your old and new addresses are confirmed.';
+                        else
+                            :P102_RESULT := 'This link is invalid or has expired.';
+                    end case;
+                exception
+                    when others then
+                        :P102_RESULT := 'This link is invalid or has expired.';
+                end;
+                :P102_TOKEN := null;
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+    )
+
+)

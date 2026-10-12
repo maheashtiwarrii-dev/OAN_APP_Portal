@@ -1,0 +1,235 @@
+page 11 (
+    name: Member Profile
+    alias: MEMBER-PROFILE
+    title: OAN member profile
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        authorizationScheme: @is-active
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: FR-01 view: only OAN_PROFILE_V (section-masked, NFR-03). Hidden sections arrive as NULL and show "Not shared with you".
+    }
+
+    region profile (
+        name: Profile
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select display_name, headline, primary_chapter,
+                       coalesce(current_org, 'Not shared with you') current_org,
+                       coalesce(job_title, 'Not shared with you') job_title,
+                       coalesce(summary, 'Not shared with you') summary,
+                       case when oracle_from_year is null then 'Not shared with you'
+                            else oracle_from_year || ' - ' || coalesce(to_char(oracle_to_year), '') || ' ' || last_org_lob end oracle_tenure,
+                       coalesce(skills, 'Not shared with you') skills,
+                       coalesce(experience_band, 'Not shared with you') experience,
+                       coalesce(location_name, 'Not shared with you') location_name,
+                       coalesce(chapters, 'Not shared with you') chapters,
+                       coalesce(contact_email || case when linkedin_url is not null then ' | ' || linkedin_url end, 'Not shared with you') contact
+                  from oan_profile_v
+                 where user_id = :P11_USER_ID
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/value-attribute-pairs-column
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: This profile is not available.
+        }
+
+        column DISPLAY_NAME (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: Name
+            }
+            layout {
+                sequence: 1
+            }
+        )
+
+        column HEADLINE (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Headline
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column PRIMARY_CHAPTER (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Primary chapter
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column CURRENT_ORG (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Organization
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column JOB_TITLE (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Job title
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+        column SUMMARY (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Summary
+            }
+            layout {
+                sequence: 6
+            }
+        )
+
+        column ORACLE_TENURE (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: At Oracle
+            }
+            layout {
+                sequence: 7
+            }
+        )
+
+        column SKILLS (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            heading {
+                heading: Skills
+            }
+            layout {
+                sequence: 8
+            }
+        )
+
+        column EXPERIENCE (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            heading {
+                heading: Experience
+            }
+            layout {
+                sequence: 9
+            }
+        )
+
+        column LOCATION_NAME (
+            reportColumnQueryId: 10
+            derivedColumn: N
+            heading {
+                heading: Location
+            }
+            layout {
+                sequence: 10
+            }
+        )
+
+        column CHAPTERS (
+            reportColumnQueryId: 11
+            derivedColumn: N
+            heading {
+                heading: Chapters
+            }
+            layout {
+                sequence: 11
+            }
+        )
+
+        column CONTACT (
+            reportColumnQueryId: 12
+            derivedColumn: N
+            heading {
+                heading: Contact
+            }
+            layout {
+                sequence: 12
+            }
+        )
+
+    )
+
+    pageItem P11_USER_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @profile
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    button report (
+        buttonName: REPORT
+        label: Report this profile
+        layout {
+            sequence: 10
+            region: @profile
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--simple
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 80
+                clearCache: 80
+                items: {
+                    P80_OBJECT_TYPE: PROFILE
+                    P80_OBJECT_ID: &P11_USER_ID.
+                }
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+)

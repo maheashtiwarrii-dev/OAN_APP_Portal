@@ -1,0 +1,119 @@
+--------------------------------------------------------------------------------
+-- oan_vis: section-level visibility (FR-01, NFR-03, ballot Q06)
+--   can_see      - scalar SQL macro, inlined into the secure views (no per-row PL/SQL call)
+--   can_see_ref  - procedural reference implementation (packages + equivalence test)
+--   default_level- defaults per Q9: CONTACT -> CONNECTIONS, others -> MEMBERS
+-- Level semantics (PRD FR-01, P03 option Y):
+--   PRIVATE owner only | CONNECTIONS accepted connection | CHAPTER share >= 1 identical chapter node
+--   MEMBERS any ACTIVE member | MEMBERS_PARTNERS also ACTIVE partner users
+--   Partners can only satisfy MEMBERS_PARTNERS. Blocks in either direction hide everything.
+--------------------------------------------------------------------------------
+create or replace package oan_vis authid definer as
+  function can_see(p_owner in number, p_section in varchar2) return varchar2 sql_macro(scalar);
+  function can_see_ref(p_owner in number, p_section in varchar2,
+                       p_viewer in number default null, p_viewer_type in varchar2 default null) return varchar2;
+  function default_level(p_section in varchar2) return varchar2 deterministic;
+  -- Partner card rule (§4.1 item 7): member visible to partners only with >= 1 MEMBERS_PARTNERS section
+  function partner_card_visible(p_owner in number) return varchar2 sql_macro(scalar);
+end oan_vis;
+/
+
+create or replace package body oan_vis as
+
+  function can_see(p_owner in number, p_section in varchar2) return varchar2 sql_macro(scalar) is
+  begin
+    return q'[
+      case
+        when sys_context('OAN_CTX','VIEWER_ID') is null then 'N'
+        when to_number(sys_context('OAN_CTX','VIEWER_ID')) = p_owner then 'Y'
+        when nvl(sys_context('OAN_CTX','VIEWER_TYPE'),'NONE') not in ('MEMBER','PARTNER') then 'N'
+        when exists (select 1 from oan_blocks b
+                      where (b.blocker_id = p_owner and b.blocked_id = to_number(sys_context('OAN_CTX','VIEWER_ID')))
+                         or (b.blocked_id = p_owner and b.blocker_id = to_number(sys_context('OAN_CTX','VIEWER_ID'))))
+          then 'N'
+        when sys_context('OAN_CTX','VIEWER_TYPE') = 'PARTNER' then
+          case when coalesce((select v.vis_level from oan_profile_section_vis v
+                               where v.user_id = p_owner and v.section = p_section),
+                             case p_section when 'CONTACT' then 'CONNECTIONS' else 'MEMBERS' end) = 'MEMBERS_PARTNERS'
+               then 'Y' else 'N' end
+        when coalesce((select v.vis_level from oan_profile_section_vis v
+                        where v.user_id = p_owner and v.section = p_section),
+                      case p_section when 'CONTACT' then 'CONNECTIONS' else 'MEMBERS' end) in ('MEMBERS','MEMBERS_PARTNERS')
+          then 'Y'
+        when coalesce((select v.vis_level from oan_profile_section_vis v
+                        where v.user_id = p_owner and v.section = p_section),
+                      case p_section when 'CONTACT' then 'CONNECTIONS' else 'MEMBERS' end) = 'CONNECTIONS'
+             and exists (select 1 from oan_connections c
+                          where c.status = 'ACCEPTED'
+                            and c.user_low  = least(p_owner, to_number(sys_context('OAN_CTX','VIEWER_ID')))
+                            and c.user_high = greatest(p_owner, to_number(sys_context('OAN_CTX','VIEWER_ID'))))
+          then 'Y'
+        when coalesce((select v.vis_level from oan_profile_section_vis v
+                        where v.user_id = p_owner and v.section = p_section),
+                      case p_section when 'CONTACT' then 'CONNECTIONS' else 'MEMBERS' end) = 'CHAPTER'
+             and exists (select 1 from oan_chapter_members m1
+                           join oan_chapter_members m2 on m2.chapter_id = m1.chapter_id
+                          where m1.user_id = p_owner
+                            and m2.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID')))
+          then 'Y'
+        else 'N'
+      end]';
+  end can_see;
+
+  function partner_card_visible(p_owner in number) return varchar2 sql_macro(scalar) is
+  begin
+    return q'[
+      case when exists (select 1 from oan_profile_section_vis v
+                         where v.user_id = p_owner and v.vis_level = 'MEMBERS_PARTNERS')
+           then 'Y' else 'N' end]';
+  end partner_card_visible;
+
+  function default_level(p_section in varchar2) return varchar2 deterministic is
+  begin
+    return case p_section when 'CONTACT' then 'CONNECTIONS' else 'MEMBERS' end;
+  end default_level;
+
+  function can_see_ref(p_owner in number, p_section in varchar2,
+                       p_viewer in number default null, p_viewer_type in varchar2 default null) return varchar2 is
+    l_viewer number       := coalesce(p_viewer, oan_util.viewer_id);
+    l_type   varchar2(20) := coalesce(p_viewer_type, sys_context('OAN_CTX','VIEWER_TYPE'), 'NONE');
+    l_level  varchar2(20);
+    l_cnt    number;
+  begin
+    if l_viewer is null then return 'N'; end if;
+    if l_viewer = p_owner then return 'Y'; end if;
+    if l_type not in ('MEMBER','PARTNER') then return 'N'; end if;
+
+    select count(*) into l_cnt from oan_blocks
+     where (blocker_id = p_owner and blocked_id = l_viewer) or (blocker_id = l_viewer and blocked_id = p_owner);
+    if l_cnt > 0 then return 'N'; end if;
+
+    begin
+      select vis_level into l_level from oan_profile_section_vis where user_id = p_owner and section = p_section;
+    exception
+      when no_data_found then l_level := default_level(p_section);
+    end;
+
+    if l_type = 'PARTNER' then
+      return case when l_level = 'MEMBERS_PARTNERS' then 'Y' else 'N' end;
+    end if;
+
+    case l_level
+      when 'MEMBERS'          then return 'Y';
+      when 'MEMBERS_PARTNERS' then return 'Y';
+      when 'PRIVATE'          then return 'N';
+      when 'CONNECTIONS' then
+        select count(*) into l_cnt from oan_connections
+         where status = 'ACCEPTED' and user_low = least(p_owner, l_viewer) and user_high = greatest(p_owner, l_viewer);
+        return case when l_cnt > 0 then 'Y' else 'N' end;
+      when 'CHAPTER' then
+        select count(*) into l_cnt
+          from oan_chapter_members m1 join oan_chapter_members m2 on m2.chapter_id = m1.chapter_id
+         where m1.user_id = p_owner and m2.user_id = l_viewer;
+        return case when l_cnt > 0 then 'Y' else 'N' end;
+      else return 'N';
+    end case;
+  end can_see_ref;
+
+end oan_vis;
+/

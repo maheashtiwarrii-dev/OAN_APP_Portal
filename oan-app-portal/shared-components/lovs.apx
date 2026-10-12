@@ -1,0 +1,308 @@
+lov boolean (
+    name: BOOLEAN
+    source {
+        location: staticValues
+    }
+
+    entry false (
+        sequence: 2
+        display: No
+        return: FALSE
+    )
+
+    entry true (
+        sequence: 1
+        display: Yes
+        return: TRUE
+    )
+
+)
+
+lov oan-chapters (
+    name: OAN_CHAPTERS
+    source {
+        location: localDatabase
+        type: sqlQuery
+        sqlQuery:
+            ```sql
+            select d, r from oan_chapters_lov_v
+            ```
+    }
+    columnMapping {
+        display: D
+        return: R
+    }
+)
+
+lov oan-locations (
+    name: OAN_LOCATIONS
+    source {
+        location: localDatabase
+        type: sqlQuery
+        sqlQuery:
+            ```sql
+            select d, r from oan_locations_lov_v
+            ```
+    }
+    columnMapping {
+        display: D
+        return: R
+    }
+)
+
+lov oan-skills (
+    name: OAN_SKILLS
+    source {
+        location: localDatabase
+        type: sqlQuery
+        sqlQuery:
+            ```sql
+            select d, r from oan_terms_lov_v where term_type = 'SKILL' order by d
+            ```
+    }
+    columnMapping {
+        display: D
+        return: R
+    }
+)
+
+lov oan-tags (
+    name: OAN_TAGS
+    source {
+        location: localDatabase
+        type: sqlQuery
+        sqlQuery:
+            ```sql
+            select d || ' (' || initcap(term_type) || ')' d, r from oan_terms_lov_v
+             where term_type in ('SKILL','TOPIC','INDUSTRY') order by d
+            ```
+    }
+    columnMapping {
+        display: D
+        return: R
+    }
+)
+
+lov oan-experience-bands (
+    name: OAN_EXPERIENCE_BANDS
+    source {
+        location: localDatabase
+        type: sqlQuery
+        sqlQuery:
+            ```sql
+            select d, r from oan_terms_lov_v where term_type = 'EXPERIENCE_BAND' order by sort_order
+            ```
+    }
+    columnMapping {
+        display: D
+        return: R
+    }
+)
+
+lov oan-forums (
+    name: OAN_FORUMS
+    source {
+        location: localDatabase
+        type: sqlQuery
+        sqlQuery:
+            ```sql
+            select d, r from oan_forums_lov_v
+            ```
+    }
+    columnMapping {
+        display: D
+        return: R
+    }
+)
+
+lov oan-members (
+    name: OAN_MEMBERS
+    source {
+        location: localDatabase
+        type: sqlQuery
+        sqlQuery:
+            ```sql
+            select d, r from oan_members_lov_v order by d
+            ```
+    }
+    columnMapping {
+        display: D
+        return: R
+    }
+)
+
+lov oan-visibility-levels (
+    name: OAN_VISIBILITY_LEVELS
+    source {
+        location: staticValues
+    }
+
+    entry private (
+        sequence: 1
+        display: Only me
+        return: PRIVATE
+    )
+
+    entry connections (
+        sequence: 2
+        display: My connections
+        return: CONNECTIONS
+    )
+
+    entry chapter (
+        sequence: 3
+        display: Members of my chapters
+        return: CHAPTER
+    )
+
+    entry members (
+        sequence: 4
+        display: All OAN members
+        return: MEMBERS
+    )
+
+    entry members-partners (
+        sequence: 5
+        display: OAN members and approved partners
+        return: MEMBERS_PARTNERS
+    )
+
+)
+
+lov oan-library-categories (
+    name: OAN_LIBRARY_CATEGORIES
+    source {
+        location: staticValues
+    }
+
+    entry sales (
+        sequence: 1
+        display: Sales
+        return: SALES
+    )
+
+    entry training (
+        sequence: 2
+        display: Training
+        return: TRAINING
+    )
+
+    entry product (
+        sequence: 3
+        display: Product
+        return: PRODUCT
+    )
+
+    entry best-practice (
+        sequence: 4
+        display: Best Practice
+        return: BEST_PRACTICE
+    )
+
+    entry faq (
+        sequence: 5
+        display: FAQ
+        return: FAQ
+    )
+
+    entry community-history (
+        sequence: 6
+        display: Community History
+        return: COMMUNITY_HISTORY
+    )
+
+    entry other (
+        sequence: 7
+        display: Other
+        return: OTHER
+    )
+
+)
+
+lov oan-rights-basis (
+    name: OAN_RIGHTS_BASIS
+    source {
+        location: staticValues
+    }
+
+    entry contributor-owned (
+        sequence: 1
+        display: I created it / I own the rights
+        return: CONTRIBUTOR_OWNED
+    )
+
+    entry licensed (
+        sequence: 2
+        display: Licensed for sharing (state the licence)
+        return: LICENSED
+    )
+
+    entry publicly-available (
+        sequence: 3
+        display: Publicly available (give the source URL)
+        return: PUBLICLY_AVAILABLE
+    )
+
+    entry oan-owned (
+        sequence: 4
+        display: OAN-owned (administrators only)
+        return: OAN_OWNED
+    )
+
+)
+
+lov oan-report-reasons (
+    name: OAN_REPORT_REASONS
+    source {
+        location: staticValues
+    }
+
+    entry spam (
+        sequence: 1
+        display: Spam
+        return: SPAM
+    )
+
+    entry harassment (
+        sequence: 2
+        display: Harassment
+        return: HARASSMENT
+    )
+
+    entry misrepresentation (
+        sequence: 3
+        display: Misrepresentation
+        return: MISREPRESENTATION
+    )
+
+    entry confidential (
+        sequence: 4
+        display: Confidential information
+        return: CONFIDENTIAL
+    )
+
+    entry ip (
+        sequence: 5
+        display: Intellectual property
+        return: IP
+    )
+
+    entry commercial-abuse (
+        sequence: 6
+        display: Commercial abuse
+        return: COMMERCIAL_ABUSE
+    )
+
+    entry remove-my-contribution (
+        sequence: 7
+        display: Remove my contribution (Library)
+        return: REMOVE_MY_CONTRIBUTION
+    )
+
+    entry other (
+        sequence: 8
+        display: Other
+        return: OTHER
+    )
+
+)

@@ -1,0 +1,435 @@
+page 110 (
+    name: Membership Application
+    alias: MEMBERSHIP-APPLICATION
+    title: OAN membership application
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    security {
+        authorizationScheme: @is-pending
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: FR-01 registration form (local after email verification, social on first login). Routed to the nearest chapter admin (P11).
+    }
+
+    region about-you (
+        name: About you
+        type: staticContent
+        source {
+            htmlCode: <p>Tell us about your time at Oracle. A chapter or platform administrator reviews every application, usually within 3 business days.</p>
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region oracle-tenure (
+        name: Your Oracle tenure
+        type: staticContent
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region consent (
+        name: Consent
+        type: staticContent
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: noRowsReturned
+            sqlQuery: select 1 from oan_my_consents_v where consent_type = 'TERMS' and granted = 'Y'
+        }
+    )
+
+    pageItem P110_FIRST_NAME (
+        type: textField
+        label {
+            label: First name
+        }
+        layout {
+            sequence: 10
+            region: @about-you
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+            maxLength: 100
+        }
+    )
+
+    pageItem P110_LAST_NAME (
+        type: textField
+        label {
+            label: Last name
+        }
+        layout {
+            sequence: 20
+            region: @about-you
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+            maxLength: 100
+        }
+    )
+
+    pageItem P110_HEADLINE (
+        type: textField
+        label {
+            label: Headline (e.g. "Cloud architect, ex-Oracle Consulting")
+        }
+        layout {
+            sequence: 30
+            region: @about-you
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 200
+        }
+    )
+
+    pageItem P110_LOCATION_ID (
+        type: popupLov
+        label {
+            label: Where you live
+        }
+        lov {
+            type: sharedComponent
+            lov: @oan-locations
+        }
+        layout {
+            sequence: 40
+            region: @about-you
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P110_PRIMARY_CHAPTER_ID (
+        type: popupLov
+        label {
+            label: Primary chapter
+        }
+        lov {
+            type: sharedComponent
+            lov: @oan-chapters
+        }
+        layout {
+            sequence: 50
+            region: @about-you
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+        }
+    )
+
+    pageItem P110_EXPERIENCE_BAND_ID (
+        type: selectList
+        label {
+            label: Total professional experience
+        }
+        lov {
+            type: sharedComponent
+            lov: @oan-experience-bands
+        }
+        layout {
+            sequence: 60
+            region: @about-you
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P110_FROM_YEAR (
+        type: numberField
+        label {
+            label: Year you joined Oracle
+        }
+        layout {
+            sequence: 10
+            region: @oracle-tenure
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+        }
+    )
+
+    pageItem P110_TO_YEAR (
+        type: numberField
+        label {
+            label: Year you left Oracle
+        }
+        layout {
+            sequence: 20
+            region: @oracle-tenure
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P110_LAST_ORG (
+        type: textField
+        label {
+            label: Last organization / line of business at Oracle
+        }
+        layout {
+            sequence: 30
+            region: @oracle-tenure
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 200
+        }
+    )
+
+    pageItem P110_EMPLOYEE_ID (
+        type: textField
+        label {
+            label: Former employee ID (optional)
+        }
+        layout {
+            sequence: 40
+            region: @oracle-tenure
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 30
+        }
+    )
+
+    pageItem P110_LINKEDIN_URL (
+        type: textField
+        label {
+            label: LinkedIn profile URL (helps reviewers confirm your tenure)
+        }
+        layout {
+            sequence: 50
+            region: @oracle-tenure
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 500
+        }
+    )
+
+    pageItem P110_NOTE (
+        type: textarea
+        label {
+            label: Anything else the reviewer should know
+        }
+        layout {
+            sequence: 60
+            region: @oracle-tenure
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 2000
+        }
+    )
+
+    pageItem P110_AGE_18 (
+        type: checkbox
+        label {
+            label: I confirm that I am 18 years of age or older
+        }
+        settings {
+            useDefaults: false
+            checkedValue: Y
+            uncheckedValue: N
+        }
+        layout {
+            sequence: 10
+            region: @consent
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P110_ACCEPT_TERMS (
+        type: checkbox
+        label {
+            label: I accept the Terms of Use, Privacy Notice and Community Guidelines
+        }
+        settings {
+            useDefaults: false
+            checkedValue: Y
+            uncheckedValue: N
+        }
+        layout {
+            sequence: 20
+            region: @consent
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    button submit (
+        buttonName: SUBMIT
+        label: Submit application
+        layout {
+            sequence: 10
+            region: @about-you
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process load-names (
+        name: Prefill from account
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                for r in (select first_name, last_name, headline, location_id, experience_band_id, linkedin_url
+                            from oan_my_account_v) loop
+                    :P110_FIRST_NAME := coalesce(:P110_FIRST_NAME, r.first_name);
+                    :P110_LAST_NAME  := coalesce(:P110_LAST_NAME, r.last_name);
+                    :P110_HEADLINE   := coalesce(:P110_HEADLINE, r.headline);
+                    :P110_LOCATION_ID := coalesce(:P110_LOCATION_ID, r.location_id);
+                    :P110_EXPERIENCE_BAND_ID := coalesce(:P110_EXPERIENCE_BAND_ID, r.experience_band_id);
+                    :P110_LINKEDIN_URL := coalesce(:P110_LINKEDIN_URL, r.linkedin_url);
+                end loop;
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+    )
+
+    process submit-application (
+        name: Submit application
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                oan_registration_pkg.submit_application(
+                    p_first_name         => :P110_FIRST_NAME,
+                    p_last_name          => :P110_LAST_NAME,
+                    p_headline           => :P110_HEADLINE,
+                    p_location_id        => :P110_LOCATION_ID,
+                    p_primary_chapter_id => :P110_PRIMARY_CHAPTER_ID,
+                    p_experience_band_id => :P110_EXPERIENCE_BAND_ID,
+                    p_oracle_from_year   => :P110_FROM_YEAR,
+                    p_oracle_to_year     => :P110_TO_YEAR,
+                    p_last_org_lob       => :P110_LAST_ORG,
+                    p_employee_id        => :P110_EMPLOYEE_ID,
+                    p_linkedin_url       => :P110_LINKEDIN_URL,
+                    p_note               => :P110_NOTE,
+                    p_age_18             => :P110_AGE_18,
+                    p_accept_terms       => :P110_ACCEPT_TERMS);
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        serverSideCondition {
+            whenButtonPressed: @submit
+        }
+        successMessage {
+            successMessage: Thank you. Your application is with the reviewers.
+        }
+    )
+
+    branch to-status (
+        name: To application status
+        behavior {
+            type: pageOrUrl
+            target: {
+                page: 2
+            }
+        }
+        execution {
+            point: afterProcessing
+            sequence: 10
+        }
+    )
+
+)

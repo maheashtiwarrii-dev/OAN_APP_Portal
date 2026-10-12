@@ -1,0 +1,75 @@
+authentication oan-local (
+    name: OAN_LOCAL
+    type: custom
+    loginProcessing {
+        postAuthenticationProcedureName: oan_auth_pkg.post_auth_local
+    }
+    sessionNotValid {
+        redirectTo: loginPage
+    }
+    postLogout {
+        redirectTo: homePage
+    }
+    settings {
+        authFunctionName: oan_auth_pkg.authenticate
+    }
+    comments {
+        comments: Local email/password accounts (NFR-01). PBKDF2-HMAC-SHA512, lockout per account and IP. APP_USER becomes the immutable generated username in post-auth.
+    }
+)
+
+authentication oan-google (
+    name: OAN_GOOGLE
+    type: socialSignIn
+    loginProcessing {
+        switchInSession: true
+        postAuthenticationProcedureName: oan_auth_pkg.post_auth_google
+    }
+    sessionNotValid {
+        redirectTo: loginPage
+    }
+    postLogout {
+        redirectTo: homePage
+    }
+    settings {
+        authProvider: google
+        credentialStore: @OAN_Google_OAuth
+        scope: openid email profile
+        username: #sub#
+        additionalUserAttrs: email,email_verified,given_name,family_name
+        verifyAttrs: true
+        convertUsernameToUpperCase: false
+    }
+    comments {
+        comments: Google OIDC (NFR-01; plan 0.6 - required in Sprint 0). Started from the login page with request APEX_AUTHENTICATION=OAN_GOOGLE.
+    }
+)
+
+authentication oan-linkedin (
+    name: OAN_LINKEDIN
+    type: socialSignIn
+    loginProcessing {
+        switchInSession: true
+        postAuthenticationProcedureName: oan_auth_pkg.post_auth_linkedin
+    }
+    sessionNotValid {
+        redirectTo: loginPage
+    }
+    postLogout {
+        redirectTo: homePage
+    }
+    settings {
+        authProvider: openidConnect
+        credentialStore: @OAN_LinkedIn_OAuth
+        discoveryUrl: https://www.linkedin.com/oauth/.well-known/openid-configuration
+        scope: openid email profile
+        username: #sub#
+        additionalUserAttrs: email,email_verified,given_name,family_name
+        tokenAuthMethod: clientIdClientSecretInBody
+        verifyAttrs: true
+        convertUsernameToUpperCase: false
+    }
+    comments {
+        comments: LinkedIn OIDC (NFR-01). Behind Build Option LINKEDIN until the LinkedIn app is approved.
+    }
+)

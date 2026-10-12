@@ -1,0 +1,14 @@
+# PRD v1.2 Part B — Round 1, Reviewer B (Security/Privacy/Governance)
+
+B-1 (H) ORG viewer context: partner/customer/non-Oracle contacts (even when also members) run org-workspace pages as viewer_type ORG with Members+Partners limits; no export, print or REST. AC: MEMBER+PARTNER_CONTACT sees on page 47 exactly what a pure partner would see.
+B-2 (H) HR brokering: hidden until a written Oracle HR arrangement exists; OAN states identity is unverified; delivery only via Oracle channels; no PAN/Aadhaar/tax ID/bank/salary/employee-ID collected (pattern check); attachments refused; support agents see metadata only; 6-month retention; AC 5 and 6.
+B-3 (H) Webhooks: Slack signature + 300s timestamp check; WhatsApp X-Hub-Signature-256 on every POST; 401 + rate limit + audit; idempotency; only anonymous ORDS modules besides /verify; outbound = title + deep link only; Slack replies only in DMs; unlinked payloads purged after 7d; WhatsApp re-verified every 12 months.
+B-4 (H) Candidate feedback: written only by the posting org about its responders; never visible to other orgs; non-shareable rows still in FR-26 export / access requests; content rules; reportable; 12-month retention; not used in matching or scores; AC changes.
+B-5 (H) Privacy impact of the merge: DPIA/RoPA update with per-Build-Option gating; DPAs with Slack, Meta, Oracle HR; lawful bases; FR-26 coverage of all new domains; retention table; PD-registry test requires a retention rule.
+B-6 (H) Field-to-section mapping for new fields; new "Career status" section (default Connections, never M+P) and "CV" section (default Private); uploaded CV shared only per application; never shown to the current employer's org; CVs not text-indexed.
+B-7 (H) Exports: aggregate reports for staff; personal-data exports ADMIN/PRIVACY_OFFICER only with re-auth + audit; disabled for other roles and ORG viewers; event managers may export check-in lists only.
+B-8 (M) LLM assistant: DPIA gate moves to Build Option enablement; read-only tools; no LLM for PENDING users or unlinked senders; opt-in for onboarding free text; 90-day retention; prompt-injection AC.
+B-9 (M) Permission rows for SUPPORT_AGENT, CONTENT_EDITOR, EVENT_MANAGER, PRIVACY_OFFICER, TRAINER, EXPERT; self-declared MENTOR label and limits; staff roles ADMIN-granted with IdP + MFA; 5.7 test rows.
+B-10 (M) Referrals: suggestions only where Work History org is visible and messaging enabled, plus an "Accept referral requests" setting; target cap 5/week; referral-spam reports; AC 4.
+B-11 (M) Groups: governance (approval, owner + moderators); member lists private; private posts excluded from global search, digests, channels, AI, fine-grained reports; AC 4.
+B-12 (M) Messaging permission narrows contexts (no "anyone"); unmoderated uploads limited to pdf/png/jpg, 10/day; group threads ≤ 50 members; FR-33 antivirus risk acceptance revised.

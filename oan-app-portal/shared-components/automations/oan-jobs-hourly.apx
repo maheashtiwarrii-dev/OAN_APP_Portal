@@ -1,0 +1,29 @@
+automation oan-jobs-hourly (
+    name: OAN Jobs Hourly
+    execution {
+        type: scheduled
+        actionsInitiatedOn: always
+        scheduleExpression: FREQ=HOURLY;INTERVAL=1;BYMINUTE=5
+        scheduleStatus: active
+    }
+    actionExecution {
+        actionErrorHandling: ignore
+    }
+    comments {
+        comments: PRD 8.1 hourly jobs (digest at 07:00 local, privacy export queue). Calls only oan_jobs_pkg (Q07).
+    }
+
+    action run-hourly (
+        name: Run hourly jobs
+        type: executeCode
+        execution {
+            sequence: 10
+        }
+        source {
+            location: localDatabase
+            language: plsql
+            plsqlCode: oan_jobs_pkg.run_hourly;
+        }
+    )
+
+)

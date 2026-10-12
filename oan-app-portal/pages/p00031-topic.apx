@@ -1,0 +1,356 @@
+page 31 (
+    name: Topic
+    alias: TOPIC
+    title: Discussion topic
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    security {
+        authorizationScheme: @is-active
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: FR-17 thread view, replies, @mentions, accepted answer (asker only), report (FR-25).
+    }
+
+    region posts (
+        name: &P31_TITLE.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select author_name,
+                       to_char(created_at, 'DD Mon YYYY HH24:MI') || case when edited_at is not null then ' (edited)' end posted,
+                       case is_accepted when 'Y' then 'Accepted answer' end accepted,
+                       body
+                  from oan_posts_v
+                 where thread_id = :P31_ID
+                 order by created_at
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+            ]
+        }
+        reportLayout {
+            numberOfRows: 50
+        }
+        pagination {
+            type: nextAndPreviousLinks
+        }
+        messages {
+            whenNoDataFound: This topic is not available.
+        }
+
+        column AUTHOR_NAME (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: Member
+            }
+            layout {
+                sequence: 1
+            }
+        )
+
+        column POSTED (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Posted
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column ACCEPTED (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Status
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column BODY (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Message
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+    )
+
+    region reply (
+        name: Reply
+        type: staticContent
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery: select 1 from oan_threads_v where id = :P31_ID and status = 'OPEN'
+        }
+    )
+
+    region accept-answer (
+        name: Accept an answer
+        type: staticContent
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery: select 1 from oan_threads_v where id = :P31_ID and is_mine = 'Y' and thread_type = 'QUESTION'
+        }
+    )
+
+    pageItem P31_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @posts
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P31_TITLE (
+        type: hidden
+        layout {
+            sequence: 20
+            region: @posts
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: restricted
+        }
+    )
+
+    pageItem P31_BODY (
+        type: textarea
+        label {
+            label: Your reply
+        }
+        layout {
+            sequence: 10
+            region: @reply
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 32000
+        }
+    )
+
+    pageItem P31_MENTIONS (
+        type: selectMany
+        label {
+            label: Mention members (optional)
+        }
+        lov {
+            type: sharedComponent
+            lov: @oan-members
+        }
+        layout {
+            sequence: 20
+            region: @reply
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P31_ACCEPT_POST_ID (
+        type: selectList
+        label {
+            label: Answer to accept
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select author_name || ': ' || dbms_lob.substr(body, 80, 1) d, id r
+                  from oan_posts_v
+                 where thread_id = :P31_ID and is_first = 'N' and is_mine = 'N'
+                 order by created_at
+                ```
+        }
+        layout {
+            sequence: 10
+            region: @accept-answer
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    button post-reply (
+        buttonName: POST_REPLY
+        label: Post reply
+        layout {
+            sequence: 10
+            region: @reply
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button accept (
+        buttonName: ACCEPT
+        label: Mark as accepted answer
+        layout {
+            sequence: 10
+            region: @accept-answer
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button report (
+        buttonName: REPORT
+        label: Report topic
+        layout {
+            sequence: 10
+            region: @posts
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--simple
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 80
+                clearCache: 80
+                items: {
+                    P80_OBJECT_TYPE: THREAD
+                    P80_OBJECT_ID: &P31_ID.
+                }
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process load (
+        name: Load topic
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                for r in (select title from oan_threads_v where id = :P31_ID) loop
+                    :P31_TITLE := r.title;
+                end loop;
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+    )
+
+    process post-reply (
+        name: Post reply
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare
+                    l_id number;
+                begin
+                    l_id := oan_forum_pkg.reply(:P31_ID, :P31_BODY, :P31_MENTIONS);
+                    :P31_BODY := null;
+                    :P31_MENTIONS := null;
+                end;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        serverSideCondition {
+            whenButtonPressed: @post-reply
+        }
+        successMessage {
+            successMessage: Reply posted.
+        }
+    )
+
+    process accept (
+        name: Accept answer
+        type: executeCode
+        source {
+            plsqlCode: oan_forum_pkg.accept_answer(:P31_ID, :P31_ACCEPT_POST_ID);
+        }
+        execution {
+            sequence: 20
+        }
+        serverSideCondition {
+            whenButtonPressed: @accept
+        }
+        successMessage {
+            successMessage: Answer accepted.
+        }
+    )
+
+)

@@ -1,0 +1,58 @@
+page 0 (
+    name: Global Page
+
+    region legal-footer (
+        name: Legal footer
+        type: staticContent
+        source {
+            htmlCode:
+                ```html
+                <div class="u-textCenter" style="font-size:12px;padding:12px 0;">
+                  OAN is an independent alumni community and is not affiliated with or endorsed by Oracle Corporation.
+                  &middot; <a href="f?p=&APP_ID.:104:&APP_SESSION.">Terms, Privacy &amp; Guidelines</a>
+                  &middot; <a href="f?p=&APP_ID.:105:&APP_SESSION.">Report an IP or confidentiality concern</a>
+                </div>
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: footer
+        }
+        appearance {
+            template: @/blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        comments {
+            comments: NFR-19 disclaimer on every page; FR-19 public takedown link.
+        }
+    )
+
+    region cookie-notice (
+        name: Cookie notice
+        type: staticContent
+        source {
+            htmlCode:
+                ```html
+                <div id="oan-cookie-notice" class="t-Alert t-Alert--colorBG t-Alert--horizontal t-Alert--info" style="display:none;">
+                  <div class="t-Alert-body">OAN Portal uses only essential cookies needed to sign you in and keep your session secure.
+                    <a href="f?p=&APP_ID.:104:&APP_SESSION.">Cookie notice</a>.
+                    <button type="button" class="t-Button t-Button--small" onclick="localStorage.setItem('oanCookieAck','1');document.getElementById('oan-cookie-notice').style.display='none';">OK</button>
+                  </div>
+                </div>
+                <script>if(!localStorage.getItem('oanCookieAck')){document.getElementById('oan-cookie-notice').style.display='block';}</script>
+                ```
+        }
+        layout {
+            sequence: 20
+            slot: footer
+        }
+        appearance {
+            template: @/blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        comments {
+            comments: FR-26 / plan 2.11 essential-cookie notice (no consent needed for essential cookies; informational).
+        }
+    )
+
+)

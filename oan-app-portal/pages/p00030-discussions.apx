@@ -1,0 +1,279 @@
+page 30 (
+    name: Discussions
+    alias: DISCUSSIONS
+    title: Community discussions
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        authorizationScheme: @is-active
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: FR-17 P1 topic forums, Q&A and announcements. Data from OAN_FORUMS_V / OAN_THREADS_V (blocks applied).
+    }
+
+    region forums (
+        name: Forums
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select id, name, description, thread_count, to_char(last_activity, 'DD Mon YYYY') last_activity
+                  from oan_forums_v
+                 order by sort_order
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: No forums are available yet.
+        }
+
+        column ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column NAME (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Forum
+            }
+            layout {
+                sequence: 2
+            }
+            link {
+                target: {
+                    page: 30
+                    items: {
+                        P30_FORUM_ID: \#ID#\
+                    }
+                }
+                linkText: #NAME#
+            }
+        )
+
+        column DESCRIPTION (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: About
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column THREAD_COUNT (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Topics
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column LAST_ACTIVITY (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Last activity
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+    )
+
+    region threads (
+        name: Topics
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select id, title, forum_name,
+                       case thread_type when 'QUESTION' then case when accepted_post_id is not null then 'Answered' else 'Question' end
+                                        when 'ANNOUNCEMENT' then 'Announcement' else 'Discussion' end kind,
+                       author_name, post_count, to_char(last_post_at, 'DD Mon HH24:MI') last_activity
+                  from oan_threads_v
+                 where (:P30_FORUM_ID is null or forum_id = :P30_FORUM_ID)
+                 order by last_post_at desc
+                ```
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        reportLayout {
+            numberOfRows: 25
+        }
+        pagination {
+            type: nextAndPreviousLinks
+        }
+        messages {
+            whenNoDataFound: No topics here yet. Start the conversation with "New topic".
+        }
+
+        column ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column TITLE (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Topic
+            }
+            layout {
+                sequence: 2
+            }
+            link {
+                target: {
+                    page: 31
+                    items: {
+                        P31_ID: \#ID#\
+                    }
+                }
+                linkText: #TITLE#
+            }
+        )
+
+        column FORUM_NAME (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Forum
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column KIND (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Type
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column AUTHOR_NAME (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Started by
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+        column POST_COUNT (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Posts
+            }
+            layout {
+                sequence: 6
+            }
+        )
+
+        column LAST_ACTIVITY (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: Last activity
+            }
+            layout {
+                sequence: 7
+            }
+        )
+
+    )
+
+    pageItem P30_FORUM_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @threads
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    button new-topic (
+        buttonName: NEW_TOPIC
+        label: New topic
+        layout {
+            sequence: 10
+            region: @threads
+            slot: edit
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 32
+                clearCache: 32
+                items: {
+                    P32_FORUM_ID: &P30_FORUM_ID.
+                }
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+)

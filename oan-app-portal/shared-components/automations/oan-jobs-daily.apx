@@ -1,0 +1,29 @@
+automation oan-jobs-daily (
+    name: OAN Jobs Daily
+    execution {
+        type: scheduled
+        actionsInitiatedOn: always
+        scheduleExpression: FREQ=DAILY;INTERVAL=1;BYHOUR=2;BYMINUTE=0
+        scheduleStatus: active
+    }
+    actionExecution {
+        actionErrorHandling: ignore
+    }
+    comments {
+        comments: PRD 8.1 daily jobs 02:00 UTC (escalation, IP auto-hide, inactivity, deletions, purges, MFA re-attestation).
+    }
+
+    action run-daily (
+        name: Run daily jobs
+        type: executeCode
+        execution {
+            sequence: 10
+        }
+        source {
+            location: localDatabase
+            language: plsql
+            plsqlCode: oan_jobs_pkg.run_daily;
+        }
+    )
+
+)

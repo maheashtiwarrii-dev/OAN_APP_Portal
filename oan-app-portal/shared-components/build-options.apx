@@ -1,0 +1,41 @@
+buildOption commented-out (
+    name: Commented Out
+)
+
+buildOption phase-2 (
+    name: PHASE_2
+    status {
+        status: exclude
+        onUpgradeKeepStatus: true
+    }
+    comments {
+        comments: Networking & Collaboration features (PRD section 7). Off until Phase 2 acceptance criteria are approved and built.
+    }
+)
+
+buildOption phase-3 (
+    name: PHASE_3
+    status {
+        status: exclude
+        onUpgradeKeepStatus: true
+    }
+)
+
+buildOption phase-4 (
+    name: PHASE_4
+    status {
+        status: exclude
+        onUpgradeKeepStatus: true
+    }
+)
+
+buildOption linkedin (
+    name: LINKEDIN
+    status {
+        status: exclude
+        onUpgradeKeepStatus: true
+    }
+    comments {
+        comments: LinkedIn sign-in button; include once the LinkedIn OIDC app is approved (plan 0.6).
+    }
+)

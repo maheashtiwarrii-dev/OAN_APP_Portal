@@ -1,0 +1,29 @@
+automation oan-jobs-weekly (
+    name: OAN Jobs Weekly
+    execution {
+        type: scheduled
+        actionsInitiatedOn: always
+        scheduleExpression: FREQ=WEEKLY;INTERVAL=1;BYDAY=SUN;BYHOUR=3;BYMINUTE=0
+        scheduleStatus: active
+    }
+    actionExecution {
+        actionErrorHandling: ignore
+    }
+    comments {
+        comments: PRD 8.1 weekly jobs (Oracle Text optimize, retention purges).
+    }
+
+    action run-weekly (
+        name: Run weekly jobs
+        type: executeCode
+        execution {
+            sequence: 10
+        }
+        source {
+            location: localDatabase
+            language: plsql
+            plsqlCode: oan_jobs_pkg.run_weekly;
+        }
+    )
+
+)

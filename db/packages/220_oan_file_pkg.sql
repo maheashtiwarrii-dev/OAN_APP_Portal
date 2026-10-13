@@ -30,6 +30,8 @@ create or replace package body oan_file_pkg as
     oan_util.assert(dbms_lob.getlength(p_blob) between 1 and c_max_size, 'Files must be 20 MB or smaller.');
     if p_object_type = 'PROFILE_PHOTO' then
       oan_util.assert(l_ext in ('png','jpg','jpeg'), 'Profile photos must be PNG or JPG.');
+    elsif p_object_type = 'CV' then
+      oan_util.assert(l_ext in ('pdf','docx'), 'Your CV must be a PDF or Word (.docx) file.');
     else
       oan_util.assert(l_ext in ('pdf','docx','pptx','xlsx','png','jpg','jpeg'),
                       'Allowed file types: pdf, docx, pptx, xlsx, png, jpg.');
@@ -65,10 +67,10 @@ create or replace package body oan_file_pkg as
     l_quota number;
     l_mime  varchar2(200);
   begin
-    if p_object_type in ('PROFILE_PHOTO','LIBRARY_ITEM') then
+    if p_object_type in ('PROFILE_PHOTO','LIBRARY_ITEM','CV') then
       validate(p_blob, p_filename, p_object_type);
       select coalesce(sum(file_size), 0) into l_quota from oan_files
-       where owner_id = p_owner_id and object_type in ('PROFILE_PHOTO','LIBRARY_ITEM');
+       where owner_id = p_owner_id and object_type in ('PROFILE_PHOTO','LIBRARY_ITEM','CV');
       oan_util.assert(l_quota + dbms_lob.getlength(p_blob)
                         <= oan_util.get_config_num('UPLOAD_QUOTA_MB', 500) * 1024 * 1024,
                       'Upload quota reached (500 MB).');
@@ -126,6 +128,9 @@ create or replace package body oan_file_pkg as
         return l_cnt > 0 and oan_auth_pkg.is_recently_reauthenticated(15);
       when 'IMPORT_BATCH' then
         return oan_security_pkg.is_admin;
+      when 'CV' then
+        -- CV section is PRIVATE (R13): owner only until per-application shares (W2.7)
+        return l_file.owner_id = oan_util.viewer_id;
       else
         return false;
     end case;

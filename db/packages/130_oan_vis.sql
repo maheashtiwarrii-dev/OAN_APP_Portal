@@ -2,7 +2,7 @@
 -- oan_vis: section-level visibility (FR-01, NFR-03, ballot Q06)
 --   can_see      - scalar SQL macro, inlined into the secure views (no per-row PL/SQL call)
 --   can_see_ref  - procedural reference implementation (packages + equivalence test)
---   default_level- defaults per Q9: CONTACT -> CONNECTIONS, others -> MEMBERS
+--   default_level- defaults per Q9: CONTACT -> CONNECTIONS, others -> MEMBERS; R13: CAREER_STATUS -> CONNECTIONS, CV -> PRIVATE
 -- Level semantics (PRD FR-01, P03 option Y):
 --   PRIVATE owner only | CONNECTIONS accepted connection | CHAPTER share >= 1 identical chapter node
 --   MEMBERS any ACTIVE member | MEMBERS_PARTNERS also ACTIVE partner users
@@ -38,15 +38,15 @@ create or replace package body oan_vis as
         when sys_context('OAN_CTX','VIEWER_TYPE') = 'PARTNER' then
           case when coalesce((select v.vis_level from oan_profile_section_vis v
                                where v.user_id = p_owner and v.section = p_section),
-                             case p_section when 'CONTACT' then 'CONNECTIONS' else 'MEMBERS' end) = 'MEMBERS_PARTNERS'
+                             case p_section when 'CONTACT' then 'CONNECTIONS' when 'CAREER_STATUS' then 'CONNECTIONS' when 'CV' then 'PRIVATE' else 'MEMBERS' end) = 'MEMBERS_PARTNERS'
                then 'Y' else 'N' end
         when coalesce((select v.vis_level from oan_profile_section_vis v
                         where v.user_id = p_owner and v.section = p_section),
-                      case p_section when 'CONTACT' then 'CONNECTIONS' else 'MEMBERS' end) in ('MEMBERS','MEMBERS_PARTNERS')
+                      case p_section when 'CONTACT' then 'CONNECTIONS' when 'CAREER_STATUS' then 'CONNECTIONS' when 'CV' then 'PRIVATE' else 'MEMBERS' end) in ('MEMBERS','MEMBERS_PARTNERS')
           then 'Y'
         when coalesce((select v.vis_level from oan_profile_section_vis v
                         where v.user_id = p_owner and v.section = p_section),
-                      case p_section when 'CONTACT' then 'CONNECTIONS' else 'MEMBERS' end) = 'CONNECTIONS'
+                      case p_section when 'CONTACT' then 'CONNECTIONS' when 'CAREER_STATUS' then 'CONNECTIONS' when 'CV' then 'PRIVATE' else 'MEMBERS' end) = 'CONNECTIONS'
              and exists (select 1 from oan_connections c
                           where c.status = 'ACCEPTED'
                             and c.user_low  = least(p_owner, to_number(sys_context('OAN_CTX','VIEWER_ID')))
@@ -54,7 +54,7 @@ create or replace package body oan_vis as
           then 'Y'
         when coalesce((select v.vis_level from oan_profile_section_vis v
                         where v.user_id = p_owner and v.section = p_section),
-                      case p_section when 'CONTACT' then 'CONNECTIONS' else 'MEMBERS' end) = 'CHAPTER'
+                      case p_section when 'CONTACT' then 'CONNECTIONS' when 'CAREER_STATUS' then 'CONNECTIONS' when 'CV' then 'PRIVATE' else 'MEMBERS' end) = 'CHAPTER'
              and exists (select 1 from oan_chapter_members m1
                            join oan_chapter_members m2 on m2.chapter_id = m1.chapter_id
                           where m1.user_id = p_owner
@@ -115,7 +115,7 @@ create or replace package body oan_vis as
 
   function default_level(p_section in varchar2) return varchar2 deterministic is
   begin
-    return case p_section when 'CONTACT' then 'CONNECTIONS' else 'MEMBERS' end;
+    return case p_section when 'CONTACT' then 'CONNECTIONS' when 'CAREER_STATUS' then 'CONNECTIONS' when 'CV' then 'PRIVATE' else 'MEMBERS' end;
   end default_level;
 
   function can_see_ref(p_owner in number, p_section in varchar2,

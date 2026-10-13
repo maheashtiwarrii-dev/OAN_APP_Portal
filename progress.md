@@ -166,3 +166,13 @@
 | I13-5 | `oan_synth_pkg.generate_alumni` | Uses only aggregate patterns (city mix, Oracle practices, seniority, tenure); fictional names and orgs, no email/phone/client/figure copied. Created 15 CV-archetype personas + 250 members (seed 7), ~10 skills each, 4 connections each; directory mix as before |
 | I13-6 | Result on dev | 766 synthetic accounts; test member sees 671 in the directory |
 | I13-7 | User: proceed (keep only the realistic cohort) | `oan_synth_pkg.purge_generic` (guarded, audited) removed the 500 generic members; test member reconnected to 12 alumni (connections-only first). Dev now: 265 alumni + 1 test member; test member sees 238 in the directory |
+
+## Iteration 14 — W2 profile depth, work profile and CV upload, deployed to dev (13 Oct 2026)
+| Step | Action | Result |
+|---|---|---|
+| I14-1 | User: continue development and upload all APEX pages; check for CV upload during profile creation | No CV upload existed. Added a CV upload on My profile (23) plus a My CV page (24) |
+| I14-2 | Data layer | `095_profile_career.sql`, `097_member_cv.sql` (re-runnable); `oan_career_pkg` (205), `oan_cv_pkg` (215); `oan_file_pkg` accepts CV (PDF/DOCX only, owner-only download); own-data views `oan_my_*_v`, masked views `oan_profile_*_v`, `oan_my_cvs_v`; directory view gains industry, language and availability lists |
+| I14-3 | Dev data | `oan_synth_pkg.enrich_alumni` (dev only): tenure 341, experience 416, education 265, certifications 530, terms 1,716, work profiles 265 |
+| I14-4 | Pages | 23 My profile (CV upload, 4 entry lists, languages/industries/interests, career-status visibility); dialogs 231–234; 24 My CV; 25 Current work profile; 22 masked career sections; 21 industry/language/availability facets; nav highlights 24/25 under My profile |
+| I14-5 | Checks | `apex validate` successful; brand check passed; 60/60 SQL queries parse as OAN_APP; new PL/SQL processes compile as OAN_APP; no invalid objects |
+| I14-6 | Deploy | App 200 re-imported on dev (45 pages); utPLSQL career + directory + vis: **29/29 pass** |

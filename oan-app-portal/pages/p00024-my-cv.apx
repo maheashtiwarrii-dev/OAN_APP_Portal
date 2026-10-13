@@ -1,0 +1,389 @@
+page 24 (
+    name: My CV
+    alias: MY-CV
+    title: My CV
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    security {
+        authorizationScheme: @is-signed-in
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: Build Pack page 24 My CV (FR-47, R13; W2.6 first slice). Upload PDF/DOCX, keep the last 3 versions, one current. Private: only the owner can download (OAN_DOWNLOAD_V). Structured CV builder, per-application sharing and PDF export follow in W2.6/W2.7.
+    }
+
+    region upload (
+        name: Upload your CV
+        type: staticContent
+        source {
+            htmlCode: <p>Upload a PDF or Word (.docx) file up to 20 MB. The newest upload becomes your current CV, and the last three versions are kept. Your CV is private: nobody else can open it.</p>
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region versions (
+        name: Your CV versions
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select id, file_id, filename, status_label, size_kb, uploaded_at, is_current,
+                       'Download' download_label, 'Make current' current_label, 'Delete' delete_label
+                  from oan_my_cvs_v
+                 order by uploaded_at desc
+                ```
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: You have not uploaded a CV yet.
+        }
+
+        column ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column FILE_ID (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 2
+            }
+        )
+
+        column FILENAME (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: File
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column STATUS_LABEL (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Status
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column SIZE_KB (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Size (KB)
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+        column UPLOADED_AT (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Uploaded
+            }
+            layout {
+                sequence: 6
+            }
+            appearance {
+                formatMask: DD-MON-YYYY HH24:MI
+            }
+        )
+
+        column IS_CURRENT (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 7
+            }
+        )
+
+        column DOWNLOAD_LABEL (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Download
+            }
+            layout {
+                sequence: 8
+            }
+            link {
+                target: {
+                    page: 24
+                    items: {
+                        P24_FILE_ID: \#FILE_ID#\
+                    }
+                    request: DOWNLOAD
+                }
+                linkText: #DOWNLOAD_LABEL#
+            }
+        )
+
+        column CURRENT_LABEL (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Use
+            }
+            layout {
+                sequence: 9
+            }
+            link {
+                target: {
+                    page: 24
+                    items: {
+                        P24_CV_ID: \#ID#\
+                    }
+                    request: MAKE_CURRENT
+                }
+                linkText: #CURRENT_LABEL#
+            }
+        )
+
+        column DELETE_LABEL (
+            reportColumnQueryId: 10
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Remove
+            }
+            layout {
+                sequence: 10
+            }
+            link {
+                target: {
+                    page: 24
+                    items: {
+                        P24_CV_ID: \#ID#\
+                    }
+                    request: DELETE_CV
+                }
+                linkText: #DELETE_LABEL#
+            }
+        )
+
+    )
+
+    pageItem P24_CV (
+        type: fileUpload
+        label {
+            label: CV file (PDF or Word .docx, max 20 MB)
+        }
+        display {
+            displayAs: inlineDropzone
+        }
+        storage {
+            type: appTempFiles
+            purgeFileAt: endOfRequest
+            fileTypes: application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document
+            maxFileSize: 20480
+        }
+        layout {
+            sequence: 10
+            region: @upload
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P24_FILE_ID (
+        type: hidden
+        layout {
+            sequence: 20
+            region: @upload
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P24_CV_ID (
+        type: hidden
+        layout {
+            sequence: 30
+            region: @upload
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    button upload (
+        buttonName: UPLOAD
+        label: Upload CV
+        layout {
+            sequence: 10
+            region: @upload
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button back (
+        buttonName: BACK
+        label: Back to my profile
+        layout {
+            sequence: 20
+            region: @upload
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--simple
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 23
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process download-cv (
+        name: Download CV
+        type: download
+        fileHandling {
+            multipleFiles: false
+            viewFileAs: attachment
+        }
+        source {
+            sqlQuery:
+                ```sql
+                select content, filename, mime_type from oan_download_v where file_id = :P24_FILE_ID
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        serverSideCondition {
+            type: request=Value
+            value: DOWNLOAD
+        }
+    )
+
+    process make-current (
+        name: Make CV current
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                oan_cv_pkg.make_current(:P24_CV_ID);
+                -- drop the request from the URL so a reload does not repeat the action
+                apex_util.redirect_url(apex_page.get_url(p_page => 24));
+                ```
+        }
+        execution {
+            sequence: 20
+            point: beforeHeader
+        }
+        serverSideCondition {
+            type: request=Value
+            value: MAKE_CURRENT
+        }
+    )
+
+    process delete-cv (
+        name: Delete CV version
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                oan_cv_pkg.delete_cv(:P24_CV_ID);
+                -- drop the request from the URL so a reload does not repeat the action
+                apex_util.redirect_url(apex_page.get_url(p_page => 24));
+                ```
+        }
+        execution {
+            sequence: 30
+            point: beforeHeader
+        }
+        serverSideCondition {
+            type: request=Value
+            value: DELETE_CV
+        }
+    )
+
+    process upload-cv (
+        name: Upload CV
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare
+                    l_id number;
+                begin
+                    l_id := oan_cv_pkg.upload_cv(:P24_CV);
+                end;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        serverSideCondition {
+            whenButtonPressed: @upload
+        }
+        successMessage {
+            successMessage: Your CV was uploaded and is now your current CV.
+        }
+    )
+
+)

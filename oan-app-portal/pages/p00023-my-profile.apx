@@ -63,6 +63,402 @@ page 23 (
         }
     )
 
+    region cv (
+        name: Your CV
+        type: staticContent
+        source {
+            htmlCode: <p>&P23_CV_STATUS. Your CV is private: only you can open it. Sharing it with a specific application comes later.</p>
+        }
+        layout {
+            sequence: 21
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        comments {
+            comments: FR-47 / R13 CV upload (PDF or DOCX, private, last 3 versions kept). Saved by oan_cv_pkg.upload_cv with the profile; full management on page 24.
+        }
+    )
+
+    region tenure (
+        name: Oracle tenure
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select id, role_title, business_unit, location_name, period from oan_my_tenure_v order by start_year desc
+                ```
+        }
+        layout {
+            sequence: 22
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: Add the roles you held at Oracle.
+        }
+
+        column ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column ROLE_TITLE (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Role
+            }
+            layout {
+                sequence: 2
+            }
+            link {
+                target: {
+                    page: 231
+                    items: {
+                        P231_ID: \#ID#\
+                    }
+                    clearCache: 231
+                }
+                linkText: #ROLE_TITLE#
+            }
+        )
+
+        column BUSINESS_UNIT (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Line of business
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column LOCATION_NAME (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Location
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column PERIOD (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Years
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+    )
+
+    region experience (
+        name: Experience outside Oracle
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select id, title, organisation, period from oan_my_experience_v order by start_year desc
+                ```
+        }
+        layout {
+            sequence: 23
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: Add where you worked before or after Oracle.
+        }
+
+        column ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column TITLE (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Title
+            }
+            layout {
+                sequence: 2
+            }
+            link {
+                target: {
+                    page: 232
+                    items: {
+                        P232_ID: \#ID#\
+                    }
+                    clearCache: 232
+                }
+                linkText: #TITLE#
+            }
+        )
+
+        column ORGANISATION (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Organisation
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column PERIOD (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Years
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+    )
+
+    region education (
+        name: Education
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select id, qualification, institution, field_of_study, period from oan_my_education_v order by end_year desc nulls first
+                ```
+        }
+        layout {
+            sequence: 24
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: Add your degrees and diplomas.
+        }
+
+        column ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column QUALIFICATION (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Qualification
+            }
+            layout {
+                sequence: 2
+            }
+            link {
+                target: {
+                    page: 233
+                    items: {
+                        P233_ID: \#ID#\
+                    }
+                    clearCache: 233
+                }
+                linkText: #QUALIFICATION#
+            }
+        )
+
+        column INSTITUTION (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Institution
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column FIELD_OF_STUDY (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Field
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column PERIOD (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Years
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+    )
+
+    region certifications (
+        name: Certifications and achievements
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select id, name, kind_label, issuer, year_obtained from oan_my_certifications_v order by year_obtained desc nulls last
+                ```
+        }
+        layout {
+            sequence: 25
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: Add certifications and achievements.
+        }
+
+        column ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column NAME (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Name
+            }
+            layout {
+                sequence: 2
+            }
+            link {
+                target: {
+                    page: 234
+                    items: {
+                        P234_ID: \#ID#\
+                    }
+                    clearCache: 234
+                }
+                linkText: #NAME#
+            }
+        )
+
+        column KIND_LABEL (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Type
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column ISSUER (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Issued by
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column YEAR_OBTAINED (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Year
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+    )
+
+    region work-profile-link (
+        name: Current work profile
+        type: staticContent
+        source {
+            htmlCode: <p>Your current employer, availability and what you are open to live in your current work profile. Availability is shown to your connections only unless you change it.</p>
+        }
+        layout {
+            sequence: 26
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
     region visibility (
         name: Who can see each section
         type: staticContent
@@ -562,6 +958,123 @@ page 23 (
         }
     )
 
+    pageItem P23_CV_STATUS (
+        type: hidden
+        layout {
+            sequence: 1
+            region: @cv
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P23_CV (
+        type: fileUpload
+        label {
+            label: Upload a CV (PDF or Word .docx, max 20 MB)
+        }
+        display {
+            displayAs: inlineDropzone
+        }
+        storage {
+            type: appTempFiles
+            purgeFileAt: endOfRequest
+            fileTypes: application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document
+            maxFileSize: 20480
+        }
+        layout {
+            sequence: 10
+            region: @cv
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P23_LANGUAGES (
+        type: selectMany
+        label {
+            label: Languages
+        }
+        lov {
+            type: sharedComponent
+            lov: @oan-languages
+        }
+        layout {
+            sequence: 50
+            region: @skills-chapters
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P23_INDUSTRIES (
+        type: selectMany
+        label {
+            label: Industry expertise
+        }
+        lov {
+            type: sharedComponent
+            lov: @oan-industries
+        }
+        layout {
+            sequence: 60
+            region: @skills-chapters
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P23_INTERESTS (
+        type: selectMany
+        label {
+            label: Interests
+        }
+        lov {
+            type: sharedComponent
+            lov: @oan-interests
+        }
+        layout {
+            sequence: 70
+            region: @skills-chapters
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P23_VIS_CAREER_STATUS (
+        type: selectList
+        label {
+            label: Career status
+        }
+        lov {
+            type: sharedComponent
+            lov: @oan-career-visibility
+        }
+        layout {
+            sequence: 70
+            region: @visibility
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
     button save (
         buttonName: SAVE
         label: Save profile
@@ -600,6 +1113,236 @@ page 23 (
         }
     )
 
+    button add-tenure (
+        buttonName: ADD_TENURE
+        label: Add Oracle role
+        layout {
+            sequence: 10
+            region: @tenure
+            slot: edit
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 231
+                clearCache: 231
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button add-experience (
+        buttonName: ADD_EXPERIENCE
+        label: Add experience
+        layout {
+            sequence: 10
+            region: @experience
+            slot: edit
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 232
+                clearCache: 232
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button add-education (
+        buttonName: ADD_EDUCATION
+        label: Add education
+        layout {
+            sequence: 10
+            region: @education
+            slot: edit
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 233
+                clearCache: 233
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button add-certification (
+        buttonName: ADD_CERTIFICATION
+        label: Add certification
+        layout {
+            sequence: 10
+            region: @certifications
+            slot: edit
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 234
+                clearCache: 234
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button work-profile (
+        buttonName: WORK_PROFILE
+        label: Open current work profile
+        layout {
+            sequence: 10
+            region: @work-profile-link
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 25
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button manage-cv (
+        buttonName: MANAGE_CV
+        label: Manage CV versions
+        layout {
+            sequence: 10
+            region: @cv
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 24
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    dynamicAction refresh-tenure (
+        name: Refresh tenure after dialog
+        execution {
+            sequence: 10
+        }
+        when {
+            event: apexafterclosedialog
+            selectionType: region
+            region: @tenure
+        }
+
+        action native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @tenure
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction refresh-experience (
+        name: Refresh experience after dialog
+        execution {
+            sequence: 10
+        }
+        when {
+            event: apexafterclosedialog
+            selectionType: region
+            region: @experience
+        }
+
+        action native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @experience
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction refresh-education (
+        name: Refresh education after dialog
+        execution {
+            sequence: 10
+        }
+        when {
+            event: apexafterclosedialog
+            selectionType: region
+            region: @education
+        }
+
+        action native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @education
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction refresh-certifications (
+        name: Refresh certifications after dialog
+        execution {
+            sequence: 10
+        }
+        when {
+            event: apexafterclosedialog
+            selectionType: region
+            region: @certifications
+        }
+
+        action native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @certifications
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
     process load (
         name: Load profile
         type: executeCode
@@ -627,6 +1370,13 @@ page 23 (
                 select listagg(chapter_id, ':') within group (order by name) into :P23_OTHER_CHAPTERS
                   from oan_my_chapters_v where is_primary = 'N';
                 select listagg(term_id, ':') within group (order by name) into :P23_FOLLOWED_TAGS from oan_my_tag_follows_v;
+                select listagg(term_id, ':') within group (order by name) into :P23_LANGUAGES from oan_my_profile_terms_v where term_kind = 'LANGUAGE';
+                select listagg(term_id, ':') within group (order by name) into :P23_INDUSTRIES from oan_my_profile_terms_v where term_kind = 'INDUSTRY';
+                select listagg(term_id, ':') within group (order by name) into :P23_INTERESTS from oan_my_profile_terms_v where term_kind = 'INTEREST';
+                :P23_CV_STATUS := 'You have not uploaded a CV yet.';
+                for c in (select filename, uploaded_at from oan_my_cvs_v where is_current = 'Y') loop
+                    :P23_CV_STATUS := 'Current CV: ' || apex_escape.html(c.filename) || ' (uploaded ' || to_char(c.uploaded_at, 'DD Mon YYYY') || ').';
+                end loop;
                 for v in (select section, vis_level from oan_my_section_vis_v) loop
                     case v.section
                         when 'CONTACT'   then :P23_VIS_CONTACT   := v.vis_level;
@@ -635,6 +1385,8 @@ page 23 (
                         when 'EDUCATION' then :P23_VIS_EDUCATION := v.vis_level;
                         when 'LOCATION'  then :P23_VIS_LOCATION  := v.vis_level;
                         when 'PHOTO'     then :P23_VIS_PHOTO     := v.vis_level;
+                        when 'CAREER_STATUS' then :P23_VIS_CAREER_STATUS := v.vis_level;
+                        else null;
                     end case;
                 end loop;
                 ```
@@ -680,6 +1432,12 @@ page 23 (
                                where term_id not in (select column_value from table(apex_string.split_numbers(:P23_FOLLOWED_TAGS, ':')))) loop
                         oan_taxonomy_pkg.unfollow_tag(t.term_id);
                     end loop;
+                    oan_career_pkg.set_profile_terms('LANGUAGE', :P23_LANGUAGES);
+                    oan_career_pkg.set_profile_terms('INDUSTRY', :P23_INDUSTRIES);
+                    oan_career_pkg.set_profile_terms('INTEREST', :P23_INTERESTS);
+                    if :P23_CV is not null then
+                        l_file_id := oan_cv_pkg.upload_cv(:P23_CV);
+                    end if;
                     if :P23_PHOTO is not null then
                         l_file_id := oan_file_pkg.store(:P23_PHOTO, 'PROFILE_PHOTO');
                         oan_profile_pkg.set_photo(l_file_id);
@@ -691,6 +1449,7 @@ page 23 (
                     oan_profile_pkg.set_visibility('EDUCATION', :P23_VIS_EDUCATION);
                     oan_profile_pkg.set_visibility('LOCATION',  :P23_VIS_LOCATION);
                     oan_profile_pkg.set_visibility('PHOTO',     :P23_VIS_PHOTO);
+                    oan_profile_pkg.set_visibility('CAREER_STATUS', :P23_VIS_CAREER_STATUS);
                 end;
                 ```
         }

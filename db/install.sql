@@ -19,6 +19,8 @@ prompt == DDL
 @@ddl/070_pd_registry.sql
 @@ddl/080_text_indexes.sql
 @@ddl/090_directory.sql
+@@ddl/095_profile_career.sql
+@@ddl/097_member_cv.sql
 
 prompt == Packages (bodies with forward references compile at the end)
 whenever sqlerror continue
@@ -33,8 +35,10 @@ whenever sqlerror continue
 @@packages/180_oan_auth_pkg.sql
 @@packages/190_oan_registration_pkg.sql
 @@packages/200_oan_profile_pkg.sql
+@@packages/205_oan_career_pkg.sql
 @@packages/210_oan_taxonomy_pkg.sql
 @@packages/220_oan_file_pkg.sql
+@@packages/215_oan_cv_pkg.sql
 @@packages/230_oan_library_pkg.sql
 @@packages/240_oan_group_pkg.sql
 @@packages/250_oan_moderation_pkg.sql
@@ -79,5 +83,6 @@ whenever sqlerror continue
 @@tests/ut_oan_chat.sql
 @@tests/ut_oan_bp_api.sql
 @@tests/ut_oan_directory.sql
+@@tests/ut_oan_career.sql
 
 prompt Install complete. Run 20_app_synonyms.sql as OAN_APP, then 30_assert_no_table_grants.sql.

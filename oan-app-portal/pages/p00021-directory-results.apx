@@ -15,7 +15,7 @@ page 21 (
         formAutoComplete: false
     }
     comments {
-        comments: Build Pack page 21 Directory results (FR-35 AC1-AC3, W2.5). Faceted search over OAN_DIRECTORY_V only. Every facet value is already masked by its section level, so filtering cannot reveal a hidden value. Missing values show as a dash (FSD BR-05).
+        comments: Build Pack page 21 Directory results (FR-35 AC1-AC3, W2.5). Faceted search over OAN_DIRECTORY_V only. Every facet value is already masked by its section level, so filtering cannot reveal a hidden value. Missing values show as a dash (FSD BR-05). Availability is CAREER_STATUS-masked (connections only by default, R13), so members only filter on what they may see.
     }
 
     region button-bar (
@@ -58,7 +58,10 @@ page 21 (
                        d.location_name,
                        d.skill_list,
                        d.chapter_list,
-                       d.oracle_tenure
+                       d.oracle_tenure,
+                       d.industry_list,
+                       d.language_list,
+                       d.availability
                   from oan_directory_v d
                 ```
         }
@@ -270,6 +273,78 @@ page 21 (
             }
             source {
                 databaseColumn: ORACLE_TENURE
+                dataType: varchar2
+            }
+        )
+
+        facet P21_INDUSTRY (
+            type: checkboxGroup
+            label {
+                label: Industry expertise
+            }
+            lov {
+                type: distinctValues
+            }
+            layout {
+                sequence: 70
+            }
+            listEntries {
+                maxDisplayedEntries: 7
+            }
+            source {
+                databaseColumn: INDUSTRY_LIST
+                dataType: varchar2
+            }
+            multipleValues {
+                type: delimitedList
+                separator: |
+                trimWhitespace: true
+                filterCombination: or
+            }
+        )
+
+        facet P21_LANGUAGE (
+            type: checkboxGroup
+            label {
+                label: Language
+            }
+            lov {
+                type: distinctValues
+            }
+            layout {
+                sequence: 80
+            }
+            listEntries {
+                maxDisplayedEntries: 7
+            }
+            source {
+                databaseColumn: LANGUAGE_LIST
+                dataType: varchar2
+            }
+            multipleValues {
+                type: delimitedList
+                separator: |
+                trimWhitespace: true
+                filterCombination: or
+            }
+        )
+
+        facet P21_AVAILABILITY (
+            type: checkboxGroup
+            label {
+                label: Open to opportunities
+            }
+            lov {
+                type: distinctValues
+            }
+            layout {
+                sequence: 90
+            }
+            listEntries {
+                maxDisplayedEntries: 7
+            }
+            source {
+                databaseColumn: AVAILABILITY
                 dataType: varchar2
             }
         )

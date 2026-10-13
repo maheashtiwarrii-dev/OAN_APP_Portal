@@ -72,6 +72,12 @@
 - **Spike 0.14 (Oracle Text):** three CONTEXT indexes INDEXED with automatic sync every 2 minutes; CONTAINS works under OAN_DATA.
 - **Spike 0.11 (two schemas):** OAN_APP gets ORA-00942 on base tables and ORA-01031 on setting OAN_CTX; secure views and package APIs work through synonyms.
 - **Q33 consequence:** without Google sign-in, NFR-01 blocks privileged roles on dev (they must sign in through an IdP), so admin pages cannot be exercised until Google is set up or a dev-only exception is approved.
+## W2 profile depth and CV (13 Oct 2026)
+- CV upload did not exist in the profile flow; added as a first slice (upload, 3 versions, one current, owner-only download). Per-application sharing (W2.7) and the structured CV/PDF export (W2.6, CV_PDF) are still open.
+- `CAREER_STATUS` (availability, open-to, notice) defaults to connections and is rejected for MEMBERS_PARTNERS in `set_visibility` (R13), so the directory availability facet only reflects what each viewer may see.
+- APEXLang 26.1: modal pages use slot `contentBody`/`dialogFooter`; `selectMany` with static values does not accept `displayExtraValues`.
+- Before-header GET actions on page 24 (make current, delete) redirect back to the page so a reload cannot repeat them.
+
 ## Design decisions for build
 - Visibility is enforced in the data layer: `OAN_DATA` tables + `oan_vis.can_see` + secure views; `OAN_APP` has view/package grants only (NFR-03).
 - Roles live in APEX ACL only; chapter scope lives in `OAN_CHAPTER_ADMINS` (NFR-02).

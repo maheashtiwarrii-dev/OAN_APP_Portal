@@ -306,3 +306,82 @@ lov oan-report-reasons (
     )
 
 )
+
+lov oan-languages (
+    name: OAN_LANGUAGES
+    source {
+        location: localDatabase
+        type: sqlQuery
+        sqlQuery:
+            ```sql
+            select d, r from oan_terms_lov_v where term_type = 'LANGUAGE' order by d
+            ```
+    }
+    columnMapping {
+        display: D
+        return: R
+    }
+)
+
+lov oan-industries (
+    name: OAN_INDUSTRIES
+    source {
+        location: localDatabase
+        type: sqlQuery
+        sqlQuery:
+            ```sql
+            select d, r from oan_terms_lov_v where term_type = 'INDUSTRY' order by d
+            ```
+    }
+    columnMapping {
+        display: D
+        return: R
+    }
+)
+
+lov oan-interests (
+    name: OAN_INTERESTS
+    source {
+        location: localDatabase
+        type: sqlQuery
+        sqlQuery:
+            ```sql
+            select d, r from oan_terms_lov_v where term_type = 'TOPIC' order by d
+            ```
+    }
+    columnMapping {
+        display: D
+        return: R
+    }
+)
+
+lov oan-career-visibility (
+    name: OAN_CAREER_VISIBILITY
+    source {
+        location: staticValues
+    }
+
+    entry private (
+        sequence: 1
+        display: Only me
+        return: PRIVATE
+    )
+
+    entry connections (
+        sequence: 2
+        display: My connections (recommended)
+        return: CONNECTIONS
+    )
+
+    entry chapter (
+        sequence: 3
+        display: Members of my chapters
+        return: CHAPTER
+    )
+
+    entry members (
+        sequence: 4
+        display: All OAN members
+        return: MEMBERS
+    )
+)

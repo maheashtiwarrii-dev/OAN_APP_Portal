@@ -37,7 +37,8 @@ select s.section, s.label, s.sort_order,
         select 'SKILLS',    'Skills & expertise', 3 from dual union all
         select 'EDUCATION', 'Education', 4 from dual union all
         select 'LOCATION',  'Location & chapters', 5 from dual union all
-        select 'PHOTO',     'Photo', 6 from dual) s
+        select 'PHOTO',     'Photo', 6 from dual union all
+        select 'CAREER_STATUS', 'Career status (open to work, availability, notice period)', 7 from dual) s
   left join oan_profile_section_vis v
     on v.section = s.section and v.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID'))
  where sys_context('OAN_CTX','VIEWER_ID') is not null;
@@ -478,7 +479,19 @@ select c.user_id,
                    when nvl(p.oracle_to_year, extract(year from sysdate)) - p.oracle_from_year <= 10 then '6-10 years'
                    when nvl(p.oracle_to_year, extract(year from sysdate)) - p.oracle_from_year <= 15 then '11-15 years'
                    else '16+ years' end
-       end oracle_tenure
+       end oracle_tenure,
+       case when oan_vis.can_see(p.user_id, 'SKILLS') = 'Y'
+            then (select listagg(t.name, '|' on overflow truncate '' without count) within group (order by t.name)
+                    from oan_profile_terms pt join oan_taxonomy_terms t on t.id = pt.term_id
+                   where pt.user_id = p.user_id and pt.term_kind = 'INDUSTRY') end industry_list,
+       case when oan_vis.can_see(p.user_id, 'SKILLS') = 'Y'
+            then (select listagg(t.name, '|' on overflow truncate '' without count) within group (order by t.name)
+                    from oan_profile_terms pt join oan_taxonomy_terms t on t.id = pt.term_id
+                   where pt.user_id = p.user_id and pt.term_kind = 'LANGUAGE') end language_list,
+       case when oan_vis.can_see(p.user_id, 'CAREER_STATUS') = 'Y'
+            then (select case w.availability when 'ACTIVELY_LOOKING' then 'Actively looking'
+                                             when 'OPEN' then 'Open to opportunities' end
+                    from oan_member_work_profile w where w.user_id = p.user_id) end availability
   from oan_member_card_v c
   join oan_profiles p on p.user_id = c.user_id
   left join oan_locations l on l.id = p.location_id
@@ -514,3 +527,100 @@ select u.id user_id,
   from oan_users u
   left join oan_privacy_settings s on s.user_id = u.id
  where u.id = to_number(sys_context('OAN_CTX','VIEWER_ID'));
+
+------------------------------------------------- profile depth and work profile (W2.1) --
+-- The viewer's own rows (any status), for page 23, dialogs 231-234 and page 25
+create or replace view oan_my_tenure_v as
+select t.id, t.business_unit, t.role_title, t.location_id, l.name location_name, t.start_year, t.end_year,
+       t.start_year || ' - ' || nvl(to_char(t.end_year), 'present') period, t.row_version
+  from oan_oracle_tenure t
+  left join oan_locations l on l.id = t.location_id
+ where t.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID'));
+
+create or replace view oan_my_experience_v as
+select e.id, e.organisation, e.title, e.start_year, e.end_year, e.is_current, e.description,
+       e.start_year || ' - ' || case when e.is_current = 'Y' then 'present' else to_char(e.end_year) end period,
+       e.row_version
+  from oan_work_experience e
+ where e.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID'));
+
+create or replace view oan_my_education_v as
+select e.id, e.institution, e.qualification, e.field_of_study, e.start_year, e.end_year,
+       trim(e.start_year || ' - ' || e.end_year) period, e.row_version
+  from oan_education e
+ where e.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID'));
+
+create or replace view oan_my_certifications_v as
+select c.id, c.kind, initcap(c.kind) kind_label, c.name, c.issuer, c.year_obtained, c.expires_year,
+       c.credential_url, c.row_version
+  from oan_certifications c
+ where c.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID'));
+
+create or replace view oan_my_profile_terms_v as
+select p.term_id, p.term_kind, t.name
+  from oan_profile_terms p
+  join oan_taxonomy_terms t on t.id = p.term_id
+ where p.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID'));
+
+create or replace view oan_my_work_profile_v as
+select u.id user_id, w.employment_status, pr.current_org current_employer, pr.job_title designation, w.work_mode,
+       coalesce(w.availability, 'NOT_LOOKING') availability, w.notice_period_days, w.open_to,
+       w.last_confirmed_on, w.next_review_on,
+       case when w.next_review_on < systimestamp then 'Y' else 'N' end review_due,
+       coalesce(w.row_version, 0) row_version
+  from oan_users u
+  join oan_profiles pr on pr.user_id = u.id
+  left join oan_member_work_profile w on w.user_id = u.id
+ where u.id = to_number(sys_context('OAN_CTX','VIEWER_ID'));
+
+-- Other members' rows for page 22, each masked by its section (card rules + blocks via oan_member_card_v)
+create or replace view oan_profile_tenure_v as
+select t.user_id, t.id, t.business_unit, t.role_title, l.name location_name, t.start_year, t.end_year,
+       t.start_year || ' - ' || nvl(to_char(t.end_year), 'present') period
+  from oan_oracle_tenure t
+  join oan_member_card_v c on c.user_id = t.user_id
+  left join oan_locations l on l.id = t.location_id
+ where oan_vis.can_see(t.user_id, 'WORK') = 'Y';
+
+create or replace view oan_profile_experience_v as
+select e.user_id, e.id, e.organisation, e.title, e.description,
+       e.start_year || ' - ' || case when e.is_current = 'Y' then 'present' else to_char(e.end_year) end period,
+       e.start_year
+  from oan_work_experience e
+  join oan_member_card_v c on c.user_id = e.user_id
+ where oan_vis.can_see(e.user_id, 'WORK') = 'Y';
+
+create or replace view oan_profile_education_v as
+select e.user_id, e.id, e.institution, e.qualification, e.field_of_study,
+       trim(e.start_year || ' - ' || e.end_year) period, e.end_year
+  from oan_education e
+  join oan_member_card_v c on c.user_id = e.user_id
+ where oan_vis.can_see(e.user_id, 'EDUCATION') = 'Y';
+
+create or replace view oan_profile_certifications_v as
+select x.user_id, x.id, initcap(x.kind) kind_label, x.name, x.issuer, x.year_obtained, x.credential_url
+  from oan_certifications x
+  join oan_member_card_v c on c.user_id = x.user_id
+ where oan_vis.can_see(x.user_id, 'SKILLS') = 'Y';
+
+create or replace view oan_profile_terms_v as
+select p.user_id, p.term_kind, t.name
+  from oan_profile_terms p
+  join oan_taxonomy_terms t on t.id = p.term_id
+  join oan_member_card_v c on c.user_id = p.user_id
+ where oan_vis.can_see(p.user_id, 'SKILLS') = 'Y';
+
+-- Career status (R13): default CONNECTIONS; ORG viewers from the current employer arrive with task 1.30
+create or replace view oan_profile_career_status_v as
+select w.user_id, w.availability, w.work_mode, w.notice_period_days, w.open_to
+  from oan_member_work_profile w
+  join oan_member_card_v c on c.user_id = w.user_id
+ where oan_vis.can_see(w.user_id, 'CAREER_STATUS') = 'Y';
+
+-- The viewer's uploaded CVs (newest first); download goes through OAN_DOWNLOAD_V (owner only, R13)
+create or replace view oan_my_cvs_v as
+select c.id, c.file_id, f.filename, round(f.file_size / 1024) size_kb, c.is_current,
+       case c.is_current when 'Y' then 'Current' else 'Earlier version' end status_label, c.uploaded_at
+  from oan_member_cv c
+  join oan_files f on f.id = c.file_id
+ where c.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID'));

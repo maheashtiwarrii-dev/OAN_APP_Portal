@@ -337,6 +337,8 @@ list navigation-menu (
             type: pages
             pages: [
                 23
+                24
+                25
                 26
             ]
         }

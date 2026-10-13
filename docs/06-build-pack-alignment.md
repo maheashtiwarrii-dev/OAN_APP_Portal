@@ -57,9 +57,17 @@
 | | 13 Report a concern (IP) | 105 |
 | | 14 Accept updated terms | 106 |
 | | 15 Confirm identity | 108 |
-| Profile (20–29) | 22 Member profile view | 11 |
+| Profile (20–29) | 20 Directory search | new (W2.5) |
+| | 21 Directory results | new (W2.5) |
+| | 22 Member profile view | 11 |
 | | 23 My profile | 10 |
+| | 24 My CV | 15 |
+| | 25 Current work profile | 16 |
 | | 26 Account settings | 12 |
+| | 231 Oracle tenure (dialog from 23) | new (W2.1) |
+| | 232 Work experience (dialog from 23) | new (W2.1) |
+| | 233 Education (dialog from 23) | new (W2.1) |
+| | 234 Certification or achievement (dialog from 23) | new (W2.1) |
 | Content (30–39) | 34 Knowledge library | 20 |
 | | 35 Library item | 21 |
 | | 36 Submit library item | 22 |

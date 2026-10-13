@@ -135,8 +135,10 @@ create or replace package body oan_profile_pkg as
     l_user_id number := me;
     l_old     varchar2(20);
   begin
-    oan_util.assert(p_section in ('CONTACT','WORK','SKILLS','EDUCATION','LOCATION','PHOTO'), 'Invalid section');
+    oan_util.assert(p_section in ('CONTACT','WORK','SKILLS','EDUCATION','LOCATION','PHOTO','CAREER_STATUS'), 'Invalid section');
     oan_util.assert(p_level in ('PRIVATE','CONNECTIONS','CHAPTER','MEMBERS','MEMBERS_PARTNERS'), 'Invalid level');
+    oan_util.assert(not (p_section = 'CAREER_STATUS' and p_level = 'MEMBERS_PARTNERS'),
+                    'Career status can be shown to members at most, never to partners.');   -- R13
     begin
       select vis_level into l_old from oan_profile_section_vis where user_id = l_user_id and section = p_section;
     exception

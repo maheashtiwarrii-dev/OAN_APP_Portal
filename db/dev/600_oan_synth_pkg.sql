@@ -28,6 +28,10 @@ create or replace package oan_synth_pkg authid definer as
   -- seniority, tenure) WITHOUT copying any name, email, phone, client or figure. All fictional,
   -- all @synthetic.oan.invalid. Returns the number created.
   function generate_alumni(p_count in pls_integer default 250, p_seed in number default 7) return pls_integer;
+  -- W2.1 depth for the alumni cohort: tenure, experience, education, certifications, languages,
+  -- industries, interests and a work profile. Skips members already enriched. Returns the count.
+  function enrich_alumni(p_seed in number default 11) return pls_integer;
+
   -- Deletes only the generic members from generate_members (email ends .NNNNNN@synthetic.oan.invalid);
   -- keeps the alumni cohort and test members. Returns the count.
   function purge_generic return pls_integer;
@@ -460,6 +464,132 @@ create or replace package body oan_synth_pkg as
     commit;
     return l_ids.count;
   end generate_alumni;
+
+  function enrich_alumni(p_seed in number default 11) return pls_integer is
+    l_n      pls_integer := 0;
+    l_id     number;
+    l_bu     t_names := t_names('Consulting','Support','Sales','Product Development','Customer Success','Pre-Sales','Education Services');
+    l_roles  t_names := t_names('Consultant','Senior Consultant','Principal Consultant','Technical Lead','Project Manager',
+                                'Customer Success Manager','Solution Engineer','Senior Manager');
+    l_inst   t_names := t_names('Deccan Institute of Technology','Kaveri University','Coromandel College of Engineering',
+                                'Western Institute of Management','Northern Business School','Vindhya University',
+                                'Godavari Institute of Science','Malabar College of Commerce');
+    l_quals  t_names := t_names('B.E. Computer Science','B.Tech Information Technology','MCA','MBA','M.Tech Software Systems',
+                                'B.Com','M.Sc Computer Science','B.E. Electronics');
+    l_certs  t_names := t_names('Oracle Cloud Infrastructure Foundations Associate|Oracle',
+                                'Oracle Fusion HCM Implementation Professional|Oracle',
+                                'Oracle Cloud ERP Financials Implementation Professional|Oracle',
+                                'Oracle Database Administration Certified Professional|Oracle',
+                                'Oracle Cloud Project Management Certified|Oracle',
+                                'Project Management Professional (PMP)|PMI', 'PRINCE2 Practitioner|AXELOS',
+                                'ITIL 4 Foundation|AXELOS', 'SAFe Agilist|Scaled Agile',
+                                'Microsoft Azure Data Engineer Associate|Microsoft');
+    l_mid    number;
+    l_from   number;
+    l_to     number;
+    l_cert   varchar2(200);
+    l_city   varchar2(100);
+    l_lang   varchar2(30);
+    l_roll   number;
+    l_v1     varchar2(300);
+    l_v2     varchar2(300);
+    l_v3     varchar2(300);
+    l_v4     varchar2(300);
+    procedure add_term(p_user number, p_type varchar2, p_kind varchar2, p_name varchar2) is
+      l_term number;
+    begin
+      select min(id) into l_term from oan_taxonomy_terms where term_type = p_type and name = p_name and status = 'APPROVED';
+      if l_term is not null then
+        insert into oan_profile_terms (user_id, term_id, term_kind) values (p_user, l_term, p_kind);
+      end if;
+    exception when dup_val_on_index then null;
+    end add_term;
+    procedure add_random_terms(p_user number, p_type varchar2, p_kind varchar2, p_count pls_integer) is
+    begin
+      for r in (select name from (select name from oan_taxonomy_terms where term_type = p_type and status = 'APPROVED'
+                                   order by dbms_random.value) fetch first p_count rows only) loop
+        add_term(p_user, p_type, p_kind, r.name);
+      end loop;
+    end add_random_terms;
+  begin
+    require_allowed;
+    dbms_random.seed(p_seed);
+    for m in (select u.id, p.oracle_from_year, p.oracle_to_year, p.current_org, p.job_title, l.name city
+                from oan_users u
+                join oan_profiles p on p.user_id = u.id
+                left join oan_locations l on l.id = p.location_id
+               where regexp_like(u.email, '\.(a[0-9]{5}|p[0-9]{2})@synthetic\.oan\.invalid$')
+                 and not exists (select 1 from oan_oracle_tenure t where t.user_id = u.id)
+               order by u.id) loop
+      l_from := nvl(m.oracle_from_year, 2005);
+      l_to   := nvl(m.oracle_to_year, l_from + 6);
+      -- Oracle tenure: one stint, or two split at a midpoint
+      if l_to - l_from >= 6 and dbms_random.value < 0.5 then
+        l_mid := l_from + trunc((l_to - l_from) / 2);
+        l_v1 := pick(l_bu); l_v2 := pick(l_roles); l_v3 := pick(l_bu); l_v4 := pick(l_roles);
+        insert into oan_oracle_tenure (user_id, business_unit, role_title, start_year, end_year)
+        values (m.id, l_v1, l_v2, l_from, l_mid);
+        insert into oan_oracle_tenure (user_id, business_unit, role_title, start_year, end_year)
+        values (m.id, l_v3, l_v4, l_mid, l_to);
+      else
+        l_v1 := pick(l_bu); l_v2 := pick(l_roles);
+        insert into oan_oracle_tenure (user_id, business_unit, role_title, start_year, end_year)
+        values (m.id, l_v1, l_v2, l_from, l_to);
+      end if;
+      -- Current role after Oracle, and sometimes an earlier one before it
+      insert into oan_work_experience (user_id, organisation, title, start_year, is_current)
+      values (m.id, nvl(m.current_org, 'Independent consultant'), nvl(m.job_title, 'Consultant'), least(l_to + 1, 2026), 'Y');
+      if dbms_random.value < 0.6 and l_from > 1998 then
+        l_v1 := pick(g_a_orgs); l_v2 := pick(t_names('Software Engineer','Associate Consultant','Analyst','Developer'));
+        insert into oan_work_experience (user_id, organisation, title, start_year, end_year, is_current)
+        values (m.id, l_v1, l_v2,
+                l_from - trunc(dbms_random.value(2, 5)), l_from - 1, 'N');
+      end if;
+      -- Education
+      l_v1 := pick(l_inst); l_v2 := pick(l_quals);
+      insert into oan_education (user_id, institution, qualification, start_year, end_year)
+      values (m.id, l_v1, l_v2, l_from - 6, l_from - 2);
+      -- 1-3 certifications
+      for k in 1 .. trunc(dbms_random.value(1, 4)) loop
+        l_cert := pick(l_certs);
+        insert into oan_certifications (user_id, kind, name, issuer, year_obtained)
+        values (m.id, 'CERTIFICATION', regexp_substr(l_cert, '^[^|]+'), regexp_substr(l_cert, '[^|]+$'),
+                trunc(dbms_random.value(greatest(l_from, 2008), 2026)));
+      end loop;
+      -- Languages: English, Hindi for most, and the regional language for the city
+      l_city := m.city;
+      l_lang := case l_city when 'Bengaluru' then 'Kannada' when 'Hyderabad' then 'Telugu' when 'Chennai' then 'Tamil'
+                            when 'Mumbai' then 'Marathi' when 'Pune' then 'Marathi' when 'Kolkata' then 'Bengali'
+                            when 'Delhi NCR' then 'Punjabi' end;
+      add_term(m.id, 'LANGUAGE', 'LANGUAGE', 'English');
+      if dbms_random.value < 0.75 then add_term(m.id, 'LANGUAGE', 'LANGUAGE', 'Hindi'); end if;
+      if l_lang is not null and dbms_random.value < 0.7 then add_term(m.id, 'LANGUAGE', 'LANGUAGE', l_lang); end if;
+      add_random_terms(m.id, 'INDUSTRY', 'INDUSTRY', trunc(dbms_random.value(1, 4)));
+      add_random_terms(m.id, 'TOPIC', 'INTEREST', trunc(dbms_random.value(1, 4)));
+      -- Work profile
+      l_roll := dbms_random.value;
+      l_v1 := pick(t_names('ONSITE','HYBRID','REMOTE'));
+      l_v2 := pick(t_names('0','30','60','90'));
+      l_v3 := pick(t_names('MENTORING','ADVISORY','CONTRACT:MENTORING','FULL_TIME','ADVISORY:SPEAKING','CONTRACT'));
+      insert into oan_member_work_profile (user_id, employment_status, work_mode, availability, notice_period_days,
+                                           open_to, last_confirmed_on, next_review_on)
+      values (m.id,
+              case when m.current_org = 'Independent consultant' then 'CONSULTING'
+                   when m.current_org like 'Founder%' then 'SELF_EMPLOYED' else 'EMPLOYED' end,
+              l_v1,
+              case when l_roll < 0.70 then 'NOT_LOOKING' when l_roll < 0.90 then 'OPEN' else 'ACTIVELY_LOOKING' end,
+              to_number(l_v2),
+              l_v3,
+              systimestamp - numtodsinterval(trunc(dbms_random.value(0, 240)), 'DAY'),
+              systimestamp + numtodsinterval(trunc(dbms_random.value(-30, 180)), 'DAY'));
+      oan_profile_pkg.refresh_completeness(m.id);
+      l_n := l_n + 1;
+    end loop;
+    commit;
+    oan_audit_pkg.log('SYNTHETIC_ALUMNI_ENRICHED', null, null, null, json_object('count' value l_n, 'seed' value p_seed));
+    commit;
+    return l_n;
+  end enrich_alumni;
 
   function purge_generic return pls_integer is
     l_cnt pls_integer;

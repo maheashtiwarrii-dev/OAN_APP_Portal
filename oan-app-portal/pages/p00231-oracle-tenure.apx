@@ -1,0 +1,343 @@
+page 231 (
+    name: Oracle Tenure Entry
+    alias: ORACLE-TENURE
+    title: Oracle tenure
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @/modal-dialog
+        templateOptions: #DEFAULT#
+    }
+    dialog {
+        chained: false
+        resizable: false
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    security {
+        authorizationScheme: @is-signed-in
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: W2.1 dialog from page 23: one Oracle stint (WORK section). Saves through oan_career_pkg (own rows only, row-version checked, audited).
+    }
+
+    region entry (
+        name: Oracle tenure
+        type: staticContent
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        appearance {
+            template: @/blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region buttons (
+        name: Buttons
+        type: staticContent
+        layout {
+            sequence: 20
+            slot: dialogFooter
+        }
+        appearance {
+            template: @/buttons-container
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P231_ID (
+        type: hidden
+        layout {
+            sequence: 1
+            region: @entry
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P231_ROW_VERSION (
+        type: hidden
+        layout {
+            sequence: 2
+            region: @entry
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P231_BUSINESS_UNIT (
+        type: textField
+        label {
+            label: Line of business (for example Consulting, Support, Sales)
+        }
+        layout {
+            sequence: 10
+            region: @entry
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+            maxLength: 200
+        }
+    )
+
+    pageItem P231_ROLE_TITLE (
+        type: textField
+        label {
+            label: Role
+        }
+        layout {
+            sequence: 20
+            region: @entry
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+            maxLength: 200
+        }
+    )
+
+    pageItem P231_LOCATION_ID (
+        type: popupLov
+        label {
+            label: Location
+        }
+        lov {
+            type: sharedComponent
+            lov: @oan-locations
+        }
+        layout {
+            sequence: 30
+            region: @entry
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P231_START_YEAR (
+        type: numberField
+        label {
+            label: From (year)
+        }
+        settings {
+            numberAlignment: start
+            virtualKeyboard: numeric
+        }
+        layout {
+            sequence: 40
+            region: @entry
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+        }
+    )
+
+    pageItem P231_END_YEAR (
+        type: numberField
+        label {
+            label: To (year, empty if still at Oracle)
+        }
+        settings {
+            numberAlignment: start
+            virtualKeyboard: numeric
+        }
+        layout {
+            sequence: 50
+            region: @entry
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    button cancel (
+        buttonName: CANCEL
+        label: Cancel
+        layout {
+            sequence: 10
+            region: @buttons
+            slot: close
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: definedByDynamicAction
+        }
+    )
+
+    button delete (
+        buttonName: DELETE
+        label: Delete
+        layout {
+            sequence: 20
+            region: @buttons
+            slot: delete
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--danger
+                t-Button--simple
+            ]
+        }
+        behavior {
+            executeValidations: false
+            warnOnUnsavedChanges: doNotCheck
+            requiresConfirmation: true
+        }
+        confirmation {
+            message: Delete this entry from your profile?
+            style: danger
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P231_ID
+        }
+    )
+
+    button save (
+        buttonName: SAVE
+        label: Save
+        layout {
+            sequence: 30
+            region: @buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    dynamicAction cancel-dialog (
+        name: Cancel Dialog
+        execution {
+            sequence: 10
+        }
+        when {
+            event: click
+            selectionType: button
+            button: @cancel
+        }
+
+        action native-dialog-cancel (
+            action: cancelDialog
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    process load (
+        name: Load entry
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                for r in (select * from oan_my_tenure_v where id = :P231_ID) loop
+                    :P231_ROW_VERSION := r.row_version;
+                    :P231_BUSINESS_UNIT := r.business_unit;
+                    :P231_ROLE_TITLE := r.role_title;
+                    :P231_LOCATION_ID := r.location_id;
+                    :P231_START_YEAR := r.start_year;
+                    :P231_END_YEAR := r.end_year;
+                end loop;
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P231_ID
+        }
+    )
+
+    process save (
+        name: Save entry
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare
+                    l_id number := :P231_ID;
+                begin
+                    oan_career_pkg.save_tenure(l_id, :P231_BUSINESS_UNIT, :P231_ROLE_TITLE, :P231_LOCATION_ID, :P231_START_YEAR, :P231_END_YEAR, nvl(:P231_ROW_VERSION, 0));
+                end;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        serverSideCondition {
+            whenButtonPressed: @save
+        }
+    )
+
+    process delete (
+        name: Delete entry
+        type: executeCode
+        source {
+            plsqlCode: oan_career_pkg.delete_tenure(:P231_ID);
+        }
+        execution {
+            sequence: 20
+        }
+        serverSideCondition {
+            whenButtonPressed: @delete
+        }
+    )
+
+    process close-dialog (
+        name: Close Dialog
+        type: closeDialog
+        settings {
+            showSuccessMessages: false
+        }
+        execution {
+            sequence: 50
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: SAVE,DELETE
+        }
+    )
+
+)

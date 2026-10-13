@@ -15,7 +15,7 @@ page 22 (
         formAutoComplete: false
     }
     comments {
-        comments: FR-01 view: only OAN_PROFILE_V (section-masked, NFR-03). Hidden sections arrive as NULL and show "Not shared with you".
+        comments: FR-01 view: only OAN_PROFILE_V (section-masked, NFR-03). Hidden sections arrive as NULL and show "Not shared with you". W2.1/W2.2 sections read the masked OAN_PROFILE_*_V views (WORK, EDUCATION, SKILLS, CAREER_STATUS; R13 never partners).
     }
 
     region profile (
@@ -186,6 +186,456 @@ page 22 (
             }
             layout {
                 sequence: 12
+            }
+        )
+
+    )
+
+    region career-status (
+        name: Career status
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select case availability when 'ACTIVELY_LOOKING' then 'Actively looking'
+                                         when 'OPEN' then 'Open to opportunities' else 'Not looking' end availability,
+                       initcap(work_mode) work_mode,
+                       notice_period_days,
+                       lower(replace(replace(open_to, '_', '-'), ':', ', ')) open_to
+                  from oan_profile_career_status_v
+                 where user_id = :P22_USER_ID
+                ```
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/value-attribute-pairs-column
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: Not shared with you, or nothing added yet.
+        }
+
+        column AVAILABILITY (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: Availability
+            }
+            layout {
+                sequence: 1
+            }
+        )
+
+        column WORK_MODE (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Work mode
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column NOTICE_PERIOD_DAYS (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Notice period (days)
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column OPEN_TO (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Open to
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+    )
+
+    region tenure (
+        name: Oracle tenure
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select business_unit, role_title, location_name, period
+                  from oan_profile_tenure_v
+                 where user_id = :P22_USER_ID
+                 order by start_year desc
+                ```
+        }
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: Not shared with you, or nothing added yet.
+        }
+
+        column BUSINESS_UNIT (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: Line of business
+            }
+            layout {
+                sequence: 1
+            }
+        )
+
+        column ROLE_TITLE (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Role
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column LOCATION_NAME (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Location
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column PERIOD (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Years
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+    )
+
+    region experience (
+        name: Experience
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select organisation, title, period, description
+                  from oan_profile_experience_v
+                 where user_id = :P22_USER_ID
+                 order by start_year desc
+                ```
+        }
+        layout {
+            sequence: 40
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: Not shared with you, or nothing added yet.
+        }
+
+        column ORGANISATION (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: Organisation
+            }
+            layout {
+                sequence: 1
+            }
+        )
+
+        column TITLE (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Title
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column PERIOD (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Years
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column DESCRIPTION (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Details
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+    )
+
+    region education (
+        name: Education
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select institution, qualification, field_of_study, period
+                  from oan_profile_education_v
+                 where user_id = :P22_USER_ID
+                 order by end_year desc nulls first
+                ```
+        }
+        layout {
+            sequence: 50
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: Not shared with you, or nothing added yet.
+        }
+
+        column INSTITUTION (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: Institution
+            }
+            layout {
+                sequence: 1
+            }
+        )
+
+        column QUALIFICATION (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Qualification
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column FIELD_OF_STUDY (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Field
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column PERIOD (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Years
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+    )
+
+    region certifications (
+        name: Certifications and achievements
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select kind_label, name, issuer, year_obtained
+                  from oan_profile_certifications_v
+                 where user_id = :P22_USER_ID
+                 order by year_obtained desc nulls last
+                ```
+        }
+        layout {
+            sequence: 60
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: Not shared with you, or nothing added yet.
+        }
+
+        column KIND_LABEL (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: Type
+            }
+            layout {
+                sequence: 1
+            }
+        )
+
+        column NAME (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Name
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column ISSUER (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Issued by
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column YEAR_OBTAINED (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Year
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+    )
+
+    region terms (
+        name: Languages, industries and interests
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select listagg(case when term_kind = 'LANGUAGE' then name end, ', ') within group (order by name) languages,
+                       listagg(case when term_kind = 'INDUSTRY' then name end, ', ') within group (order by name) industries,
+                       listagg(case when term_kind = 'INTEREST' then name end, ', ') within group (order by name) interests
+                  from oan_profile_terms_v
+                 where user_id = :P22_USER_ID
+                having count(*) > 0
+                ```
+        }
+        layout {
+            sequence: 70
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/value-attribute-pairs-column
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: Not shared with you, or nothing added yet.
+        }
+
+        column LANGUAGES (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: Languages
+            }
+            layout {
+                sequence: 1
+            }
+        )
+
+        column INDUSTRIES (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Industry expertise
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column INTERESTS (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Interests
+            }
+            layout {
+                sequence: 3
             }
         )
 

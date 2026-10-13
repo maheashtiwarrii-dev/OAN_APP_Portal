@@ -294,7 +294,7 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 | W0.7 | `oan_chat_pkg`:<br>• deterministic onboarding; profile answers go to the draft profile/application;<br>• **role answers stored on the chat session as option IDs only, within the 90-day retention** (S30);<br>• purge rule + test (S08). | FR-34, R21 | 3 | — | [A] 13 Oct: steps, resume, codes-only transcript, 90-day purge, routing after approval; 9 utPLSQL tests |
 | W0.8 | 115 Onboarding conversation | FR-34, R21 | 2.5 | — | [A] 13 Oct: Comments-template transcript, per-step regions, page submit (Ajax send after live validation) |
 | W0.9 | `AI_ASSISTANT`: GenAI service + Web Credential (static id) + ACE; read-only, requester-scoped; opt-in; injection set ≥ 20 | R15 | 3 | — | [G] G-AI |
-| W0.10 | 1010, 1011 Approvals | FR-01/25 | 2 | 4.2 | [ ] |
+| W0.10 | 1010, 1011 Approvals | FR-01/25 | 2 | 4.2 | [A] 13 Oct: queue summary + overdue-first ordering; review shows onboarding answers; decide with row_version |
 | W0.11 | 1020, 1021 Members (staff roles via the 1.31 API, scopes) | FR-24, R16 | 3 | 4.3 | [A] 13 Oct: search; role grant/revoke with re-auth + MFA attestation; attest; suspend/reactivate (roles list extends with 1.31) |
 | W0.12 | 1030, 1031 Chapters | FR-16 | 1.5 | 4.4 | [ ] |
 | W0.13 | 1040 Lookups/Taxonomy (incl. `OAN_LU_CODE.live_yn`) | FR-28 | 2 | 4.5 | [ ] |

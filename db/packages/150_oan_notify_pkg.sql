@@ -156,11 +156,12 @@ create or replace package body oan_notify_pkg as
 
   procedure notify_role(p_role in varchar2, p_type in varchar2, p_title in varchar2, p_body in varchar2,
                         p_link_page in number default null, p_exclude_user in number default null) is
+    l_app number := app_id;
   begin
     for r in (select u.id
                 from apex_appl_acl_user_roles a
                 join oan_users u on u.username = a.user_name
-               where a.application_id = app_id
+               where a.application_id = l_app
                  and a.role_static_id = p_role
                  and u.status = 'ACTIVE'
                  and (p_exclude_user is null or u.id != p_exclude_user)) loop

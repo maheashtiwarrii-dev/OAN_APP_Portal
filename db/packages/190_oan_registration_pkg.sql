@@ -39,10 +39,13 @@ create or replace package body oan_registration_pkg as
   end current_terms_id;
 
   procedure record_terms_consents(p_user_id in number) is
+    l_terms number;
   begin
-    insert into oan_consents (user_id, consent_type, terms_version_id, granted)
-    select p_user_id, d.doc, current_terms_id(d.doc), 'Y'
-      from (select 'TERMS' doc from dual union all select 'PRIVACY' from dual union all select 'GUIDELINES' from dual) d;
+    for d in (select 'TERMS' doc from dual union all select 'PRIVACY' from dual union all select 'GUIDELINES' from dual) loop
+      l_terms := current_terms_id(d.doc);
+      insert into oan_consents (user_id, consent_type, terms_version_id, granted)
+      values (p_user_id, d.doc, l_terms, 'Y');
+    end loop;
     oan_audit_pkg.log('CONSENT_RECORDED', 'USER', p_user_id, p_user_id, json_object('types' value 'TERMS,PRIVACY,GUIDELINES'));
   end record_terms_consents;
 

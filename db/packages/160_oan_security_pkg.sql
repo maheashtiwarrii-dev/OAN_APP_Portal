@@ -239,11 +239,12 @@ create or replace package body oan_security_pkg as
   end remind_mfa_reattestation;
 
   procedure revoke_unattested_privileges is
+    l_app number := app_id;
   begin
     for u in (select u.id, u.username from oan_users u
                where u.mfa_attested_at < systimestamp - interval '12' month - interval '30' day) loop
       for r in (select role_static_id from apex_appl_acl_user_roles
-                 where application_id = app_id and user_name = u.username
+                 where application_id = l_app and user_name = u.username
                    and instr(c_privileged_roles, ':' || role_static_id || ':') > 0) loop
         apex_acl.remove_user_role(p_application_id => app_id, p_user_name => u.username,
                                   p_role_static_id => r.role_static_id);

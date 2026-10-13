@@ -6,7 +6,7 @@
 -- (Task 0.16 wraps these steps in a Liquibase changelog; this script is the ordered source.)
 --------------------------------------------------------------------------------
 whenever sqlerror exit failure rollback
-set define on verify off serveroutput on
+set define off verify off serveroutput on
 
 prompt == DDL
 @@ddl/010_taxonomy.sql

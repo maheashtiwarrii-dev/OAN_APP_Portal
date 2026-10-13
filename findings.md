@@ -47,6 +47,20 @@
 - **Blocked on ADMIN:** OAN_APP cannot create OAN_DATA/OAN_DEPLOY, grant CTXAPP or DBMS_CRYPTO, or create the OAN_CTX context. The bootstrap must run as ADMIN with `workspace_name = OAN_APP`.
 - **Bootstrap network rule** narrowed from `*` to the Google and LinkedIn sign-in hosts. It is granted to OAN_DATA and the APEX engine schema. FR-33 link checks need a separate decision.
 
+## First live install on dev (13 Oct 2026)
+- **ADMIN bootstrap ran** (`oan_admin_dev`, user-supplied ADMIN login, stored only in the SQLcl connection store). Result: OAN_DATA, OAN_DEPLOY (proxy into OAN_DATA), OAN_CTX bound to `oan_data.oan_ctx_pkg`, CTXAPP, network ACEs for the six Google/LinkedIn hosts (OAN_DATA + APEX_260100). Existing OAN_APP and its password unchanged; workspace `OAN_APP` reused.
+- **Deploy connection** `oan_deploy_dev` = `OAN_DEPLOY[OAN_DATA]`; its password was generated at random and exists only in the SQLcl store.
+- **Install result:** 77 tables, 58 views, 28 packages, 34 sequences valid; reference data seeded (6 regions, 28 countries, 45 cities, 77 chapters, 21 intents); 79 synonyms in OAN_APP; `30_assert_no_table_grants` passed. Only the 5 utPLSQL suites are invalid (utPLSQL not installed, task 0.8).
+- **Defects the database found (all fixed in the repo):**
+  - ORA-02329: `oan_throttle.window_start` was TIMESTAMP WITH TIME ZONE in a primary key; now a UTC TIMESTAMP.
+  - PLS-00263: subprogram-level ACCESSIBLE BY must be repeated in the package body (`oan_util.get_secret`, `oan_ctx_pkg.set_system`, `set_test_viewer`).
+  - PLS-00231: body-only functions cannot be called inside SQL (including VALUES clauses); 11 sites now use locals.
+  - SQLERRM cannot be used inside SQL; copied to a local first (privacy, jobs).
+  - The scalar macro `oan_vis.partner_card_visible` fails with ORA-00904 on 23.26 (parameter used only in a correlated subquery); the rule is inlined in `oan_member_card_v` and the macro removed. `oan_vis.can_see` works.
+  - `install.sql` now runs with `set define off` ("Skills & expertise" triggered a substitution prompt); the seed builds "Middle East & Africa" with `chr(38)` and needs `public_url`/`mail_from` defined.
+  - Config `APP_ID` was still 103; now 200 (Q31).
+- **Tooling notes:** SQLcl `@` and `set cloudconfig` cannot take paths with spaces, and drive D has no 8.3 names, so scripts run from a copy under `%USERPROFILE%\.oan`. DDL is not re-runnable; a schema reset script was not used (a mass drop is outside what the agent may run), so DDL fixes after this point go in as forward-only ALTER scripts (task 0.16a).
+- **Dev config:** PUBLIC_URL = the dev ORDS base; MAIL_FROM is a placeholder until OCI Email Delivery is set up (task 0.7).
 ## Design decisions for build
 - Visibility is enforced in the data layer: `OAN_DATA` tables + `oan_vis.can_see` + secure views; `OAN_APP` has view/package grants only (NFR-03).
 - Roles live in APEX ACL only; chapter scope lives in `OAN_CHAPTER_ADMINS` (NFR-02).

@@ -91,7 +91,7 @@ create or replace package body oan_ctx_pkg as
     end if;
   end set_viewer;
 
-  procedure set_system(p_job_name in varchar2) is
+  procedure set_system(p_job_name in varchar2) accessible by (package oan_jobs_pkg) is
   begin
     clear_viewer;
     put('VIEWER_TYPE', 'SYSTEM');
@@ -99,7 +99,8 @@ create or replace package body oan_ctx_pkg as
     put('IS_ADMIN', 'N'); put('IS_MODERATOR', 'N'); put('IS_CHAPTER_ADMIN', 'N'); put('IS_PRIVACY', 'N');
   end set_system;
 
-  procedure set_test_viewer(p_user_id in number, p_type in varchar2, p_is_admin in varchar2 default 'N') is
+  procedure set_test_viewer(p_user_id in number, p_type in varchar2, p_is_admin in varchar2 default 'N')
+    accessible by (package ut_oan_vis, package ut_oan_registry, package ut_oan_auth, package ut_oan_chat, package ut_oan_bp_api) is
   begin
     clear_viewer;
     if p_user_id is not null then

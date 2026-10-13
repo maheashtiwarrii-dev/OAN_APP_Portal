@@ -43,11 +43,12 @@ create or replace package body oan_privacy_pkg as
 
   function request_export return number is
     l_id number;
+    l_me number := me;
   begin
     oan_auth_pkg.require_reauth;
     oan_throttle_pkg.enforce('EXPORT:' || me, 3, 1440);
     insert into oan_privacy_requests (user_id, request_type, status, due_at)
-    values (me, 'EXPORT', 'RECEIVED', systimestamp + interval '30' day)
+    values (l_me, 'EXPORT', 'RECEIVED', systimestamp + interval '30' day)
     returning id into l_id;
     oan_audit_pkg.log('PRIVACY_EXPORT_REQUESTED', 'PRIVACY_REQUEST', l_id, me);
     return l_id;
@@ -110,6 +111,7 @@ create or replace package body oan_privacy_pkg as
   end build_export;
 
   procedure process_export_queue is
+    l_err varchar2(4000);
   begin
     for r in (select id from oan_privacy_requests where request_type = 'EXPORT' and status = 'RECEIVED'
                order by received_at fetch first 20 rows only) loop
@@ -118,8 +120,9 @@ create or replace package body oan_privacy_pkg as
         commit;
       exception
         when others then
+          l_err := substr(sqlerrm, 1, 4000);
           rollback;
-          update oan_privacy_requests set status = 'RECEIVED', response = substr(sqlerrm, 1, 4000) where id = r.id;
+          update oan_privacy_requests set status = 'RECEIVED', response = l_err where id = r.id;
           commit;
       end;
     end loop;
@@ -290,12 +293,13 @@ create or replace package body oan_privacy_pkg as
 
   function raise_request(p_type in varchar2, p_details in varchar2) return number is
     l_id number;
+    l_me number := me;
   begin
     oan_util.assert(p_type in ('OBJECTION','RECTIFICATION','GRIEVANCE','NOMINEE','ACCESS','REMOVAL'),
                     'Invalid request type');
     oan_throttle_pkg.enforce('PRIVREQ:' || me, 5, 1440);
     insert into oan_privacy_requests (user_id, request_type, details, due_at)
-    values (me, p_type, substr(p_details, 1, 4000), systimestamp + interval '30' day)
+    values (l_me, p_type, substr(p_details, 1, 4000), systimestamp + interval '30' day)
     returning id into l_id;
     oan_audit_pkg.log('PRIVACY_REQUEST_RAISED', 'PRIVACY_REQUEST', l_id, me, json_object('type' value p_type));
     oan_notify_pkg.notify_role('PRIVACY_OFFICER', 'MODERATION_QUEUE', 'New privacy request (' || p_type || ')',

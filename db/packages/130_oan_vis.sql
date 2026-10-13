@@ -13,8 +13,8 @@ create or replace package oan_vis authid definer as
   function can_see_ref(p_owner in number, p_section in varchar2,
                        p_viewer in number default null, p_viewer_type in varchar2 default null) return varchar2;
   function default_level(p_section in varchar2) return varchar2 deterministic;
-  -- Partner card rule (§4.1 item 7): member visible to partners only with >= 1 MEMBERS_PARTNERS section
-  function partner_card_visible(p_owner in number) return varchar2 sql_macro(scalar);
+  -- Partner card rule (§4.1 item 7) is inlined in oan_member_card_v as an EXISTS: on 23.26 a scalar
+  -- macro whose parameter is used only in a correlated subquery fails with ORA-00904 (13 Oct 2026).
 end oan_vis;
 /
 
@@ -59,14 +59,6 @@ create or replace package body oan_vis as
         else 'N'
       end]';
   end can_see;
-
-  function partner_card_visible(p_owner in number) return varchar2 sql_macro(scalar) is
-  begin
-    return q'[
-      case when exists (select 1 from oan_profile_section_vis v
-                         where v.user_id = p_owner and v.vis_level = 'MEMBERS_PARTNERS')
-           then 'Y' else 'N' end]';
-  end partner_card_visible;
 
   function default_level(p_section in varchar2) return varchar2 deterministic is
   begin

@@ -17,6 +17,7 @@ create or replace package body oan_jobs_pkg as
 
   procedure run_step(p_name in varchar2, p_sql in varchar2) is
     l_run number;
+    l_err varchar2(4000);
   begin
     insert into oan_job_runs (job_name) values (p_name) returning id into l_run;
     commit;
@@ -26,9 +27,10 @@ create or replace package body oan_jobs_pkg as
       commit;
     exception
       when others then
+        l_err := substr(sqlerrm || chr(10) || dbms_utility.format_error_backtrace, 1, 4000);
         rollback;
         update oan_job_runs set status = 'FAILED', ended_at = systimestamp,
-                                message = substr(sqlerrm || chr(10) || dbms_utility.format_error_backtrace, 1, 4000)
+                                message = l_err
          where id = l_run;
         commit;
         begin

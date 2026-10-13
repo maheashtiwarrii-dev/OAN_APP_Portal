@@ -72,9 +72,10 @@ create or replace package body oan_auth_pkg as
 
   procedure record_attempt(p_email in varchar2, p_success in varchar2) is
     pragma autonomous_transaction;
+    l_hash raw(2000) := email_hash(p_email);
   begin
     insert into oan_login_attempts (client_ip, username_hash, success)
-    values (oan_util.client_ip, email_hash(p_email), p_success);
+    values (oan_util.client_ip, l_hash, p_success);
     commit;
   end record_attempt;
 
@@ -205,6 +206,7 @@ create or replace package body oan_auth_pkg as
     l_link     varchar2(200)  := v('LINK_INTENT');
     l_reauth   varchar2(1)    := v('REAUTH_INTENT');
     l_new_mail varchar2(320);
+    l_username oan_users.username%type;
   begin
     -- 1. Known identity -> sign in (and record re-auth if requested)
     begin
@@ -258,8 +260,9 @@ create or replace package body oan_auth_pkg as
     end;
 
     -- 5. New person -> account in PENDING_REGISTRATION, completes the registration form (page 110)
+    l_username := new_username;
     insert into oan_users (username, email, email_verified, status, account_type)
-    values (new_username, l_email, 'Y', 'PENDING_REGISTRATION', 'MEMBER')
+    values (l_username, l_email, 'Y', 'PENDING_REGISTRATION', 'MEMBER')
     returning id into l_user_id;
     insert into oan_user_identities (user_id, provider, subject, email_at_link)
     values (l_user_id, p_provider, l_subject, l_email);
@@ -326,14 +329,16 @@ create or replace package body oan_auth_pkg as
 
   procedure set_local_password(p_user_id in number, p_password in varchar2) is
     l_salt raw(16) := dbms_crypto.randombytes(16);
+    l_hash raw(2000);
   begin
+    l_hash := pbkdf2(p_password, l_salt, c_iterations);
     merge into oan_local_credentials c
     using (select p_user_id u from dual) s on (c.user_id = s.u)
-     when matched then update set c.pwd_hash = pbkdf2(p_password, l_salt, c_iterations), c.salt = l_salt,
+     when matched then update set c.pwd_hash = l_hash, c.salt = l_salt,
                                   c.iterations = c_iterations, c.failed_count = 0, c.locked_until = null,
                                   c.password_changed_at = systimestamp
      when not matched then insert (user_id, pwd_hash, salt, iterations)
-                           values (s.u, pbkdf2(p_password, l_salt, c_iterations), l_salt, c_iterations);
+                           values (s.u, l_hash, l_salt, c_iterations);
   end set_local_password;
 
   procedure request_password_reset(p_email in varchar2) is

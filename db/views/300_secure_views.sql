@@ -137,7 +137,9 @@ select u.id user_id,
  where u.status = 'ACTIVE' and u.account_type = 'MEMBER'
    and (   to_number(sys_context('OAN_CTX','VIEWER_ID')) = u.id
         or sys_context('OAN_CTX','VIEWER_TYPE') = 'MEMBER'
-        or (sys_context('OAN_CTX','VIEWER_TYPE') = 'PARTNER' and oan_vis.partner_card_visible(u.id) = 'Y'))
+        or (sys_context('OAN_CTX','VIEWER_TYPE') = 'PARTNER'   -- partner card rule (§4.1 item 7), inlined: see oan_vis
+            and exists (select 1 from oan_profile_section_vis pv
+                          where pv.user_id = u.id and pv.vis_level = 'MEMBERS_PARTNERS')))
    and not exists (select 1 from oan_blocks b
                     where (b.blocker_id = u.id and b.blocked_id = to_number(sys_context('OAN_CTX','VIEWER_ID')))
                        or (b.blocked_id = u.id and b.blocker_id = to_number(sys_context('OAN_CTX','VIEWER_ID'))));

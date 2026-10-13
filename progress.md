@@ -127,3 +127,12 @@
 | I9-9 | Home 10 | Greeting (member's time zone), leadership-letter carousel (Ink panel, max 6, pause on hover, dots, reduced-motion aware), What's new, onboarding checklist, recent posts |
 | I9-10 | Validation | `apex validate`: successful (page arrays must be multi-line); brand check: passed. PL/SQL is not compiled yet; that waits for the database |
 | I9-11 | W0.22 closed | The 9 schemes per PRD B2: IS_ADMIN renamed (id kept), six IS_* schemes added; board published (v6) and synced; validate: successful |
+
+## Iteration 10 — first live database install (13 Oct 2026)
+| Step | Action | Result |
+|---|---|---|
+| I10-1 | ADMIN login supplied by the user | Saved as SQLcl `oan_admin_dev` (store only, not in git or notes) |
+| I10-2 | Bootstrap as ADMIN | OAN_DATA, OAN_DEPLOY, OAN_CTX, CTXAPP and feature grants, six sign-in host ACEs; workspace OAN_APP reused; `oan_deploy_dev` saved with a generated password |
+| I10-3 | Install as OAN_DEPLOY[OAN_DATA] | 4 runs. Fixed ORA-02329 (throttle key), PLS-00263 (accessible by in bodies), PLS-00231 (11 sites), SQLERRM in SQL, broken `partner_card_visible` macro (inlined), define/ampersand issues, APP_ID 103 → 200 |
+| I10-4 | Result | 77 tables, 58 views, 28 packages valid; seed loaded; 79 OAN_APP synonyms; no-table-grant assertion passed; smoke checks pass. Only the 5 utPLSQL suites are invalid (utPLSQL not installed) |
+| I10-5 | Google account password shared in chat | Not used or stored; user asked to change it. Google sign-in needs an OAuth client id and secret instead |

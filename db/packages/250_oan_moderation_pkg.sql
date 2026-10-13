@@ -51,6 +51,7 @@ create or replace package body oan_moderation_pkg as
                   p_details in varchar2) return number is
     l_id      number;
     l_subject number := author_of(p_object_type, p_object_id);
+    l_scope   number := scope_chapter_of(p_object_type, p_object_id);
   begin
     oan_security_pkg.require_active_member;
     oan_throttle_pkg.enforce('REPORT:' || oan_util.viewer_id, 20, 1440);
@@ -61,7 +62,7 @@ create or replace package body oan_moderation_pkg as
                              scope_chapter_id, sla_due_at)
     values (p_object_type, p_object_id, oan_util.viewer_id, l_subject, p_reason, substr(p_details, 1, 2000),
             case when p_reason = 'HARASSMENT' then 'HIGH' else 'NORMAL' end,
-            scope_chapter_of(p_object_type, p_object_id),
+            l_scope,
             oan_util.add_business_days(systimestamp,
               case p_reason when 'HARASSMENT' then 1 when 'REMOVE_MY_CONTRIBUTION' then 5 else 3 end))
     returning id into l_id;

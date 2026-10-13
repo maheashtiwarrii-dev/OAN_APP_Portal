@@ -53,15 +53,17 @@ create or replace package body oan_profile_pkg as
   end refresh_completeness;
 
   procedure mark_step(p_step in varchar2) is
+    l_me number := me;
   begin
     insert into oan_onboarding_steps (user_id, step)
-    select me, p_step from dual
-     where not exists (select 1 from oan_onboarding_steps where user_id = me and step = p_step);
+    select l_me, p_step from dual
+     where not exists (select 1 from oan_onboarding_steps where user_id = l_me and step = p_step);
   end mark_step;
 
   procedure dismiss_onboarding is
+    l_me number := me;
   begin
-    update oan_profiles set onboarding_dismissed = 'Y' where user_id = me;
+    update oan_profiles set onboarding_dismissed = 'Y' where user_id = l_me;
   end dismiss_onboarding;
 
   procedure save_basic(p_row_version in number, p_first_name in varchar2, p_last_name in varchar2,

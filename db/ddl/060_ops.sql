@@ -150,7 +150,7 @@ create table oan_business_calendar (
 
 create table oan_throttle (
   bucket_key   varchar2(200 char) not null,
-  window_start timestamp with time zone not null,
+  window_start timestamp not null,                -- UTC; a TIMESTAMP WITH TIME ZONE cannot be in a key (ORA-02329)
   hits         number default 0 not null,
   constraint oan_thr_pk primary key (bucket_key, window_start)
 );

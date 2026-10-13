@@ -31,7 +31,7 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 - **13 Oct (iteration 8, Q31):** APEX Build Pack v1.1 prioritised. Pages renumbered to Build Pack numbers, App ID 200, intent codes and API contracts per the Build Pack; see `docs/06-build-pack-alignment.md`. **Page ids in the task tables below are pre-Q31 ids; use the map in docs/06 §3.**
 - **13 Oct (iteration 9):** dev ADB `aiatp` probed (APEX 26.1.5, accepted as Q32); the bootstrap waits for an ADMIN run. Offline: W1 shell (global page 0, Home 10), W0.21 API contracts, most of W0.22.
 - **Next, in Build Pack order:**
-  1. G0 on the real database: ADMIN bootstrap, install as OAN_DEPLOY, spikes 0.11–0.14, first compile of every package;
+  1. On the real database: import app 200 into workspace OAN_APP (needs the user's go-ahead), utPLSQL (0.8), spikes 0.11–0.14;
   2. W0.22 done; create the ACL roles TRAINER, MENTOR, EXPERT, PARTNER_CONTACT, CUSTOMER_CONTACT, SUPPORT with W0.18;
   3. W2: 20/21 directory, 22/23 profile grids, 25 work profile, 24 My CV.
   PRD-only admin extras (1071-1073 → 124-126, 70/71 → 90/91) follow later in their wave.
@@ -177,7 +177,7 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 ## Milestones and gates (critical path)
 | Gate | Condition | Due | If missed |
 |---|---|---|---|
-| **G0** | Dev ADB (APEX 26.1.5 accepted, Q32); workspace + SQLcl connection; Google OAuth client; **staffing decision: 3 devs + 0.5 FTE QA** (S27). Toolchain ✔ done 12 Oct. **13 Oct:** dev ADB `aiatp` (Mumbai) ✔ on APEX **26.1.5**, accepted by the user (Q32); workspace `OAN_APP` ✔; SQLcl `oan_app_dev` ✔; ADMIN run of `00_admin_bootstrap.sql` pending | End S0 | Offline `[A]` work continues; nothing reaches `[x]` |
+| **G0** | Dev ADB (APEX 26.1.5 accepted, Q32); workspace + SQLcl connection; Google OAuth client; **staffing decision: 3 devs + 0.5 FTE QA** (S27). Toolchain ✔ done 12 Oct. **13 Oct:** dev ADB `aiatp` (Mumbai) ✔ on APEX **26.1.5**, accepted by the user (Q32); workspace `OAN_APP` ✔; SQLcl `oan_app_dev` ✔; ADMIN bootstrap ✔ and first install ✔ (13 Oct); open: Google OAuth client, staffing decision | End S0 | Offline `[A]` work continues; nothing reaches `[x]` |
 | **G1** | OI-4 content inventory + owner; **product owner signs off the Must/Should/Could AC list** (S22) | End S2 | Library import at risk; go-live criterion undefined, so escalate |
 | **G-RB** | Re-baseline: S1–S2 velocity and `[A]` rework vs plan (S28). If velocity < 20 pd/sprint, invoke the descope lane and re-issue the sprint map | End S2 | — |
 | **G-AI** | `AI_ASSISTANT` DPIA annex + GenAI DPA signed (S04) | End S3 | Onboarding stays deterministic; W0.9 moves to the descope lane / v1.x |
@@ -219,8 +219,8 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 |---|---|---|---|---|---|
 | 0.1 | Node LTS, JDK 21, SQLcl 26.2 via winget; on PATH | toolchain | 0.5 | Dev | **[x]** Node 24.20, JDK 21.0.12, SQLcl 26.2.2 |
 | 0.1b | Optional local Oracle AI Database Free + utPLSQL | DoD | 1 | Dev | [ ] |
-| 0.2 | Dev ADB (APEX 26.1.5 per Q32), synthetic data only | Q27, Q32 | 0.5 | Dev | [~] ADB + workspace ready; ADMIN bootstrap pending |
-| 0.3 | ADMIN bootstrap:<br>• **explicit ACE hosts** (Google, LinkedIn, `slack.com`, `graph.facebook.com`, GenAI), replacing the wildcard (S18);<br>• `grant execute on dbms_lock` (S17);<br>• proxy `OAN_DEPLOY[OAN_APP]` (S14);<br>• `OAN_API` schema (S15). | NFR-03, R02 | 1 | Dev | [~] |
+| 0.2 | Dev ADB (APEX 26.1.5 per Q32), synthetic data only | Q27, Q32 | 0.5 | Dev | [x] 13 Oct: ADB `aiatp`, workspace `OAN_APP`, bootstrap run, schema installed |
+| 0.3 | ADMIN bootstrap:<br>• **explicit ACE hosts** (Google, LinkedIn, `slack.com`, `graph.facebook.com`, GenAI), replacing the wildcard (S18);<br>• `grant execute on dbms_lock` (S17);<br>• proxy `OAN_DEPLOY[OAN_APP]` (S14);<br>• `OAN_API` schema (S15). | NFR-03, R02 | 1 | Dev | [~]  — 13 Oct: run on dev with Google/LinkedIn hosts only; DBMS_LOCK, OAN_API proxy and channel hosts follow with 1.34 / 0.20 / G-CH |
 | 0.4 | Workspace probe; deployment files; SQLcl connections | skill | 0.5 | Dev | [!] workspace name |
 | 0.5 | `git init`, layout, `.gitignore` | NFR-14 | 0.25 | Dev | [x] |
 | 0.6 | Google OIDC client | NFR-01 | 0.5 | OAN/Dev | [!] G0 |
@@ -250,7 +250,7 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 ### WS1 — Database foundation, schema `OAN_DATA` (S1–S2)
 | ID | Task | Delivers | Est | Status |
 |---|---|---|---|---|
-| 1.1–1.5 | DDL: identity, profile/network, taxonomy/chapters, content/community, ops (`010`–`060`) | FR-01/16/17/19/23/25/26/28/33 | 7.25 | [A] |
+| 1.1–1.5 | DDL: identity, profile/network, taxonomy/chapters, content/community, ops (`010`–`060`) | FR-01/16/17/19/23/25/26/28/33 | 7.25 | [A] live on dev 13 Oct (`[x]` after G0) |
 | 1.6 | PD registry (`070`) + classification test | FR-26 | 0.75 | [A] |
 | 1.7 | Seed reference data | FR-28/16 | 2 | [A] |
 | 1.8 | `oan_audit_pkg` | NFR-05 | 0.5 | [A] |

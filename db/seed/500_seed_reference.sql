@@ -7,7 +7,7 @@ set define on verify off
 
 ------------------------------------------------------------------ config ------
 merge into oan_config c
-using (select 'APP_ID' k, '103' v, 'NUMBER' t, 'APEX application id' d from dual union all
+using (select 'APP_ID' k, '200' v, 'NUMBER' t, 'APEX application id (Build Pack, Q31)' d from dual union all
        select 'PUBLIC_URL', '&&public_url', 'STRING', 'Base URL used in emails (trailing slash)' from dual union all
        select 'MAIL_FROM', '&&mail_from', 'STRING', 'Approved sender address' from dual union all
        select 'CURRENT_PHASE', '1', 'NUMBER', 'Highest delivered phase; gates notification types' from dual union all
@@ -185,7 +185,7 @@ begin
   l_tree('North America')        := 'United States:Austin,Bay Area,New York,Seattle,Chicago,Boston,Nashville;Canada:Toronto,Vancouver';
   l_tree('Asia-Pacific')         := 'Singapore:Singapore;Australia:Sydney,Melbourne;Japan:Tokyo;China:Beijing,Shanghai;'
                                  || 'Philippines:Manila;Malaysia:Kuala Lumpur';
-  l_tree('Middle East & Africa') := 'United Arab Emirates:Dubai;Saudi Arabia:Riyadh;South Africa:Johannesburg;Egypt:Cairo;Israel:Tel Aviv';
+  l_tree('Middle East ' || chr(38) || ' Africa') := 'United Arab Emirates:Dubai;Saudi Arabia:Riyadh;South Africa:Johannesburg;Egypt:Cairo;Israel:Tel Aviv';
   l_tree('Latin America')        := 'Brazil:Sao Paulo;Mexico:Mexico City;Argentina:Buenos Aires;Colombia:Bogota';
 
   l_region := l_tree.first;

@@ -63,6 +63,7 @@ create or replace package body oan_file_pkg as
                       p_object_type in varchar2, p_owner_id in number) return number is
     l_id    number;
     l_quota number;
+    l_mime  varchar2(200);
   begin
     if p_object_type in ('PROFILE_PHOTO','LIBRARY_ITEM') then
       validate(p_blob, p_filename, p_object_type);
@@ -72,9 +73,10 @@ create or replace package body oan_file_pkg as
                         <= oan_util.get_config_num('UPLOAD_QUOTA_MB', 500) * 1024 * 1024,
                       'Upload quota reached (500 MB).');
     end if;
+    l_mime := coalesce(p_mime, mime_of(ext_of(p_filename)));
     insert into oan_files (owner_id, filename, mime_type, file_size, sha256, content, object_type)
     values (p_owner_id, substr(regexp_replace(p_filename, '[^[:alnum:]._ -]', '_'), 1, 400),
-            coalesce(p_mime, mime_of(ext_of(p_filename))), dbms_lob.getlength(p_blob),
+            l_mime, dbms_lob.getlength(p_blob),
             dbms_crypto.hash(p_blob, dbms_crypto.hash_sh256), p_blob, p_object_type)
     returning id into l_id;
     return l_id;

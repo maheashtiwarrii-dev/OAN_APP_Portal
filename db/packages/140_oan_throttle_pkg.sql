@@ -16,12 +16,11 @@ create or replace package body oan_throttle_pkg as
     pragma autonomous_transaction;
     l_now      date := cast(sys_extract_utc(systimestamp) as date);
     l_minutes  number := (l_now - trunc(l_now)) * 1440;          -- minutes since midnight UTC
-    l_window   timestamp with time zone;
+    l_window   timestamp;                                          -- UTC window start
     l_hits     number;
   begin
     -- Fixed window aligned to multiples of p_window_minutes since midnight UTC (1440 = per day)
-    l_window := from_tz(cast(trunc(l_now) + floor(l_minutes / p_window_minutes) * p_window_minutes / 1440
-                             as timestamp), 'UTC');
+    l_window := cast(trunc(l_now) + floor(l_minutes / p_window_minutes) * p_window_minutes / 1440 as timestamp);
     merge into oan_throttle t
     using (select substr(p_bucket, 1, 200) k, l_window w from dual) s
        on (t.bucket_key = s.k and t.window_start = s.w)
@@ -44,7 +43,7 @@ create or replace package body oan_throttle_pkg as
 
   procedure purge(p_older_than in timestamp with time zone) is
   begin
-    delete from oan_throttle where window_start < p_older_than;
+    delete from oan_throttle where window_start < sys_extract_utc(p_older_than);
   end purge;
 
 end oan_throttle_pkg;

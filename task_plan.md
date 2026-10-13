@@ -176,7 +176,7 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 ## Milestones and gates (critical path)
 | Gate | Condition | Due | If missed |
 |---|---|---|---|
-| **G0** | Dev ADB on **APEX 26.2** (0.10); workspace + SQLcl connection; Google OAuth client; **staffing decision: 3 devs + 0.5 FTE QA** (S27). Toolchain ✔ done 12 Oct | End S0 | Offline `[A]` work continues; nothing reaches `[x]` |
+| **G0** | Dev ADB on **APEX 26.2** (0.10); workspace + SQLcl connection; Google OAuth client; **staffing decision: 3 devs + 0.5 FTE QA** (S27). Toolchain ✔ done 12 Oct. **13 Oct:** dev ADB `aiatp` (Mumbai) ✔ on APEX **26.1.5** (Q27 fallback: build on 26.1); workspace `OAN_APP` ✔; SQLcl `oan_app_dev` ✔; ADMIN run of `00_admin_bootstrap.sql` pending | End S0 | Offline `[A]` work continues; nothing reaches `[x]` |
 | **G1** | OI-4 content inventory + owner; **product owner signs off the Must/Should/Could AC list** (S22) | End S2 | Library import at risk; go-live criterion undefined, so escalate |
 | **G-RB** | Re-baseline: S1–S2 velocity and `[A]` rework vs plan (S28). If velocity < 20 pd/sprint, invoke the descope lane and re-issue the sprint map | End S2 | — |
 | **G-AI** | `AI_ASSISTANT` DPIA annex + GenAI DPA signed (S04) | End S3 | Onboarding stays deterministic; W0.9 moves to the descope lane / v1.x |
@@ -226,7 +226,7 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 | 0.7 | OCI Email Delivery + APEX SMTP | FR-23 | 0.5 | OAN/Dev | [ ] |
 | 0.8 | utPLSQL on dev | DoD | 0.25 | Dev | [ ] |
 | 0.9 | CI:<br>• base-table scan;<br>• authz on every component (with a negative test);<br>• utPLSQL;<br>• gitleaks;<br>• Advisor;<br>• offline `apex validate`;<br>• **page-registry check (S19)**;<br>• **brand check: no Oracle logos or marks in pages, static files or email templates (Q30, `ci/check-brand.ps1`)**;<br>• **org-page group/actions check (S09)**. | NFR-02/03/04 | 2.5 | Dev | [~] validate/deploy scripts working |
-| 0.10 | **Spike:** `apex_release` = 26.2 on dev and planned PROD; ADB upgrade policy (R30) | Q27 | 0.25 | Dev | [!] G0 |
+| 0.10 | **Spike:** `apex_release` = 26.2 on dev and planned PROD; ADB upgrade policy (R30) | Q27 | 0.25 | Dev | [~] dev = 26.1.5 (13 Oct); PROD and upgrade policy open |
 | 0.11 | **Spike (two-schema):** definer-rights package from a page, an Automation, post-auth and an ORDS handler | NFR-02/03 | 1 | Dev | [!] G0 |
 | 0.12 | **Spike (auth):** Social Sign-In post-auth, Switch in Session, re-auth | NFR-01 | 1 | Dev | [!] G0 |
 | 0.13 | **Spike (crypto):** PBKDF2 at 210k, 1 and 20 parallel logins | NFR-01 | 0.5 | Dev | [!] G0 |

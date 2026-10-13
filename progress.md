@@ -104,3 +104,14 @@
 - M.2 groups refactor (offline, before the first shared deploy), incl. the p00031 → p00037 renumber and `search_body`.
 - W0 completion offline: pages 109 and 115 and admin pages 1010–1080, plus W0.18–W0.20, each validated with `ci/validate-apex-app.ps1`.
 - Waiting on the user/OAN for G0: dev ADB on APEX 26.2, workspace name, SQLcl connection, Google OAuth client, staffing decision.
+
+## Iteration 9a — dev database access (13 Oct 2026)
+| Step | Action | Result |
+|---|---|---|
+| I9-1 | User provided the dev ADB (`aiatp`, Mumbai), the OAN_APP login and the wallet | Wallet copied outside the repo (`%USERPROFILE%\.oan`, gitignored anyway); SQLcl connection `oan_app_dev` saved; password kept out of git and notes |
+| I9-2 | Read-only probe as OAN_APP | APEX **26.1.5** (Q27 fallback: stay on 26.1). Workspace `OAN_APP` holds a 3-page starter app 103 plus 60 FSD-model tables from 6 Oct; zero name collisions with our objects; no APEX SQL hits base tables |
+| I9-3 | Bootstrap readiness | OAN_APP has no admin rights, so the bootstrap still needs ADMIN. Network rule narrowed to the Google and LinkedIn sign-in hosts (OAN_DATA + APEX engine schema); run with `workspace_name = OAN_APP` |
+
+## Next
+- ADMIN runs `db/grants/00_admin_bootstrap.sql` (or saves an `oan_admin_dev` SQLcl connection so it can be run here), then `db/install.sql` as OAN_DEPLOY[OAN_DATA], grants and synonyms, then spikes 0.11–0.14 on the real database.
+- Continue W1 offline: global page 0 and Home 10 to the Build Pack spec; W0.21/W0.22.

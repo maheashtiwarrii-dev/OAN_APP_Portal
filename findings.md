@@ -36,6 +36,17 @@
   - Offline validation needs no DB: `sql /nolog` → `apex validate -input <dir>`; ported to `ci/validate-apex-app.ps1`.
 - **FSD text source:** the attached PDFs were extracted from the session transcript to the scratchpad. The FSD text was recovered by inflating the PDF streams, because the Read tool has no PDF renderer here. The journey list J-01..J-21 in PRD §B10.5 comes from FSD §3.1–3.3.
 
+## Dev database probe (13 Oct 2026, read-only, as OAN_APP)
+- **Instance:** ADB `aiatp`, ap-mumbai-1, Oracle AI Database 26ai (23.26.4.1). Wallet kept outside the repo at `%USERPROFILE%\.oan\Wallet_aiatp.zip` (SQLcl needs the 8.3 path; it rejects a quoted path with spaces). Service `aiatp_tp`. Saved SQLcl connection `oan_app_dev`; the password lives only in the SQLcl connection store.
+- **APEX is 26.1.5** (`apex_release`), not 26.2. Q27 fallback applies: keep building on 26.1. The app's 26.1.0 metadata matches; M.1 stays deferred.
+- **OAN_APP already exists** with workspace `OAN_APP` and APEX app **103 "OAN_APP_Portal"**. It owns 60 tables from 6 Oct that follow the Build Pack/FSD model (`OAN_MEMBERS`, `OAN_POSTS`, `OAN_CHAT_SESSIONS`, …) plus views `OAN_V_DIRECTORY` and `OAN_V_JOB_SEARCH`.
+  - Our install leaves them alone: data goes to `OAN_DATA`, and OAN_APP only gains synonyms for our `*_v` views and `*_pkg` packages.
+  - None of our 76 view and package names collide with them. No APEXLang SQL references a non-view `oan_` object, so nothing can resolve to the old tables by mistake.
+  - App 103 is a 3-page App Builder starter (Global, Home, Login; APEX accounts), created 12 Oct. It is not ours. App 200 sits next to it in the same workspace.
+- **OAN_APP privileges** are wider than the design (DWROLE: CREATE TABLE and others). This is accepted for dev because security rests on OAN_DATA views. Revisit for PROD, where it must be CREATE SESSION + CREATE SYNONYM only (NFR-03).
+- **Blocked on ADMIN:** OAN_APP cannot create OAN_DATA/OAN_DEPLOY, grant CTXAPP or DBMS_CRYPTO, or create the OAN_CTX context. The bootstrap must run as ADMIN with `workspace_name = OAN_APP`.
+- **Bootstrap network rule** narrowed from `*` to the Google and LinkedIn sign-in hosts. It is granted to OAN_DATA and the APEX engine schema. FR-33 link checks need a separate decision.
+
 ## Design decisions for build
 - Visibility is enforced in the data layer: `OAN_DATA` tables + `oan_vis.can_see` + secure views; `OAN_APP` has view/package grants only (NFR-03).
 - Roles live in APEX ACL only; chapter scope lives in `OAN_CHAPTER_ADMINS` (NFR-02).

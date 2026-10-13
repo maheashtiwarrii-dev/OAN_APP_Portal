@@ -8,7 +8,8 @@
 -- Substitution variables:
 --   &&deploy_password   password for OAN_DEPLOY (store in OCI Vault, never in git)
 --   &&app_password      password for OAN_APP    (store in OCI Vault, never in git)
---   &&workspace_name    APEX workspace to create/assign (e.g. OAN)
+--   &&workspace_name    APEX workspace to create/assign (dev ADB: existing OAN_APP)
+-- An existing OAN_APP user keeps its password and privileges (ORA-01920 ignored).
 --------------------------------------------------------------------------------
 whenever sqlerror exit failure rollback
 set define on verify off serveroutput on
@@ -52,15 +53,26 @@ grant execute on sys.dbms_scheduler to oan_data;
 -- Application context. Only OAN_DATA.OAN_CTX_PKG may set it (NFR-03, Q06).
 create or replace context oan_ctx using oan_data.oan_ctx_pkg;
 
--- Outbound HTTPS (443) for OIDC endpoints and FR-33 advisory link checks
+-- Outbound HTTPS (443) for Google and LinkedIn sign-in only. APEX makes the
+-- social sign-in calls as its engine schema, so that schema gets the same ACE.
+-- FR-33 advisory link checks need a wider rule; that is a separate decision.
+declare
+  l_apex_schema varchar2(128);
 begin
-  dbms_network_acl_admin.append_host_ace(
-    host       => '*',
-    lower_port => 443,
-    upper_port => 443,
-    ace        => xs$ace_type(privilege_list => xs$name_list('http'),
-                              principal_name => 'OAN_DATA',
-                              principal_type => xs_acl.ptype_db));
+  select schema into l_apex_schema from dba_registry where comp_id = 'APEX';
+  for h in (select column_value host from table(sys.odcivarchar2list(
+              'accounts.google.com', 'oauth2.googleapis.com', 'openidconnect.googleapis.com',
+              'www.googleapis.com', 'www.linkedin.com', 'api.linkedin.com'))) loop
+    for p in (select column_value principal from table(sys.odcivarchar2list('OAN_DATA', l_apex_schema))) loop
+      dbms_network_acl_admin.append_host_ace(
+        host       => h.host,
+        lower_port => 443,
+        upper_port => 443,
+        ace        => xs$ace_type(privilege_list => xs$name_list('http'),
+                                  principal_name => p.principal,
+                                  principal_type => xs_acl.ptype_db));
+    end loop;
+  end loop;
 end;
 /
 

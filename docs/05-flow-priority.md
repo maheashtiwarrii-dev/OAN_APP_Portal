@@ -11,7 +11,7 @@ Each flow was scored on four criteria, in this order:
 1. **Gate:** is it a Must flow in PRD v1.2.1, needed for go-live?
 2. **Dependency:** do other flows need it first (identity, visibility, groups, organisations)?
 3. **Goal value:** which FSD 2.3 goal does it serve (Reconnect, Re-engage, Re-hire, Self-serve, Employability, Productive engagement)?
-4. **External risk:** does it rely on Slack, Meta, Oracle HR or an LLM?
+4. **External risk:** does it rely on Slack, Meta or an LLM? (Oracle HR is out of v1, Q29.)
 
 ## Priority tiers
 | Tier | Meaning | Rule |
@@ -36,15 +36,15 @@ Each flow was scored on four criteria, in this order:
 | 9 | Knowledge library + insights + events | — | P1 | W3 · S6 | Must (events), Should (insights) | Re-engage goal; content import (G1) |
 | 10 | Messaging + notifications | — | P1 | W4 · S6–S7 | Must | Needed by referrals, experts, partners |
 | 11 | **Job search → apply → track** | J-01 | P2 | W5 · S8 | Must | Re-hire goal; FR-36 AC1 performance |
-| 12 | Helpdesk + document request (HR types gated) | — | P2 | W5 · S8 | Must | Self-serve goal; HR only after G-HR |
+| 12 | Helpdesk (expert connection, RFP, feedback, support); "HR documents" signposts Oracle's public HR channel | — | P2 | W5 · S8 | Must | Self-serve goal; no HR brokering in v1 (Q29) |
 | 13 | **Referral request** | J-08 | P2 | W5 · S8 | Should | Re-hire goal; strict R18 limits |
 | 14 | **Skills gap / demand insights** | J-02, J-03 | P2 | W5 · S8 | Should | Employability goal; jobs-only data until W6 |
 | 15 | Organisation application + verification | — | P2 | W5 · S7 | Must | Prerequisite for every partner journey |
 | 16 | **Partner talent need → responses → candidate feedback** | J-09, J-10 | P3 | W6.5 · S9 | Must | Productive engagement; most complex privacy (R01, R11) |
 | 17 | Partner bids, problems, local rollout, expansion, funded work, solution interest | J-11, J-12, J-15, J-16, J-17, J-19 | P3 | W6.5 · S9 | Must | Same talent-request model (R07-X, S25-Y) |
 | 18 | Non-Oracle partners via the opportunities feed | J-18 | P3 | W5.2/W6.5 · S8–S9 | Must | Feed filter (S25-Y) |
-| 19 | **Domain experts** → expert request | J-14, J-03 | P3 | W6.2 · S9 | Must | FR-07/13/21 |
-| 20 | **Coaching / mentoring** | J-05 | P3 | W6.3 · S10 | Should | R17 peer-mentor safeguards |
+| 19 | **Domain experts** → expert request | J-14, J-03 | P3 | W6.2 · S8 | Must | FR-07/13/21; moved to S8 in plan v3.1 |
+| 20 | **Coaching / mentoring** | J-05 | P3 | W6.3 · S9 | Should | R17 peer-mentor safeguards; moved to S9 in plan v3.1 |
 | 21 | **Training, enrolment, mock projects; team training** | J-06, J-13 | P3 | W6.4 · S10 | Should | Employability goal |
 | 22 | **Business ideas** (initiatives + group) | J-07 | P3 | W6.8 · S10 | Should | BUSINESS_IDEAS group seeded now |
 | 23 | Chapters pages, success stories | — | P3 | W6.6/W6.8 · S10 | Should | Community depth |

@@ -57,6 +57,13 @@
 | I3-5 | W0.6 page 109 Access denied | Authored |
 | I3-6 | Tests and validation | `ut_oan_chat` (9 tests: AC2–AC4, R21, S30, R05); SQLcl 26.2.2 offline `apex validate`: successful |
 
+## 2026-10-13 — Iteration 4
+| Step | Action | Result |
+|---|---|---|
+| I4-1 | User: proceed without Oracle HR approval; revise sprints | Decision Q29 logged. PRD → v1.2.2 (FR-44 signpost only; B7 I-03, B8 Q-04, B10.8, B10.10). Plan → v3.1: gate G-HR removed (11 gates), W5.4 4.5 → 3 pd, 7.2d dropped, `HR_INTEGRATION` not built; S8 takes W6.2 experts, S9 takes W6.3 mentoring, S10 keeps ~6 pd buffer. Still 16 sprints, same dates |
+| I4-2 | User: no Oracle logos in APEX pages | Decision Q30 logged; app audited (text logo "OAN Portal", generic icon, no Oracle red/font/images); `ci/check-brand.ps1` added and negative-tested |
+| I4-3 | Kanban + PDF | Board and landscape PDF updated for v3.1 (11 gates, 152 tasks) |
+
 ## Next
 - M.2 groups refactor (offline, before the first shared deploy), incl. the p00031 → p00037 renumber and `search_body`.
 - W0 completion offline: pages 109 and 115 and admin pages 1010–1080, plus W0.18–W0.20, each validated with `ci/validate-apex-app.ps1`.

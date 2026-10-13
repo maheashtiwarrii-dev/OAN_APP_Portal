@@ -1,8 +1,8 @@
 # Task Plan — OAN Portal v1 Implementation (APEX 26.2 / APEXLang)
 
 > **Tracking format (planning-with-files):** `task_plan.md` holds the plan and status, `findings.md` holds research and decisions, and `progress.md` is the session log.
-> **Scope source:** `docs/02-PRD.md` **v1.2.1** (Part A + Part B + §B10). Every task cites the FR/NFR or the R-item it delivers.
-> **Version:** **v3** (12 Oct 2026).
+> **Scope source:** `docs/02-PRD.md` **v1.2.2** (Part A + Part B + §B10). Every task cites the FR/NFR or the R-item it delivers.
+> **Version:** **v3.1** (13 Oct 2026). v3.1 applies user decisions Q29 (proceed without Oracle HR approval: no HR brokering, gate G-HR removed, S8–S10 rebalanced) and Q30 (no Oracle logos, CI brand check 0.9).
 >   - Plan review: 3 reviewers under the 2-of-3 rule; all 31 ballot items applied (S25 = Option Y). See `docs/reviews/plan3-round2-ballot.md`. Ballot IDs are cited as (Sxx).
 >   - v2 is archived at `docs/reviews/task_plan-v2.md`; the "was" column gives a task's v2 ID.
 > **Status legend:**
@@ -27,6 +27,7 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 - **M.1 is blocked by tooling:** SQLcl 26.2.2 does not yet accept APEXLang 26.2 metadata (`26.2.0+3479`), so the app keeps `26.1.0+3102`.
 - **13 Oct:** M.2 groups refactor done offline (`[A]`). Flow priority set in `docs/05-flow-priority.md` (P0–P4); it orders work within waves, the test order and the descope order.
 - **13 Oct (iteration 3):** onboarding conversation built offline: `oan_chat_pkg`, tables, views, page 115, Home routing, page 109, `ut_oan_chat` (9 tests). Board exported to an A4 landscape PDF.
+- **13 Oct (iteration 4):** plan v3.1 for Q29/Q30 (11 gates; same 16 sprints); CI brand check added; W0 admin approval and member pages built offline.
 - **Next:** W0 P0 admin flows offline, in rank order:
   1. 1010/1011 approvals;
   2. 1020/1021 members and roles;
@@ -52,21 +53,21 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 | W2 | 30.75 |
 | W3 | 16.75 |
 | W4 | 29.25 |
-| W5 | 22.5 |
+| W5 | 21 |
 | W6 | 36.75 |
 | W7 | 7.5 |
 | WS5 dev share | 5 |
 | WS6 | 2.5 |
 | WS8 | 3.25 |
 | WS9 dev share | 10 |
-| **Total** | **≈ 289 pd** |
-| **+ 20% contingency** | **≈ 347 pd** |
+| **Total** | **≈ 287.5 pd** |
+| **+ 20% contingency** | **≈ 345 pd** |
 
 - **Credit for offline work:** about 49 pd is authored (`[A]`). It still needs deployment, fixes and tests, estimated at 40%. Remaining effort ≈ 260 pd, or **≈ 312 pd with contingency**.
   - The 40% figure is unproven. It is checked at **G-RB** (S28).
 - **QA effort ≈ 62 pd:** in-sprint AC tests 30, WS5 25, UAT 7.
 - **Staffing (G0 condition, S27):** 3 developers (DB/PL-SQL, APEX, APEX + integrations) plus a named 0.5 FTE QA from S2.
-  - Build capacity S0–S11 ≈ 276 pd; build need ≈ 290 pd.
+  - Build capacity S0–S11 ≈ 276 pd; build need ≈ 288 pd (Q29 removed 1.5 pd of HR brokering).
   - The gap is held by the **S11 descope lane** (W6.9, W6.7, W0.9, W4.4, W5.7 feed ≈ 21 pd; S24).
   - **2-developer fallback:** S0 + ~17 build sprints + 3, with the R23 descope applied.
 
@@ -125,7 +126,7 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 | Channels | W4.4 | 53, 1090 |
 
 - **Build Option gate rule (R12, S03):**
-  - `CHANNELS`, `HR_INTEGRATION`, `AI_ASSISTANT` and `CAREERS_FEED` are built and tested with the option **on in DEV only**, switched on by the DEV-only 0.16b script.
+  - `CHANNELS`, `AI_ASSISTANT` and `CAREERS_FEED` are built (`HR_INTEGRATION` is not built in v1, Q29) and tested with the option **on in DEV only**, switched on by the DEV-only 0.16b script.
   - Code paths call `oan_util.option_live(option)` (1.37). It returns true only when the option is on, an audited `DPIA_SIGNOFF_<OPTION>` row exists and the gate flag is set.
   - In PROD an option can be enabled only via the audited `oan_config_pkg.enable_feature`, following procedure 8.6.
 - **Fallback rule (R05, S29):** each route card is driven by `OAN_LU_CODE.live_yn`, set at wave close. A route card whose journey is not live falls back to Home with a "coming soon" card.
@@ -179,7 +180,6 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 | **G-RB** | Re-baseline: S1–S2 velocity and `[A]` rework vs plan (S28). If velocity < 20 pd/sprint, invoke the descope lane and re-issue the sprint map | End S2 | — |
 | **G-AI** | `AI_ASSISTANT` DPIA annex + GenAI DPA signed (S04) | End S3 | Onboarding stays deterministic; W0.9 moves to the descope lane / v1.x |
 | **G-CH** | Slack app approved; WhatsApp Business verified with templates; Slack and Meta DPAs; **`CHANNELS` DPIA annex signed** (S04) | End S6 | W4.4 stays `[G]` (built but off, or moved to v1.x); W5.2 starts in S7 |
-| **G-HR** | Written Oracle HR arrangement + **`HR_INTEGRATION` DPIA annex** (S04) | End S7 | HR request types only link to Oracle's public channel |
 | **G-CF** | `CAREERS_FEED` DPIA annex + feed terms (S04) | End S7 | Careers stays as deep-links only |
 | **G2** | OI-2 region decided; temporary 100k load-test ADB booked (S20) | End S8 | 5.3b slips; PROD provisioning at risk |
 | **G3** | All staff-role holders named, each on IdP + 2-step verification (R16, S10); ≥ 3 partner/customer orgs verified for the pilot (6.8) | End S10 | Queues unstaffed; pilot cannot run J-09..J-19 |
@@ -199,9 +199,9 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 | **S5** (18) | W2.5–W2.11; **5.3a** 100k directory smoke; **5.4a** first WCAG pass; **9.2a** demo (W0–W2) |
 | **S6** | W3 (all); W4.1, W4.2 |
 | **S7** | W4.3, W4.5; W4.4 only if G-CH is met (otherwise W5.2 starts here); W5.1 |
-| **S8** | W5.2–W5.7; **9.2b** demo (W3–W5); G2 |
-| **S9** | **W6.1, W6.5 (Must)**, W6.2; **5.3b** full load test |
-| **S10** | W6.3, W6.4, W6.6, W6.8; **9.2c** demo (W6); G3 |
+| **S8** | W5.2–W5.7 (W5.4 reduced, Q29); **W6.2 experts** (pulled in from S9 with the freed capacity); **9.2b** demo (W3–W5); G2 |
+| **S9** | **W6.1, W6.5 (Must)**, W6.3 mentoring (pulled in from S10); **5.3b** full load test |
+| **S10** | W6.4, W6.6, W6.8; **9.2c** demo (W6); G3; ~6 pd buffer that absorbs W6 overrun before the S11 descope lane |
 | **S11** | W7 (all); **descope lane**: W6.9, W6.7, W0.9, W4.4 if late, W5.7 feed; 5.2 security test; 5.7 consolidation; 5.8 |
 | **S12** | 5.3c re-run; 5.4 full audit; 5.10 regression; UAT 9.1–9.2 (J-01..J-21); defects; 9.3–9.5; G4, G5 |
 | **S13** | Gate 8.0; 8.1, 8.2, 8.5, 9.6; 6.3b content import into PROD |
@@ -224,7 +224,7 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 | 0.6 | Google OIDC client | NFR-01 | 0.5 | OAN/Dev | [!] G0 |
 | 0.7 | OCI Email Delivery + APEX SMTP | FR-23 | 0.5 | OAN/Dev | [ ] |
 | 0.8 | utPLSQL on dev | DoD | 0.25 | Dev | [ ] |
-| 0.9 | CI:<br>• base-table scan;<br>• authz on every component (with a negative test);<br>• utPLSQL;<br>• gitleaks;<br>• Advisor;<br>• offline `apex validate`;<br>• **page-registry check (S19)**;<br>• **org-page group/actions check (S09)**. | NFR-02/03/04 | 2.5 | Dev | [~] validate/deploy scripts working |
+| 0.9 | CI:<br>• base-table scan;<br>• authz on every component (with a negative test);<br>• utPLSQL;<br>• gitleaks;<br>• Advisor;<br>• offline `apex validate`;<br>• **page-registry check (S19)**;<br>• **brand check: no Oracle logos or marks in pages, static files or email templates (Q30, `ci/check-brand.ps1`)**;<br>• **org-page group/actions check (S09)**. | NFR-02/03/04 | 2.5 | Dev | [~] validate/deploy scripts working |
 | 0.10 | **Spike:** `apex_release` = 26.2 on dev and planned PROD; ADB upgrade policy (R30) | Q27 | 0.25 | Dev | [!] G0 |
 | 0.11 | **Spike (two-schema):** definer-rights package from a page, an Automation, post-auth and an ORDS handler | NFR-02/03 | 1 | Dev | [!] G0 |
 | 0.12 | **Spike (auth):** Social Sign-In post-auth, Switch in Session, re-auth | NFR-01 | 1 | Dev | [!] G0 |
@@ -236,7 +236,7 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 | 0.16c | Scratch-schema rebuild every sprint | NFR-14 | 0.5 | Dev | [ ] |
 | 0.17 | **Spike (webhooks):**<br>• raw-body HMAC with the secret read from `OAN_SECRETS`;<br>• constant-time compare;<br>• enqueue a scheduler job;<br>• respond in under 1s (S02). | R02 | 1.5 | Dev | [!] G0 |
 | 0.18 | **Spike (GenAI):** APEX GenAI service on ADB; read-only tool pattern | R15 | 0.5 | Dev | [ ] |
-| 0.19 | External procurement (OAN): Slack app, WhatsApp Business + templates, Oracle HR arrangement | G-CH, G-HR | — | OAN | [ ] |
+| 0.19 | External procurement (OAN): Slack app, WhatsApp Business + templates (Oracle HR arrangement not pursued, Q29) | G-CH | — | OAN | [ ] |
 | 0.20 | **ORDS install (S15):**<br>• REST-enabled `OAN_API` schema with EXECUTE on `oan_channel_pkg` entry points only;<br>• `db/ords/900_channels.sql` under Liquibase label `channels`;<br>• Slack `url_verification` and WhatsApp GET verify handling. | R02, NFR-15 | 1 | Dev | [ ] |
 
 ### M — Migration and refactor (S0, offline)
@@ -304,7 +304,7 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 | W0.17 | 9000, 9001 health pages | NFR-08 | 0.25 | 3.16 | [ ] |
 | W0.18 | **Shared components + security baseline (S01).**<br>• Already authored: auth schemes, authorizations, app items/processes, email templates, automations, LOVs, lists.<br>• Text Messages; all email templates (v2 2.8).<br>• **Security baseline:** SSP/checksums; escaping; deep-linking off except landing/login/register; CSP (self + allow-list, incl. Ajax polling, no third-party script), HSTS, XFO DENY, Referrer-Policy; cookies Secure/HttpOnly/SameSite=Lax; debug off; Advisor zero findings; ORDS module inventory.<br>• Error handler; cookie notice.<br>• 5.7 rows. | NFR-04/13, FR-23 | 7.5 | 2.1–2.11 | [~] partly `[A]` |
 | W0.19 | 70 Suggest taxonomy term; 71 Request a chapter | FR-28/16 | 0.5 | 3.11 | [ ] |
-| W0.20 | **Build Option wiring (S03):**<br>• replace `PHASE_2/3/4` with `CHANNELS`, `HR_INTEGRATION`, `AI_ASSISTANT`, `CAREERS_FEED`, `CV_PDF`, `ORACLE_IDP` (exclude, onUpgradeKeepStatus);<br>• `oan_config_pkg.enable_feature` (audited);<br>• 5.7 row: option on in Builder without sign-off → nothing processed. | R12 | 1.5 | 2.6 | [ ] |
+| W0.20 | **Build Option wiring (S03):**<br>• replace `PHASE_2/3/4` with `CHANNELS`, `AI_ASSISTANT`, `CAREERS_FEED`, `CV_PDF`, `ORACLE_IDP` (no `HR_INTEGRATION`, Q29) (exclude, onUpgradeKeepStatus);<br>• `oan_config_pkg.enable_feature` (audited);<br>• 5.7 row: option on in Builder without sign-off → nothing processed. | R12 | 1.5 | 2.6 | [ ] |
 
 ### W1 — Shell, Home, global search (S3)
 | ID | Page(s) / task | Delivers | Est | Status |
@@ -354,7 +354,7 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 | W5.1 | Organisations + 55 application + 1025; **conversion of onboarding role answers to a draft org application** (S30) | FR-20/42, R22 | 4.5 | [ ] |
 | W5.2 | Jobs + `OAN_OPPORTUNITY_FEED_V` (incl. `NON_ORACLE_PARTNER` filter, S25-Y) + 27, 28, 29 + **separate `ORG_WORKSPACE` org views of 27/28** (S09) + 1026; applications purged at 12 months (+ test); **aggregate Careers-click and boomerang events** (S31) | FR-36, R07 | 7 | [ ] |
 | W5.3 | Referrals + 33 (R18); 12-month purge (+ test) | FR-37 | 2.5 | [ ] |
-| W5.4 | Helpdesk + HR safeguards (R10) + 34, 35, 1052; 6-month HR purge (+ test); **aggregate "resolved with no reopen"** (S31) | FR-44 | 4.5 | [ ] (HR [G] G-HR) |
+| W5.4 | Helpdesk (expert connection, RFP, feedback, general support) + 34, 35, 1052; **"HR documents" topic = signpost to Oracle's public alumni HR channel, no request row** (Q29); personal-data pattern check on all free text; **aggregate "resolved with no reopen"** (S31) | FR-44 | 3 | [ ] |
 | W5.5 | Skill demand (02:00) + 36, incl. **J-02 "add suggested skill to profile"** (S29) | FR-38 | 2.75 | [ ] |
 | W5.6 | Hourly SLA job | FR-44/25 | 0.5 | [ ] |
 | W5.7 | Careers deep-links; feed behind `CAREERS_FEED`; set `live_yn` for J-01/J-08 | FR-36 | 0.75 | [ ] (feed [G] G-CF) |
@@ -416,11 +416,11 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 | 7.1a | Core DPIA + RoPA + lawful bases for the merged scope, incl. the **R09 antivirus residual-risk acceptance** | End S2 | [ ] |
 | 7.1b | DPIA annex `AI_ASSISTANT` | End S3 (G-AI) | [ ] |
 | 7.1c | DPIA annex `CHANNELS` | End S6 (G-CH) | [ ] |
-| 7.1d | DPIA annexes `HR_INTEGRATION` and `CAREERS_FEED` | End S7 (G-HR, G-CF) | [ ] |
+| 7.1d | DPIA annex `CAREERS_FEED` | End S7 (G-CF) | [ ] |
 | 7.2a | DPAs: OCI, Google, LinkedIn, email; transfer mechanism after OI-2 | End S6 | [ ] |
 | 7.2b | DPA: GenAI provider | End S3 | [ ] |
 | 7.2c | DPAs: Slack, Meta | End S6 | [ ] |
-| 7.2d | Oracle HR arrangement | End S7 | [ ] |
+| 7.2d | ~~Oracle HR arrangement~~ not pursued in v1 (Q29) | — | n/a |
 | 7.3 | Legal texts incl. Partner/Customer terms, channel terms, HR-brokering notice | End S9 | [ ] |
 | 7.4 | Grievance Officer / privacy contact; breach runbook | End S9 | [ ] |
 | 7.5 | Named owners (OI-1); production access policy; product owner confirms the Q6 refinement (R17) and whether EXPERT/TRAINER are privileged (S10) | End S8 | [ ] |
@@ -428,7 +428,7 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 ### WS8 — Release (S13–S15)
 | ID | Task | Est | Status |
 |---|---|---|---|
-| 8.0 | **Go-live gate (S06).** Signed by the OI-1 owner and the privacy contact before the pilot or any real-data import. All must pass:<br>1. WS7 complete, incl. 7.5 and the DPIA annex of every option to be enabled; residual risks accepted in writing<br>2. OI-2 region fixed; transfer mechanism documented<br>3. legal texts loaded as v1 (8.5)<br>4. no open Critical/High from 5.2<br>5. 5.7 at 100%<br>6. backup retention ≤ 60 days<br>7. every holder of every staff role (R16) on IdP + 2-step verification, attested; `OAN_STAFF_SCOPES` reviewed<br>8. Builder/SQL access named-only; dev/test accounts removed; debug off<br>9. breach tabletop held<br>10. **every secrets-register entry** freshly generated for PROD<br>11. APEX 26.2 on PROD (R30)<br>12. each enabled option has its DPIA sign-off in `OAN_CONFIG`<br>13. every Must AC passes<br>14. anonymous ORDS modules = `/verify` + the two webhook handlers only<br>15. ACEs exist only for enabled options<br>16. `CHANNELS`, `HR_INTEGRATION`, `AI_ASSISTANT` and `CAREERS_FEED` verified OFF by query unless 12 holds<br>17. PD-registry and retention tests pass on PROD; every purge job enabled with a logged first run<br>18. CI green on the exact release tag | 1.5 | [ ] |
+| 8.0 | **Go-live gate (S06).** Signed by the OI-1 owner and the privacy contact before the pilot or any real-data import. All must pass:<br>1. WS7 complete, incl. 7.5 and the DPIA annex of every option to be enabled; residual risks accepted in writing<br>2. OI-2 region fixed; transfer mechanism documented<br>3. legal texts loaded as v1 (8.5)<br>4. no open Critical/High from 5.2<br>5. 5.7 at 100%<br>6. backup retention ≤ 60 days<br>7. every holder of every staff role (R16) on IdP + 2-step verification, attested; `OAN_STAFF_SCOPES` reviewed<br>8. Builder/SQL access named-only; dev/test accounts removed; debug off<br>9. breach tabletop held<br>10. **every secrets-register entry** freshly generated for PROD<br>11. APEX 26.2 on PROD (R30)<br>12. each enabled option has its DPIA sign-off in `OAN_CONFIG`<br>13. every Must AC passes<br>14. anonymous ORDS modules = `/verify` + the two webhook handlers only<br>15. ACEs exist only for enabled options<br>16. `CHANNELS`, `AI_ASSISTANT` and `CAREERS_FEED` verified OFF by query unless 12 holds<br>17. PD-registry and retention tests pass on PROD; every purge job enabled with a logged first run<br>18. CI green on the exact release tag | 1.5 | [ ] |
 | 8.1 | Provision PROD; deploy with the rehearsed 0.16 pipeline via `OAN_DEPLOY`; fresh secrets; assertions; `apex import` | 1 | [ ] |
 | 8.2 | Seed chapters; assign admins and staff roles (attested) | 0.5 | [ ] |
 | 8.3 | Pilot (S14): ~50 members, one holder per staff role, ≥ 3 verified orgs running J-09..J-19 | — | [ ] |
@@ -476,7 +476,7 @@ Dev share of WS9: 10 pd.
 | Merged scope ≈ 2.3× v2 (347 vs 149 pd) | Go-live slips | 3-developer staffing as a G0 condition; G-RB at End S2; S11 descope lane |
 | `[A]` rework larger than 40% | S1–S3 overrun | G-RB re-baseline; validation already passing on 26.2 lowers the risk |
 | G-CH late | FR-48 not in v1 | `[G]` build or descope; web + email fallback |
-| No Oracle HR arrangement | HR types unavailable | Link to Oracle's public channel (R10) |
+| No Oracle HR arrangement (accepted, Q29) | Members cannot request HR documents through OAN | Signpost to Oracle's public alumni HR channel; v1.x change only if an arrangement is made |
 | Destination ADB not on 26.2 | Import blocked | Spike 0.10; decision at 8.0 (R30) |
 | No SQLcl yet validates APEXLang 26.2 metadata (12 Oct 2026) | M.1 blocked; 26.2-only syntax cannot be checked | Author the 26.1/26.2-common subset (current source validates clean); recheck winget at every sprint start; R30 fallback |
 | 100k directory performance | NFR-06 breached | R28 index; 5.3a in S5, 5.3b in S9, 5.3c in S12 |

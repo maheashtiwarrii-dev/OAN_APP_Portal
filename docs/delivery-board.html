@@ -160,9 +160,9 @@ table.gtable { border-collapse: collapse; width: 100%; font-size: 0.86rem; }
 
 <div class="wrap">
   <header>
-    <div class="eyebrow">OAN Portal v1 · Plan v3 (2-of-3 approved) · updated 13 Oct 2026 · iteration 3</div>
+    <div class="eyebrow">OAN Portal v1 · Plan v3 (2-of-3 approved) · Plan v3.1 · updated 13 Oct 2026 · iteration 4</div>
     <h1>OAN Portal Delivery Board</h1>
-    <p class="sub">The 16 sprints and 12 gates of the merged FSD scope, from the S0 setup through the S14 pilot and S15 hypercare. Card status comes from <span class="mono">task_plan.md</span> in the GitHub repository.</p>
+    <p class="sub">The 16 sprints and 11 gates of the merged FSD scope (plan v3.1: no Oracle HR brokering in v1, Q29), from the S0 setup through the S14 pilot and S15 hypercare. Card status comes from <span class="mono">task_plan.md</span> in the GitHub repository.</p>
   </header>
 
   <section class="summary" aria-label="Plan summary" id="summary"></section>
@@ -231,7 +231,7 @@ const SPRINTS = [
 const SPRINT_FOCUS = {
   S0:"Toolchain, spikes, migrations", S1:"First shared DB deploy", S2:"DB tests, W0 auth + admin", S3:"W0 onboarding, W1 shell",
   S4:"W2 profile + directory", S5:"W2 CV, privacy; demo 1", S6:"W3 content, W4 messaging", S7:"W4 channels, W5 orgs",
-  S8:"W5 jobs, helpdesk; demo 2", S9:"W6 groups, partners, experts", S10:"W6 mentoring, training; demo 3", S11:"W7 reports; descope lane",
+  S8:"W5 jobs, helpdesk, W6 experts; demo 2", S9:"W6 groups, partners, mentoring", S10:"W6 training, initiatives; demo 3; buffer", S11:"W7 reports; descope lane",
   S12:"Load, WCAG, security, UAT", S13:"Gate 8.0, PROD release", S14:"Pilot ~50 members", S15:"Hypercare + handover"
 };
 // [id, name, sprint, status(x done|p in progress|b blocked|n not started), condition]
@@ -241,7 +241,6 @@ const GATES = [
   ["G-RB","S2","n","Re-baseline: S1–S2 velocity and offline-rework actuals vs plan; invoke descope lane if < 20 pd/sprint."],
   ["G-AI","S3","n","AI_ASSISTANT DPIA annex + GenAI DPA signed."],
   ["G-CH","S6","n","Slack app, WhatsApp Business + templates, Slack/Meta DPAs, CHANNELS DPIA annex."],
-  ["G-HR","S7","n","Written Oracle HR arrangement + HR_INTEGRATION DPIA annex."],
   ["G-CF","S7","n","CAREERS_FEED DPIA annex + feed terms."],
   ["G2","S8","n","Region decided; temporary 100k load-test ADB booked."],
   ["G3","S10","n","All staff-role holders named with IdP + 2-step verification; ≥ 3 pilot orgs verified."],
@@ -268,7 +267,7 @@ const T = [
  ["0.6","Google OIDC client","S0","WS0","b",0.5,"P0","OAN to provide"],
  ["0.7","OCI Email Delivery + APEX SMTP","S0","WS0","n",0.5,"P0",""],
  ["0.8","utPLSQL on dev","S0","WS0","n",0.25,"",""],
- ["0.9","CI: base-table scan, authz, utPLSQL, gitleaks, validate, page registry, org pages","S0","WS0","p",2.5,"P0","Validate/deploy scripts working"],
+ ["0.9","CI: base-table scan, authz, utPLSQL, gitleaks, validate, page registry, org pages, brand","S0","WS0","p",2.5,"P0","Validate, deploy and brand check (no Oracle logos, Q30) working"],
  ["0.10","Spike: APEX 26.2 on dev and PROD","S0","WS0","b",0.25,"P0","G0"],
  ["0.11","Spike: two-schema calls incl. ORDS","S0","WS0","b",1,"P0","G0"],
  ["0.12","Spike: social sign-in, switch in session, re-auth","S0","WS0","b",1,"P0","G0"],
@@ -277,7 +276,7 @@ const T = [
  ["0.15","Secrets register (all secrets, owners, rotation)","S0","WS0","p",1,"P0","OAN_SECRETS authored"],
  ["0.17","Spike: webhook HMAC + async job < 1s","S0","WS0","b",1.5,"P4","G0"],
  ["0.18","Spike: APEX GenAI service","S0","WS0","n",0.5,"P4",""],
- ["0.19","Procure Slack app, WhatsApp Business, Oracle HR","S0","WS0","n",0,"P4","OAN-owned"],
+ ["0.19","Procure Slack app, WhatsApp Business","S0","WS0","n",0,"P4","OAN-owned · Oracle HR not pursued (Q29)"],
  ["M.1","APEXLang 26.1 → 26.2 metadata","S0","M","b",1.5,"P0","SQLcl 26.2.2 does not accept 26.2 metadata yet"],
  ["M.2","Groups refactor: forums → groups / posts / comments","S0","M","a",3.5,"P1","Done 13 Oct; validated"],
  ["0.16a","Liquibase changelog (forward-only)","S1","WS0","n",1.5,"P0",""],
@@ -358,16 +357,16 @@ const T = [
  ["W5.1","Organisations: application, verification","S7","W5","n",4.5,"P2","Pages 55, 1025"],
  ["W5.2","Jobs, opportunity feed, applications","S8","W5","n",7,"P2","Pages 27–29, 1026 · J-01, J-18"],
  ["W5.3","Referral request","S8","W5","n",2.5,"P2","Page 33 · J-08"],
- ["W5.4","Helpdesk + HR safeguards","S8","W5","n",4.5,"P2","Pages 34, 35, 1052 · HR types gated"],
+ ["W5.4","Helpdesk; HR documents signpost only","S8","W5","n",3,"P2","Pages 34, 35, 1052 · no HR brokering (Q29)"],
  ["W5.5","Skills & demand insights","S8","W5","n",2.75,"P2","Page 36 · J-02, J-03"],
  ["W5.6","Hourly SLA job","S8","W5","n",0.5,"P2",""],
  ["W5.7","Careers deep-links (feed gated)","S8","W5","n",0.75,"P2","G-CF"],
  ["9.2b","Product-owner demo: W3–W5","S8","WS9","n",1,"",""],
  ["W6.1","Groups governance, reactions, stories, private search","S9","W6","a",5,"P1","Pages 30–32, 37 · J-04"],
  ["W6.5","Partner workspace: talent requests, feedback","S9","W6","n",6,"P3","Pages 46–48, 1053 · J-09..J-19 · Must"],
- ["W6.2","Experts + expert requests","S9","W6","n",4.5,"P3","Pages 38, 39 · J-14"],
+ ["W6.2","Experts + expert requests","S8","W6","n",4.5,"P3","Pages 38, 39 · J-14 · moved from S9"],
  ["5.3b","Full load test on temporary ADB","S9","WS5","n",3,"",""],
- ["W6.3","Mentoring + sessions","S10","W6","n",4,"P3","Pages 41, 42 · J-05"],
+ ["W6.3","Mentoring + sessions","S9","W6","n",4,"P3","Pages 41, 42 · J-05 · moved from S10"],
  ["W6.4","Training, enrolment, mock projects","S10","W6","n",4.5,"P3","Pages 43–45 · J-06, J-13"],
  ["W6.6","Chapters pages","S10","W6","n",1.5,"P3","Page 49"],
  ["W6.8","Initiatives + success stories","S10","W6","n",6.25,"P3","Pages 56, 57 · J-07"],
@@ -407,8 +406,8 @@ const T = [
  ["7.1c","DPIA annex: channels","S6","WS7","n",0,"","OAN-owned · G-CH"],
  ["7.2a","DPAs: OCI, Google, LinkedIn, email","S6","WS7","n",0,"","OAN-owned"],
  ["7.2c","DPAs: Slack, Meta","S6","WS7","n",0,"","OAN-owned · G-CH"],
- ["7.1d","DPIA annexes: HR, Careers feed","S7","WS7","n",0,"","OAN-owned · G-HR, G-CF"],
- ["7.2d","Oracle HR arrangement","S7","WS7","n",0,"","OAN-owned · G-HR"],
+ ["7.1d","DPIA annex: Careers feed","S7","WS7","n",0,"","OAN-owned · G-CF"],
+
  ["7.5","Owners, access policy, Q6 + EXPERT/TRAINER confirmation","S8","WS7","n",0,"","OAN-owned"],
  ["7.3","Legal texts incl. partner, channel, HR notices","S9","WS7","n",0,"","OAN-owned · G4"],
  ["7.4","Grievance officer, breach runbook","S9","WS7","n",0,"","OAN-owned · G4"]
@@ -424,7 +423,7 @@ function renderSummary() {
   const total = T.reduce((s, t) => s + t[5], 0);
   const by = k => T.filter(t => t[4] === k).length;
   const stats = [
-    ["16", "Sprints, S0–S15"], ["12", "Gates incl. go-live 8.0"], [String(T.length), "Tracked tasks"],
+    ["16", "Sprints, S0–S15"], ["11", "Gates incl. go-live 8.0"], [String(T.length), "Tracked tasks"],
     [fmt(total) + " pd", "Dev estimate on board"], [String(by("a") + by("x")), "Done or authored offline"],
     [String(by("b")), "Blocked (mostly on G0)"], ["28 May 2027", "Planned end of S15"]
   ];

@@ -4,7 +4,7 @@
 | Field | Value |
 |---|---|
 | Document status | **v1.2 (reviewed)**: FSD v1.1 merge (Part B) passed the 3-reviewer 2-of-3 gate; 30 of 30 amendments applied in §B10. Part A (v1.1) was approved earlier. |
-| Version | 1.2.1 |
+| Version | 1.2.2 |
 | Date | 12 October 2026 |
 | Source | BRD v0.2 (24/26 Aug 2026, Mukund Moorthy) + requirements review (`docs/01-requirements-review.md`, decisions Q1–Q28) + PRD review ballot (`docs/reviews/prd-round2-ballot.md`, 29 changes applied) + **Functional Specification v1.1 and APEX Build Plan v1.1 (06 Oct 2026)**, merged per `docs/03-fsd-v1.1-gap-analysis.md` |
 | Target platform | Oracle APEX **26.2** (APEXLang), Oracle AI Database (Autonomous), OCI (Q27) |
@@ -21,6 +21,7 @@
 | 1.2-draft | 12/10/2026 | Part B: merge of FSD v1.1 + Build Plan (24 FSD FRs, 54 pages, 8 waves). Decisions Q22–Q28. New FR-34..FR-48; v1 = waves W0–W7. |
 | 1.2 | 12/10/2026 | 3-reviewer panel on Part B: 30 of 30 amendments applied (R01–R30; R07 = X single opportunity model, R08 = X messaging levels, R17 passed 2-1). New §B10; B3, B5 and B6 corrected. See `docs/reviews/prd12-round2-ballot.md`. |
 | 1.2.1 | 12/10/2026 | Plan-review consequences (2-of-3, `docs/reviews/plan3-round2-ballot.md`): §B10.2 secret-store erratum (S02); J-17/J-18 remapped off the Could Marketplace page (S25-Y). |
+| 1.2.2 | 13/10/2026 | User decisions Q29 (proceed without Oracle HR: no HR brokering in v1; FR-44, B7, B8, B10.8, B10.10 updated) and Q30 (no Oracle logos, CI brand check). |
 
 ---
 
@@ -1112,19 +1113,19 @@ Each new FR carries acceptance criteria (Part A rule: AC approved before build).
 3. Views are recorded once per member per day.
 
 ### FR-44 Helpdesk & document requests — Must (FSD-FR15) — W5
-- **Request types:** HR document (payslip, Form-16, relieving letter, experience letter — v1 scope per FSD Q-04, to be confirmed), expert connection, RFP submission (`OAN_RFP_REQUESTS`), feedback (`OAN_FEEDBACK`).
+- **Request types (v1, Q29):** expert connection, RFP submission (`OAN_RFP_REQUESTS`), feedback (`OAN_FEEDBACK`), general support. **HR documents are not a request type in v1:** the "HR documents" topic only signposts Oracle's public alumni HR channel (Q29, decided 13 Oct 2026 without an Oracle HR arrangement).
 - **Lifecycle:** each request (`OAN_SERVICE_REQUESTS`) gets a unique reference `OAN-SR-YYYY-NNNNNN` (FSD BR-10), an SLA (hourly SLA job), and Submitted → In progress → Fulfilled / Closed / Rejected. Requests are visible to the member and `SUPPORT_AGENT`s.
 - **OAN independence (Q21) and data minimisation:**
-  - OAN **brokers** HR document requests. It does not create or hold Oracle payroll/tax documents.
-  - **Default path:** the request is forwarded to the configured Oracle alumni HR contact address, with the member's explicit consent recorded.
-  - **With integration I-03** (`HR_INTEGRATION`): delivery happens via the HR system's own secure link.
-  - **Never stored in OAN:** document files containing tax IDs or salary.
+  - OAN does **not** broker HR document requests in v1 (Q29). It never creates, receives or holds Oracle payroll, tax or employment documents.
+  - The "HR documents" topic shows Oracle's public alumni HR contact (configurable link in `OAN_CONFIG`) and records nothing.
+  - **Never stored in OAN:** document files containing tax IDs or salary. The server-side pattern check (PAN, Aadhaar, tax ID, bank, salary, employee ID) applies to every helpdesk free-text field, so such data is refused if typed anyway.
 - Submit is disabled until the required fields **and consent** are provided (FSD AC).
 
 **AC:**
 1. A reference number is issued on submit.
 2. Status is visible to the member.
 3. No payslip or Form-16 file is ever written to `OAN_FILES`.
+4. (Q29) Choosing "HR documents" opens the signpost to Oracle's public alumni HR channel and creates no `OAN_SERVICE_REQUESTS` row.
 4. The SLA breach job flags overdue requests to support agents.
 
 ### FR-45 Recognition & contribution — Could (FSD-FR21; extends FR-11) — W6
@@ -1252,7 +1253,7 @@ All jobs remain APEX Automations calling `oan_jobs_pkg` (plan Q07), with Part A 
 |---|---|---|
 | I-01 | Oracle IdP | Optional OIDC slot, `ORACLE_IDP` (Q22) |
 | I-02 | Oracle Careers | Deep-links (manual); feed behind `CAREERS_FEED` |
-| I-03 | HR system | Broker / forward (FR-44); behind `HR_INTEGRATION` |
+| I-03 | HR system | **Not in v1 (Q29).** Signpost to Oracle's public alumni HR channel only; no brokering, no `HR_INTEGRATION` option |
 | I-04 | Email | APEX_MAIL / OCI Email Delivery |
 | I-05 | Calendar | `.ics` |
 | I-06 | Analytics | In-app dashboards (FR-27) |
@@ -1267,7 +1268,7 @@ All jobs remain APEX Automations calling `oan_jobs_pkg` (plan Q07), with Part A 
 | Q-01 | Directory default | **Visible** (Q28) |
 | Q-02 | Event registration | **In-portal** |
 | Q-03 | Careers coverage | **Global deep-links** |
-| Q-04 | HR document types in v1 | Payslip, Form-16, relieving letter, experience letter, brokered only |
+| Q-04 | HR document types in v1 | **Resolved (Q29): none brokered in v1**; signpost only |
 | Q-05 | Moderation model | **Hybrid** (Q12) |
 | Q-06 | CV cadence | **6 months** |
 | Q-07 | Slack workspaces / WhatsApp regions | **TBD; gated** |
@@ -1483,7 +1484,8 @@ All jobs remain APEX Automations calling `oan_jobs_pkg` (plan Q07), with Part A 
   1. Polling load stays ≤ 10 requests/s at the 20%-concurrent-usage scenario of the load test.
   2. A member set to "Connections" cannot be messaged from a context other than (a).
 
-### B10.8 HR document brokering (R10; FR-44)
+### B10.8 HR document brokering (R10; FR-44) — not in v1 (Q29)
+> **Q29 (13 Oct 2026):** v1 proceeds without an Oracle HR arrangement, so the activation condition below is never met in v1 and none of this subsection is built. It stays as the specification for a possible v1.x change. Only the pattern check is kept, and it applies to all helpdesk free text.
 - **Activation:** HR requests are offered only after a written arrangement with Oracle HR exists (`HR_INTEGRATION`). Until then, the helpdesk links to Oracle's public alumni HR channel.
 - **What OAN tells the member:** OAN states plainly that it does not verify identity for HR. Oracle delivers documents only through its own channel and keeps its own records.
 - **What OAN does not collect:**
@@ -1508,8 +1510,8 @@ All jobs remain APEX Automations calling `oan_jobs_pkg` (plan Q07), with Part A 
   - **Never** used in matching, ranking or scores.
 
 ### B10.10 Privacy impact of the merge (R12)
-- **Before each Build Option is switched on:** the DPIA and RoPA are updated, and that option (`CHANNELS`, `HR_INTEGRATION`, `AI_ASSISTANT`, `CAREERS_FEED`) may be enabled only after its DPIA sign-off is recorded in `OAN_CONFIG`.
-- **Contracts:** DPAs with Slack, Meta (WhatsApp) and Oracle HR.
+- **Before each Build Option is switched on:** the DPIA and RoPA are updated, and that option (`CHANNELS`, `AI_ASSISTANT`, `CAREERS_FEED`; `HR_INTEGRATION` is not in v1 per Q29) may be enabled only after its DPIA sign-off is recorded in `OAN_CONFIG`.
+- **Contracts:** DPAs with Slack and Meta (WhatsApp). (No Oracle HR DPA in v1, Q29.)
 - **Lawful bases:**
   - Consent: channels, AI and the CV share.
   - Contract: jobs, referrals and helpdesk.

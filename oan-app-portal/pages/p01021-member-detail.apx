@@ -1,0 +1,574 @@
+page 1021 (
+    name: Member Detail
+    alias: MEMBER-DETAIL
+    title: Member
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: true
+    }
+    security {
+        authorizationScheme: @administration-rights
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: W0.11 (FR-24, NFR-01/02, R16, P08). Platform Admin actions on one member through OAN_SECURITY_PKG: grant/revoke role (re-authentication required; privileged roles need a linked Google/LinkedIn sign-in and attested 2-step verification; never on yourself), attest 2-step verification, suspend (ends all sessions) and reactivate. Every action is audited by the package.
+    }
+
+    region member (
+        name: &P1021_DISPLAY_NAME.
+        type: staticContent
+        source {
+            htmlCode:
+                ```html
+                <dl class="t-AVPList t-AVPList--leftAligned">
+                  <dt class="t-AVPList-label">Email</dt><dd class="t-AVPList-value">&P1021_EMAIL!HTML.</dd>
+                  <dt class="t-AVPList-label">Status</dt><dd class="t-AVPList-value">&P1021_STATUS_LABEL!HTML.</dd>
+                  <dt class="t-AVPList-label">Roles</dt><dd class="t-AVPList-value">&P1021_ROLES!HTML.</dd>
+                  <dt class="t-AVPList-label">Sign-in methods</dt><dd class="t-AVPList-value">&P1021_SIGN_IN!HTML.</dd>
+                  <dt class="t-AVPList-label">2-step verification attested</dt><dd class="t-AVPList-value">&P1021_MFA!HTML.</dd>
+                  <dt class="t-AVPList-label">Member since</dt><dd class="t-AVPList-value">&P1021_CREATED!HTML.</dd>
+                  <dt class="t-AVPList-label">Last sign-in</dt><dd class="t-AVPList-value">&P1021_LAST_LOGIN!HTML.</dd>
+                </dl>
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region roles (
+        name: Roles
+        type: staticContent
+        source {
+            htmlCode: <p>Role changes need a recent identity confirmation. Administrator, Moderator, Chapter Admin and Privacy Officer need a linked Google or LinkedIn sign-in with 2-step verification, and you must confirm you have checked it. You cannot change your own roles.</p>
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region verification (
+        name: 2-step verification
+        type: staticContent
+        source {
+            htmlCode: <p>Record that you have checked this person's 2-step verification with their sign-in provider. Privileged roles are removed automatically 30 days after the yearly re-check falls due.</p>
+        }
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region account-status (
+        name: Account status
+        type: staticContent
+        source {
+            htmlCode: <p>Suspending signs the member out everywhere at once and sends them the reason you give. Reactivating restores access.</p>
+        }
+        layout {
+            sequence: 40
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P1021_USER_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @member
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P1021_DISPLAY_NAME (
+        type: hidden
+        layout {
+            sequence: 20
+            region: @member
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P1021_EMAIL (
+        type: hidden
+        layout {
+            sequence: 30
+            region: @member
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P1021_STATUS (
+        type: hidden
+        layout {
+            sequence: 40
+            region: @member
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P1021_STATUS_LABEL (
+        type: hidden
+        layout {
+            sequence: 50
+            region: @member
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P1021_ROLES (
+        type: hidden
+        layout {
+            sequence: 60
+            region: @member
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P1021_SIGN_IN (
+        type: hidden
+        layout {
+            sequence: 70
+            region: @member
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P1021_MFA (
+        type: hidden
+        layout {
+            sequence: 80
+            region: @member
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P1021_CREATED (
+        type: hidden
+        layout {
+            sequence: 90
+            region: @member
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P1021_LAST_LOGIN (
+        type: hidden
+        layout {
+            sequence: 100
+            region: @member
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P1021_GRANT_ROLE (
+        type: selectList
+        label {
+            label: Add a role
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:Member;MEMBER,Expert;EXPERT,Partner contact;PARTNER,Chapter Admin;CHAPTER_ADMIN,Moderator;MODERATOR,Privacy Officer;PRIVACY_OFFICER,Platform Admin;ADMIN
+        }
+        layout {
+            sequence: 10
+            region: @roles
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P1021_MFA_ATTESTED (
+        type: switch
+        label {
+            label: I have checked their 2-step verification (required for privileged roles)
+        }
+        layout {
+            sequence: 20
+            region: @roles
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P1021_REVOKE_ROLE (
+        type: selectList
+        label {
+            label: Remove a role
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select trim(column_value) d, trim(column_value) r
+                  from table(apex_string.split(:P1021_ROLES, ','))
+                 where trim(column_value) is not null and trim(column_value) != '-'
+                ```
+        }
+        layout {
+            sequence: 30
+            region: @roles
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P1021_SUSPEND_UNTIL (
+        type: datePicker
+        label {
+            label: Suspend until (leave empty for an open-ended suspension)
+        }
+        layout {
+            sequence: 10
+            region: @account-status
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P1021_SUSPEND_REASON (
+        type: textarea
+        label {
+            label: Reason shown to the member
+        }
+        layout {
+            sequence: 20
+            region: @account-status
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 2000
+        }
+    )
+
+    button grant (
+        buttonName: GRANT
+        label: Add role
+        layout {
+            sequence: 10
+            region: @roles
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button revoke (
+        buttonName: REVOKE
+        label: Remove role
+        layout {
+            sequence: 20
+            region: @roles
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            requiresConfirmation: true
+        }
+        confirmation {
+            message: Remove this role? The member is signed out everywhere and gets the new access at their next sign-in.
+            style: warning
+        }
+    )
+
+    button confirm-identity (
+        buttonName: CONFIRM_IDENTITY
+        label: Confirm my identity
+        layout {
+            sequence: 30
+            region: @roles
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button attest (
+        buttonName: ATTEST
+        label: Record 2-step verification check
+        layout {
+            sequence: 10
+            region: @verification
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button suspend (
+        buttonName: SUSPEND
+        label: Suspend member
+        layout {
+            sequence: 10
+            region: @account-status
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--danger
+            ]
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            requiresConfirmation: true
+        }
+        confirmation {
+            message: Suspend this member? They are signed out everywhere immediately.
+            style: danger
+        }
+        serverSideCondition {
+            type: item=value
+            item: P1021_STATUS
+            value: ACTIVE
+        }
+    )
+
+    button reactivate (
+        buttonName: REACTIVATE
+        label: Reactivate member
+        layout {
+            sequence: 20
+            region: @account-status
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: itemIsInColonDelimitedList
+            item: P1021_STATUS
+            list: SUSPENDED:DEACTIVATED
+        }
+    )
+
+    button back (
+        buttonName: BACK
+        label: Back to members
+        layout {
+            sequence: 10
+            region: @member
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 1020
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process load (
+        name: Load member
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                for u in (select * from oan_admin_users_v where user_id = :P1021_USER_ID) loop
+                    :P1021_DISPLAY_NAME := u.display_name;
+                    :P1021_EMAIL        := u.email;
+                    :P1021_STATUS       := u.status;
+                    :P1021_STATUS_LABEL := initcap(replace(u.status, '_', ' '))
+                                           || case when u.suspended_until is not null
+                                                   then ' until ' || to_char(u.suspended_until, 'DD Mon YYYY') end;
+                    :P1021_ROLES        := coalesce(u.roles, '-');
+                    :P1021_SIGN_IN      := coalesce(u.idp_links, 'Email and password')
+                                           || case when u.has_local_password > 0 and u.idp_links is not null then ', email and password' end;
+                    :P1021_MFA          := coalesce(to_char(u.mfa_attested_at, 'DD Mon YYYY'), 'Not attested');
+                    :P1021_CREATED      := to_char(u.created_at, 'DD Mon YYYY');
+                    :P1021_LAST_LOGIN   := coalesce(to_char(u.last_login_at, 'DD Mon YYYY HH24:MI'), 'Never');
+                end loop;
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+    )
+
+    process act (
+        name: Apply the action
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                case :REQUEST
+                    when 'GRANT' then
+                        oan_util.assert(:P1021_GRANT_ROLE is not null, 'Choose a role to add.');
+                        oan_security_pkg.grant_role(:P1021_USER_ID, :P1021_GRANT_ROLE, nvl(:P1021_MFA_ATTESTED, 'N'));
+                    when 'REVOKE' then
+                        oan_util.assert(:P1021_REVOKE_ROLE is not null, 'Choose a role to remove.');
+                        oan_security_pkg.revoke_role(:P1021_USER_ID, :P1021_REVOKE_ROLE);
+                    when 'ATTEST' then
+                        oan_security_pkg.attest_mfa(:P1021_USER_ID);
+                    when 'SUSPEND' then
+                        oan_util.assert(:P1021_SUSPEND_REASON is not null, 'Give the reason the member will see.');
+                        oan_security_pkg.suspend_user(:P1021_USER_ID,
+                            case when :P1021_SUSPEND_UNTIL is not null
+                                 then to_timestamp_tz(:P1021_SUSPEND_UNTIL || ' 23:59:59 UTC', 'DD-MON-YYYY HH24:MI:SS TZR') end,
+                            :P1021_SUSPEND_REASON);
+                    when 'REACTIVATE' then
+                        oan_security_pkg.reactivate_user(:P1021_USER_ID);
+                    else null;
+                end case;
+                :P1021_GRANT_ROLE := null; :P1021_REVOKE_ROLE := null; :P1021_MFA_ATTESTED := null;
+                :P1021_SUSPEND_UNTIL := null; :P1021_SUSPEND_REASON := null;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: GRANT,REVOKE,ATTEST,SUSPEND,REACTIVATE
+        }
+        successMessage {
+            successMessage: Done. The change is recorded in the audit log.
+        }
+    )
+
+    process remember-return (
+        name: Remember return page
+        type: executeCode
+        source {
+            plsqlCode: :REAUTH_RETURN_PAGE := 1021;
+        }
+        execution {
+            sequence: 20
+        }
+        serverSideCondition {
+            whenButtonPressed: @confirm-identity
+        }
+    )
+
+    branch to-reauth (
+        name: To identity confirmation
+        behavior {
+            type: pageOrUrl
+            target: {
+                page: 108
+            }
+        }
+        execution {
+            point: afterProcessing
+            sequence: 10
+        }
+        serverSideCondition {
+            whenButtonPressed: @confirm-identity
+        }
+    )
+
+    branch stay (
+        name: Show the member again
+        behavior {
+            type: pageOrUrl
+            target: {
+                page: 1021
+            }
+        }
+        execution {
+            point: afterProcessing
+            sequence: 20
+        }
+    )
+
+)

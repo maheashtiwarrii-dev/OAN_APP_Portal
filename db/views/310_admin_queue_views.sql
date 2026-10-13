@@ -14,7 +14,18 @@ select a.id app_id, a.user_id, a.status, a.submitted_at, a.sla_due_at, a.escalat
        a.more_info_request, a.more_info_response, a.row_version,
        pc.name primary_chapter, rc.name routed_to,
        (select listagg(i.provider, ', ') within group (order by i.provider)
-          from oan_user_identities i where i.user_id = a.user_id) signed_up_with
+          from oan_user_identities i where i.user_id = a.user_id) signed_up_with,
+       -- From the onboarding conversation (FR-34): journey chosen and optional role interests (codes only, S30)
+       (select ic.label from oan_chat_sessions cs
+          join oan_lu_codes ic on ic.code_type = 'INTENT' and ic.code = cs.primary_intent
+         where cs.user_id = a.user_id and cs.purpose = 'ONBOARDING') onboarding_intent,
+       (select listagg(rc.label, ', ') within group (order by rc.sort_order)
+          from oan_chat_sessions cs
+          join oan_lu_codes rc on rc.code_type = 'ONBOARD_ROLE'
+                              and rc.code in (select column_value from table(apex_string.split(cs.role_codes, ':')))
+         where cs.user_id = a.user_id and cs.purpose = 'ONBOARDING') onboarding_roles,
+       (select pr.job_title || case when pr.job_title is not null and pr.current_org is not null then ', ' end || pr.current_org
+          from oan_profiles pr where pr.user_id = a.user_id) current_role
   from oan_registration_apps a
   join oan_users u on u.id = a.user_id
   left join oan_profiles p on p.user_id = a.user_id

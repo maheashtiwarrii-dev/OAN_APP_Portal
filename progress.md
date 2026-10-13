@@ -63,6 +63,9 @@
 | I4-1 | User: proceed without Oracle HR approval; revise sprints | Decision Q29 logged. PRD → v1.2.2 (FR-44 signpost only; B7 I-03, B8 Q-04, B10.8, B10.10). Plan → v3.1: gate G-HR removed (11 gates), W5.4 4.5 → 3 pd, 7.2d dropped, `HR_INTEGRATION` not built; S8 takes W6.2 experts, S9 takes W6.3 mentoring, S10 keeps ~6 pd buffer. Still 16 sprints, same dates |
 | I4-2 | User: no Oracle logos in APEX pages | Decision Q30 logged; app audited (text logo "OAN Portal", generic icon, no Oracle red/font/images); `ci/check-brand.ps1` added and negative-tested |
 | I4-3 | Kanban + PDF | Board and landscape PDF updated for v3.1 (11 gates, 152 tasks) |
+| I4-4 | W0.10 pages 1010 Approval queue + 1011 Application review | Queue summary, overdue-first ordering, chapter-scoped via view; review shows the onboarding journey and role interests (view extended); decision via `oan_registration_pkg.decide` |
+| I4-5 | W0.11 pages 1020 Members + 1021 Member detail | Search by name/email/status; role grant/revoke (re-auth, IdP + MFA rule for privileged roles), MFA attestation, suspend/reactivate; texts checked against package behaviour |
+| I4-6 | Validation | SQLcl offline `apex validate`: successful; brand check: passed |
 
 ## Next
 - M.2 groups refactor (offline, before the first shared deploy), incl. the p00031 → p00037 renumber and `search_body`.

@@ -1,0 +1,425 @@
+page 1011 (
+    name: Application Review
+    alias: APPLICATION-REVIEW
+    title: Review application
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: true
+    }
+    security {
+        authorizationScheme: @can-approve
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: W0.10 (FR-01, FR-25). One application with the applicant's onboarding answers (FR-34). Decision via OAN_REGISTRATION_PKG.DECIDE (approve / ask for more information / reject; reason required except for approval; row_version lost-update check). Conflict of interest and chapter scope are enforced by the view and by CAN_DECIDE.
+    }
+
+    region applicant (
+        name: &P1011_APPLICANT_NAME.
+        type: staticContent
+        source {
+            htmlCode:
+                ```html
+                <dl class="t-AVPList t-AVPList--leftAligned">
+                  <dt class="t-AVPList-label">Email</dt><dd class="t-AVPList-value">&P1011_EMAIL!HTML.</dd>
+                  <dt class="t-AVPList-label">Signed up with</dt><dd class="t-AVPList-value">&P1011_SIGNED_UP_WITH!HTML.</dd>
+                  <dt class="t-AVPList-label">Current role</dt><dd class="t-AVPList-value">&P1011_CURRENT_ROLE!HTML.</dd>
+                  <dt class="t-AVPList-label">Years at Oracle</dt><dd class="t-AVPList-value">&P1011_ORACLE_YEARS!HTML.</dd>
+                  <dt class="t-AVPList-label">Last organisation / line of business</dt><dd class="t-AVPList-value">&P1011_LAST_ORG_LOB!HTML.</dd>
+                  <dt class="t-AVPList-label">Employee ID (optional)</dt><dd class="t-AVPList-value">&P1011_EMPLOYEE_ID!HTML.</dd>
+                  <dt class="t-AVPList-label">LinkedIn</dt><dd class="t-AVPList-value">&P1011_LINKEDIN_URL!HTML.</dd>
+                  <dt class="t-AVPList-label">Primary chapter</dt><dd class="t-AVPList-value">&P1011_PRIMARY_CHAPTER!HTML.</dd>
+                  <dt class="t-AVPList-label">Came to OAN for</dt><dd class="t-AVPList-value">&P1011_INTENT!HTML.</dd>
+                  <dt class="t-AVPList-label">Interested in</dt><dd class="t-AVPList-value">&P1011_ROLES!HTML.</dd>
+                  <dt class="t-AVPList-label">Note from applicant</dt><dd class="t-AVPList-value">&P1011_NOTE!HTML.</dd>
+                  <dt class="t-AVPList-label">Information you asked for</dt><dd class="t-AVPList-value">&P1011_MORE_INFO_REQUEST!HTML.</dd>
+                  <dt class="t-AVPList-label">Applicant's answer</dt><dd class="t-AVPList-value">&P1011_MORE_INFO_RESPONSE!HTML.</dd>
+                </dl>
+                <p>Approving makes the person a member; their directory visibility starts then. Interests listed above become draft applications only after approval.</p>
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region decision (
+        name: Your decision
+        type: staticContent
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P1011_APP_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @applicant
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P1011_ROW_VERSION (
+        type: hidden
+        layout {
+            sequence: 20
+            region: @applicant
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P1011_APPLICANT_NAME (
+        type: hidden
+        layout {
+            sequence: 30
+            region: @applicant
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P1011_EMAIL (
+        type: hidden
+        layout {
+            sequence: 40
+            region: @applicant
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P1011_SIGNED_UP_WITH (
+        type: hidden
+        layout {
+            sequence: 50
+            region: @applicant
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P1011_CURRENT_ROLE (
+        type: hidden
+        layout {
+            sequence: 60
+            region: @applicant
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P1011_ORACLE_YEARS (
+        type: hidden
+        layout {
+            sequence: 70
+            region: @applicant
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P1011_LAST_ORG_LOB (
+        type: hidden
+        layout {
+            sequence: 80
+            region: @applicant
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P1011_EMPLOYEE_ID (
+        type: hidden
+        layout {
+            sequence: 90
+            region: @applicant
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P1011_LINKEDIN_URL (
+        type: hidden
+        layout {
+            sequence: 100
+            region: @applicant
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P1011_PRIMARY_CHAPTER (
+        type: hidden
+        layout {
+            sequence: 110
+            region: @applicant
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P1011_INTENT (
+        type: hidden
+        layout {
+            sequence: 120
+            region: @applicant
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P1011_ROLES (
+        type: hidden
+        layout {
+            sequence: 130
+            region: @applicant
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P1011_NOTE (
+        type: hidden
+        layout {
+            sequence: 140
+            region: @applicant
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P1011_MORE_INFO_REQUEST (
+        type: hidden
+        layout {
+            sequence: 150
+            region: @applicant
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P1011_MORE_INFO_RESPONSE (
+        type: hidden
+        layout {
+            sequence: 160
+            region: @applicant
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P1011_DECISION (
+        type: radioGroup
+        label {
+            label: Decision
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:Approve membership;APPROVE,Ask for more information;MORE_INFO,Reject;REJECT
+        }
+        layout {
+            sequence: 10
+            region: @decision
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+        }
+    )
+
+    pageItem P1011_REASON (
+        type: textarea
+        label {
+            label: Message to the applicant (required to reject or ask for more information)
+        }
+        layout {
+            sequence: 20
+            region: @decision
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 2000
+        }
+    )
+
+    button submit-decision (
+        buttonName: SUBMIT_DECISION
+        label: Submit decision
+        layout {
+            sequence: 10
+            region: @decision
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button back (
+        buttonName: BACK
+        label: Back to the queue
+        layout {
+            sequence: 20
+            region: @decision
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 1010
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process load (
+        name: Load application
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                for a in (select * from oan_approval_queue_v where app_id = :P1011_APP_ID) loop
+                    :P1011_ROW_VERSION        := a.row_version;
+                    :P1011_APPLICANT_NAME     := a.applicant_name;
+                    :P1011_EMAIL              := a.applicant_email;
+                    :P1011_SIGNED_UP_WITH     := coalesce(a.signed_up_with, 'Email and password');
+                    :P1011_CURRENT_ROLE       := coalesce(a.current_role, 'Not given');
+                    :P1011_ORACLE_YEARS       := a.oracle_from_year || case when a.oracle_from_year is not null then ' - ' end
+                                                 || coalesce(to_char(a.oracle_to_year), case when a.oracle_from_year is not null then 'present' end);
+                    :P1011_LAST_ORG_LOB       := a.last_org_lob;
+                    :P1011_EMPLOYEE_ID        := a.employee_id;
+                    :P1011_LINKEDIN_URL       := a.linkedin_url;
+                    :P1011_PRIMARY_CHAPTER    := a.primary_chapter;
+                    :P1011_INTENT             := coalesce(a.onboarding_intent, 'Not given');
+                    :P1011_ROLES              := coalesce(a.onboarding_roles, 'None');
+                    :P1011_NOTE               := a.applicant_note;
+                    :P1011_MORE_INFO_REQUEST  := a.more_info_request;
+                    :P1011_MORE_INFO_RESPONSE := a.more_info_response;
+                end loop;
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+    )
+
+    process decide (
+        name: Record the decision
+        type: executeCode
+        source {
+            plsqlCode: oan_registration_pkg.decide(:P1011_APP_ID, :P1011_DECISION, :P1011_REASON, :P1011_ROW_VERSION);
+        }
+        execution {
+            sequence: 10
+        }
+        serverSideCondition {
+            whenButtonPressed: @submit-decision
+        }
+        successMessage {
+            successMessage: Decision recorded. The applicant has been notified.
+        }
+    )
+
+    branch not-available (
+        name: Application not in your queue
+        behavior {
+            type: pageOrUrl
+            target: {
+                page: 1010
+            }
+        }
+        execution {
+            point: beforeHeader
+            sequence: 5
+        }
+        serverSideCondition {
+            type: noRowsReturned
+            sqlQuery: select 1 from oan_approval_queue_v where app_id = :P1011_APP_ID
+        }
+    )
+
+    branch to-queue (
+        name: Back to the queue
+        behavior {
+            type: pageOrUrl
+            target: {
+                page: 1010
+            }
+        }
+        execution {
+            point: afterProcessing
+            sequence: 10
+        }
+        serverSideCondition {
+            whenButtonPressed: @submit-decision
+        }
+    )
+
+)

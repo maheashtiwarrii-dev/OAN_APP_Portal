@@ -33,7 +33,7 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 - **Next, in Build Pack order:**
   1. On the real database: app 200 imported 13 Oct (?p=200 in workspace OAN_APP); next utPLSQL (0.8), spikes 0.11–0.14, Google client id/secret into credential OAN_Google_OAuth;
   2. W0.22 done; create the ACL roles TRAINER, MENTOR, EXPERT, PARTNER_CONTACT, CUSTOMER_CONTACT, SUPPORT with W0.18;
-  3. W2: 20/21 directory, 22/23 profile grids, 25 work profile, 24 My CV.
+  3. W2: 20/21 directory done (13 Oct); next W2.1 profile tables, then 22/23 profile grids, 25 work profile, 24 My CV.
   PRD-only admin extras (1071-1073 → 124-126, 70/71 → 90/91) follow later in their wave.
 - **Every iteration is committed and pushed** to `github.com/maheashtiwarrii-dev/OAN_APP_Portal`. The Kanban board (`docs/delivery-board.html` + PDF) is updated **only on request** (user, 13 Oct).
 
@@ -324,7 +324,7 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 | W2.2 | `oan_profile_pkg` extensions (completeness, section mapping, employer-org rule) | FR-35, R13 | 1.5 | [ ] |
 | W2.3 | **`OAN_DIRECTORY_IDX` (S11):**<br>• (a) queue + triggers;<br>• (b) `OAN_DATA` scheduler refresh every 2 min: run lock, MERGE, `ctx_ddl.sync_index`, full-rebuild procedure;<br>• (c) **tightening changes applied synchronously**, and `OAN_DIRECTORY_V` re-checks status and blocks live;<br>• (d) view, tests, weekly consistency check;<br>• Text index for people search (1.24). | FR-35, R28 | 5.5 | [ ] |
 | W2.4 | 10 My profile (+ new blocks); 11 Member profile | FR-01 | 2.5 | [A] base |
-| W2.5 | 13 Directory search; 14 Directory results; **aggregate KPI events: searches-to-profile-open** (S31) | FR-35, R25 | 3 | [ ] |
+| W2.5 | 20 Directory search; 21 Directory results; **aggregate KPI events: searches-to-profile-open** (S31) | FR-35, R25 | 3 | [~] 13 Oct, live on dev: `oan_privacy_settings` (directory switch + messaging permission, Q28 default), `oan_vis.in_directory` macro + reference, masked `oan_directory_v` (+ skill/chapter facet views), `set_privacy_settings` (audited, versioned), pages 20/21 (faceted cards: name, skill, organisation, location, chapter, Oracle tenure), settings on page 26, rail entry on; `ut_oan_directory` 9/9. Open: expertise/language/availability facets (with W2.1), KPI events (S31), W2.3 index for 100k |
 | W2.6 | 15 My CV (print stylesheet); 16 Current work profile | FR-47 | 3 | [ ] |
 | W2.7 | `oan_cv_pkg`: per-application share/revoke, logged; keep the last 3 versions (purge + test, S08); not Text-indexed | R13 | 1 | [ ] |
 | W2.8 | `oan_network_pkg` + 17 Connections | FR-03 | 3.5 | [ ] |

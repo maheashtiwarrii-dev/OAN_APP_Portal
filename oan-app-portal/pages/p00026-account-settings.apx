@@ -15,7 +15,7 @@ page 26 (
         formAutoComplete: false
     }
     comments {
-        comments: FR-01 account management (P07): change password, change email (re-auth + confirmation at both addresses), link/unlink Google or LinkedIn (link only after authenticating to this account).
+        comments: FR-01 account management (P07): change password, change email (re-auth + confirmation at both addresses), link/unlink Google or LinkedIn (link only after authenticating to this account); FR-35 directory switch and messaging permission.
     }
 
     region sign-in-methods (
@@ -64,6 +64,25 @@ page 26 (
         appearance {
             template: @/standard
             templateOptions: #DEFAULT#
+        }
+    )
+
+    region privacy-settings (
+        name: Who can find and message you
+        type: staticContent
+        source {
+            htmlCode: <p>These choices apply on top of each profile section's own visibility. Changes take effect immediately and are recorded.</p>
+        }
+        layout {
+            sequence: 40
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        comments {
+            comments: FR-35 directory switch and FSD FR-03 messaging permission (W2.5). Saved by oan_profile_pkg.set_privacy_settings with a row-version check; each change is audited.
         }
     )
 
@@ -152,6 +171,63 @@ page 26 (
         }
         validation {
             maxLength: 320
+        }
+    )
+
+    pageItem P26_DIRECTORY_MODE (
+        type: radioGroup
+        label {
+            label: Who can find you in the alumni directory
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:All members (recommended);VISIBLE,Only my connections;CONNECTIONS,Nobody (hidden from directory and search);HIDDEN
+            displayExtraValues: false
+            displayNullValue: false
+        }
+        layout {
+            sequence: 10
+            region: @privacy-settings
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P26_MESSAGING_MODE (
+        type: radioGroup
+        label {
+            label: Who can send you messages
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:Any member;ANYONE,Only my connections;CONNECTIONS,Nobody;NOBODY
+            displayExtraValues: false
+            displayNullValue: false
+        }
+        layout {
+            sequence: 20
+            region: @privacy-settings
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P26_PRIVACY_VERSION (
+        type: hidden
+        layout {
+            sequence: 30
+            region: @privacy-settings
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
         }
     )
 
@@ -265,6 +341,24 @@ page 26 (
         }
     )
 
+    button save-privacy (
+        buttonName: SAVE_PRIVACY
+        label: Save
+        layout {
+            sequence: 10
+            region: @privacy-settings
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
     process load (
         name: Load account
         type: executeCode
@@ -275,6 +369,11 @@ page 26 (
                             from oan_my_account_v) loop
                     :P26_EMAIL := r.email;
                     :P26_PROVIDERS := r.providers;
+                end loop;
+                for s in (select directory_mode, messaging_mode, row_version from oan_my_privacy_settings_v) loop
+                    :P26_DIRECTORY_MODE  := s.directory_mode;
+                    :P26_MESSAGING_MODE  := s.messaging_mode;
+                    :P26_PRIVACY_VERSION := s.row_version;
                 end loop;
                 ```
         }
@@ -353,6 +452,23 @@ page 26 (
         }
         successMessage {
             successMessage: We sent confirmation links to your old and new addresses. The change completes when both are confirmed.
+        }
+    )
+
+    process save-privacy (
+        name: Save directory and messaging settings
+        type: executeCode
+        source {
+            plsqlCode: oan_profile_pkg.set_privacy_settings(:P26_DIRECTORY_MODE, :P26_MESSAGING_MODE, :P26_PRIVACY_VERSION);
+        }
+        execution {
+            sequence: 45
+        }
+        serverSideCondition {
+            whenButtonPressed: @save-privacy
+        }
+        successMessage {
+            successMessage: Your directory and messaging settings were saved.
         }
     )
 

@@ -435,3 +435,82 @@ select a.user_id,
        (select listagg(s.section || '=' || s.vis_level, ':') within group (order by s.sort_order)
           from oan_my_section_vis_v s) privacy_visibility
   from oan_my_account_v a;
+
+------------------------------------------------------------- directory (FR-35, W2.5) --
+-- Live directory: member cards that pass the directory switch for this viewer, with every
+-- field masked by its section level. Facet filters run on these masked values, so a hidden
+-- value can never be inferred by filtering. The viewer is excluded from their own results.
+-- W2.3 (OAN_DIRECTORY_IDX, R28) later replaces the source for 100k-scale keyword search.
+create or replace view oan_directory_v as
+select c.user_id,
+       c.display_name,
+       c.first_name,
+       c.last_name,
+       c.headline,
+       c.primary_chapter,
+       c.photo_file_id,
+       upper(substr(c.first_name, 1, 1) || substr(c.last_name, 1, 1)) initials,
+       case when oan_vis.can_see(p.user_id, 'WORK') = 'Y' then p.job_title end        job_title,
+       case when oan_vis.can_see(p.user_id, 'WORK') = 'Y' then p.current_org end      current_org,
+       case when oan_vis.can_see(p.user_id, 'WORK') = 'Y' then p.oracle_from_year end oracle_from_year,
+       case when oan_vis.can_see(p.user_id, 'WORK') = 'Y' then p.oracle_to_year end   oracle_to_year,
+       case when oan_vis.can_see(p.user_id, 'LOCATION') = 'Y' then p.location_id end  location_id,
+       case when oan_vis.can_see(p.user_id, 'LOCATION') = 'Y' then l.name end         location_name,
+       case when oan_vis.can_see(p.user_id, 'LOCATION') = 'Y' then l.path end         location_path,
+       case when oan_vis.can_see(p.user_id, 'SKILLS') = 'Y'
+            then (select count(*) from oan_profile_skills ps where ps.user_id = p.user_id) end skill_count,
+       case when oan_vis.can_see(p.user_id, 'SKILLS') = 'Y'
+            then (select listagg(t.name, ', ' on overflow truncate '...' without count) within group (order by t.name)
+                    from oan_profile_skills ps join oan_taxonomy_terms t on t.id = ps.term_id
+                   where ps.user_id = p.user_id) end skills,
+       -- '|'-separated lists and a tenure band for the faceted search on page 21 (masked like the fields)
+       case when oan_vis.can_see(p.user_id, 'SKILLS') = 'Y'
+            then (select listagg(t.name, '|' on overflow truncate '' without count) within group (order by t.name)
+                    from oan_profile_skills ps join oan_taxonomy_terms t on t.id = ps.term_id
+                   where ps.user_id = p.user_id) end skill_list,
+       case when oan_vis.can_see(p.user_id, 'LOCATION') = 'Y'
+            then (select listagg(ch.name, '|' on overflow truncate '' without count) within group (order by ch.name)
+                    from oan_chapter_members m join oan_chapters ch on ch.id = m.chapter_id
+                   where m.user_id = p.user_id) end chapter_list,
+       case when oan_vis.can_see(p.user_id, 'WORK') = 'Y' and p.oracle_from_year is not null then
+              case when nvl(p.oracle_to_year, extract(year from sysdate)) - p.oracle_from_year <= 2  then '0-2 years'
+                   when nvl(p.oracle_to_year, extract(year from sysdate)) - p.oracle_from_year <= 5  then '3-5 years'
+                   when nvl(p.oracle_to_year, extract(year from sysdate)) - p.oracle_from_year <= 10 then '6-10 years'
+                   when nvl(p.oracle_to_year, extract(year from sysdate)) - p.oracle_from_year <= 15 then '11-15 years'
+                   else '16+ years' end
+       end oracle_tenure
+  from oan_member_card_v c
+  join oan_profiles p on p.user_id = c.user_id
+  left join oan_locations l on l.id = p.location_id
+ where oan_vis.in_directory(c.user_id) = 'Y'
+   and c.user_id != to_number(sys_context('OAN_CTX','VIEWER_ID'))
+   and sys_context('OAN_CTX','VIEWER_TYPE') in ('MEMBER','PARTNER');
+
+-- Skill facet: only skills the viewer may see, only for people in the directory
+create or replace view oan_directory_skills_v as
+select ps.user_id, ps.term_id, t.name skill
+  from oan_profile_skills ps
+  join oan_taxonomy_terms t on t.id = ps.term_id
+ where ps.user_id in (select d.user_id from oan_directory_v d)
+   and oan_vis.can_see(ps.user_id, 'SKILLS') = 'Y';
+
+-- Chapter facet: chapters belong to the LOCATION section ("Location & chapters")
+create or replace view oan_directory_chapters_v as
+select m.user_id, m.chapter_id, ch.name chapter_name, ch.path chapter_path
+  from oan_chapter_members m
+  join oan_chapters ch on ch.id = m.chapter_id
+ where m.user_id in (select d.user_id from oan_directory_v d)
+   and oan_vis.can_see(m.user_id, 'LOCATION') = 'Y';
+
+-- The viewer's own directory switch and messaging permission (defaults when never set)
+create or replace view oan_my_privacy_settings_v as
+select u.id user_id,
+       coalesce(s.directory_mode,
+                (select c.config_value from oan_config c where c.config_key = 'DIRECTORY_DEFAULT'),
+                'VISIBLE') directory_mode,
+       coalesce(s.messaging_mode, 'ANYONE') messaging_mode,
+       coalesce(s.row_version, 0) row_version,
+       s.updated_at
+  from oan_users u
+  left join oan_privacy_settings s on s.user_id = u.id
+ where u.id = to_number(sys_context('OAN_CTX','VIEWER_ID'));

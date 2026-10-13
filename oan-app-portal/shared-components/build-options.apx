@@ -43,7 +43,7 @@ buildOption linkedin (
 buildOption w2-directory (
     name: W2_DIRECTORY
     status {
-        status: exclude
+        status: include
         onUpgradeKeepStatus: true
     }
     comments {

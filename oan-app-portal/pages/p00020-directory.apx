@@ -1,0 +1,168 @@
+page 20 (
+    name: Directory
+    alias: DIRECTORY
+    title: Alumni directory
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: firstItemOnPage
+    }
+    security {
+        authorizationScheme: @is-active
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: Build Pack page 20 Directory search (FR-35, W2.5). A search box and a browse-all entry into page 21. Only people whose directory switch lets this viewer find them are counted or returned (oan_directory_v).
+    }
+
+    region find-alumni (
+        name: Find alumni
+        type: dynamicContent
+        source {
+            plsqlFunctionBody:
+                ```plsql
+                -- Count only people this viewer may find (directory switch + card rules)
+                declare
+                    l_cnt number;
+                begin
+                    select count(*) into l_cnt from oan_directory_v;
+                    return '<p>Search former colleagues by name, role, organisation or skill. '
+                        || case when l_cnt = 1 then '1 member is'
+                                else to_char(l_cnt, 'FM999G999G990') || ' members are' end
+                        || ' visible to you.</p>';
+                end;
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/hero
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region search (
+        name: Search the directory
+        type: staticContent
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region privacy-note (
+        name: Your directory listing
+        type: staticContent
+        source {
+            htmlCode:
+                ```html
+                <p>You choose who can find you: everyone, only your connections, or nobody.
+                   Each section of your profile keeps its own visibility.
+                   <a href="f?p=&APP_ID.:26:&APP_SESSION.">Change your directory settings</a>.</p>
+                ```
+        }
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P20_Q (
+        type: textField
+        label {
+            label: Name, role, organisation or skill
+        }
+        settings {
+            trimSpaces: leadingAndTrailing
+        }
+        layout {
+            sequence: 10
+            region: @search
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            icon: fa-search
+            width: 60
+        }
+        validation {
+            maxLength: 200
+        }
+        security {
+            sessionStateProtection: unrestricted
+        }
+    )
+
+    button search (
+        buttonName: SEARCH
+        label: Search
+        layout {
+            sequence: 10
+            region: @search
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    button browse-all (
+        buttonName: BROWSE_ALL
+        label: Browse everyone
+        layout {
+            sequence: 20
+            region: @search
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 21
+                clearCache: 21
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    branch to-results (
+        name: To the results
+        behavior {
+            type: pageOrUrl
+            target: {
+                page: 21
+                clearCache: 21
+                items: {
+                    P21_SEARCH: &P20_Q.
+                }
+            }
+        }
+        execution {
+            point: afterProcessing
+            sequence: 10
+        }
+        serverSideCondition {
+            whenButtonPressed: @search
+        }
+    )
+
+)

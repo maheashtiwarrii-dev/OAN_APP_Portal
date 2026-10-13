@@ -18,6 +18,7 @@ prompt == DDL
 @@ddl/065_lookup_chat.sql
 @@ddl/070_pd_registry.sql
 @@ddl/080_text_indexes.sql
+@@ddl/090_directory.sql
 
 prompt == Packages (bodies with forward references compile at the end)
 whenever sqlerror continue
@@ -77,5 +78,6 @@ whenever sqlerror continue
 @@tests/ut_oan_registry_auth.sql
 @@tests/ut_oan_chat.sql
 @@tests/ut_oan_bp_api.sql
+@@tests/ut_oan_directory.sql
 
 prompt Install complete. Run 20_app_synonyms.sql as OAN_APP, then 30_assert_no_table_grants.sql.

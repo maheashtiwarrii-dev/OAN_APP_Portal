@@ -9,6 +9,9 @@ create or replace package oan_profile_pkg authid definer as
                        p_location_id   in number,   p_experience_band_id in number,
                        p_contact_email in varchar2, p_phone in varchar2, p_linkedin_url in varchar2);
   procedure set_visibility(p_section in varchar2, p_level in varchar2);
+  -- FR-35 directory switch + FSD FR-03 messaging permission. p_row_version from oan_my_privacy_settings_v
+  -- (0 = never saved). Each change is audited with old and new values (FR-26 / BR-04).
+  procedure set_privacy_settings(p_directory_mode in varchar2, p_messaging_mode in varchar2, p_row_version in number);
   procedure set_skills(p_term_ids in varchar2);                -- colon-delimited list (APEX shuttle/popup LOV)
   procedure set_photo(p_file_id in number);
   procedure set_additional_chapters(p_chapter_ids in varchar2); -- colon-delimited
@@ -54,6 +57,40 @@ create or replace package body oan_profile_pkg as
   begin
     update oan_profiles set completeness = l_score where user_id = p_user_id;
   end refresh_completeness;
+
+  procedure set_privacy_settings(p_directory_mode in varchar2, p_messaging_mode in varchar2, p_row_version in number) is
+    l_me      number := me;
+    l_old_dir varchar2(20);
+    l_old_msg varchar2(20);
+    l_ver     number;
+  begin
+    oan_util.assert(p_directory_mode in ('VISIBLE','CONNECTIONS','HIDDEN'), 'Choose who can find you in the directory.');
+    oan_util.assert(p_messaging_mode in ('ANYONE','CONNECTIONS','NOBODY'), 'Choose who can message you.');
+    begin
+      select directory_mode, messaging_mode, row_version into l_old_dir, l_old_msg, l_ver
+        from oan_privacy_settings where user_id = l_me for update;
+    exception
+      when no_data_found then
+        l_old_dir := oan_vis.directory_mode(l_me);
+        l_old_msg := 'ANYONE';
+        l_ver     := 0;
+    end;
+    oan_util.assert(l_ver = nvl(p_row_version, 0),
+                    'Your settings were changed in another window. Reload the page and try again.',
+                    oan_util.c_err_conflict);
+    if l_old_dir = p_directory_mode and l_old_msg = p_messaging_mode then
+      return;
+    end if;
+    merge into oan_privacy_settings s
+    using (select l_me u from dual) x on (s.user_id = x.u)
+     when matched then update set s.directory_mode = p_directory_mode, s.messaging_mode = p_messaging_mode,
+                                  s.row_version = s.row_version + 1, s.updated_at = systimestamp
+     when not matched then insert (user_id, directory_mode, messaging_mode)
+                           values (x.u, p_directory_mode, p_messaging_mode);
+    oan_audit_pkg.log('PRIVACY_SETTING_CHANGED', 'USER', l_me, l_me,
+                      json_object('directory_from' value l_old_dir, 'directory_to' value p_directory_mode,
+                                  'messaging_from' value l_old_msg, 'messaging_to' value p_messaging_mode));
+  end set_privacy_settings;
 
   procedure mark_step(p_step in varchar2) is
     l_me number := me;

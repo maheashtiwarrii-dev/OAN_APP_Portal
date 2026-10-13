@@ -146,3 +146,12 @@
 | I11-2 | utPLSQL 3.2.3 installed (UT3) | Checksum verified; public synonyms |
 | I11-3 | Test run | 31/34, then fixed the mutating-table bug (profile completeness) and one test expectation: **34/34 pass** |
 | I11-4 | Spikes | 0.13 PBKDF2 ≈ 1.9 s/hash (change request raised); 0.14 Oracle Text OK; 0.11 two-schema boundary OK |
+
+## Iteration 12 — W2.5 alumni directory, deployed to dev (13 Oct 2026)
+| Step | Action | Result |
+|---|---|---|
+| I12-1 | User: resume; keep deploying everything to the APEX app on dev | Standing rule saved: each iteration installs on `aiatp` and re-imports app 200 |
+| I12-2 | Directory data layer | `090_directory.sql` (re-runnable): `oan_privacy_settings`, `DIRECTORY_DEFAULT` config, PD registry rows; `oan_vis.in_directory` (scalar macro, works on 23.26) + `in_directory_ref` + `directory_mode`; views `oan_directory_v` (masked fields, skill/chapter lists, tenure band), `oan_directory_skills_v`, `oan_directory_chapters_v`, `oan_my_privacy_settings_v`; `oan_profile_pkg.set_privacy_settings` |
+| I12-3 | Tests | `ut_oan_directory` 9 tests (AC1 hidden, connections-only, AC2 next query, config default, macro = reference, masked facets, self excluded, audit + version); 40/40 across suites |
+| I12-4 | Pages | 20 Directory (search + browse), 21 Directory results (cards + faceted search, sort), page 26 directory and messaging settings; W2_DIRECTORY build option on (rail entry visible) |
+| I12-5 | Deploy | Installed on dev; app 200 re-imported (39 pages); 33/33 queries parse as OAN_APP; validate and brand check pass |

@@ -1,0 +1,314 @@
+page 21 (
+    name: Directory Results
+    alias: DIRECTORY-RESULTS
+    title: Alumni directory
+    appearance {
+        pageTemplate: @/left-side-column
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        authorizationScheme: @is-active
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: Build Pack page 21 Directory results (FR-35 AC1-AC3, W2.5). Faceted search over OAN_DIRECTORY_V only. Every facet value is already masked by its section level, so filtering cannot reveal a hidden value. Missing values show as a dash (FSD BR-05).
+    }
+
+    region button-bar (
+        name: Button Bar
+        type: staticContent
+        source {
+            htmlCode: <div id="active_facets"></div>
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/buttons-container
+            templateOptions: [
+                #DEFAULT#
+                t-ButtonRegion--noPadding
+                t-ButtonRegion--noUI
+            ]
+        }
+    )
+
+    region people (
+        name: People
+        type: cards
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select d.user_id,
+                       d.display_name,
+                       coalesce(d.initials, '?') initials,
+                       coalesce(d.job_title, '—') || ' · ' || coalesce(d.current_org, '—') role_org,
+                       coalesce(d.location_name, '—') || ' · ' || coalesce(d.primary_chapter, '—') where_text,
+                       coalesce(d.skills, '—') skills_text,
+                       d.headline,
+                       d.job_title,
+                       d.current_org,
+                       d.location_name,
+                       d.skill_list,
+                       d.chapter_list,
+                       d.oracle_tenure
+                  from oan_directory_v d
+                ```
+        }
+        orderBy {
+            type: item
+            item: {
+                itemName: P21_ORDER_BY
+                orderBys: {
+                    NAME: "DISPLAY_NAME" asc
+                    ORG: "CURRENT_ORG" asc nulls last, "DISPLAY_NAME" asc
+                }
+            }
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/cards-container
+            templateOptions: #DEFAULT#
+        }
+        card {
+            primaryKeyColumn1: USER_ID
+        }
+        title {
+            column: DISPLAY_NAME
+        }
+        subtitle {
+            column: ROLE_ORG
+        }
+        body {
+            column: WHERE_TEXT
+        }
+        secondaryBody {
+            column: SKILLS_TEXT
+        }
+        iconAndBadge {
+            iconSource: initials
+            iconColumn: INITIALS
+            iconPosition: start
+        }
+        messages {
+            whenNoDataFound: Nobody matches these filters. Try fewer filters or a shorter search.
+        }
+        componentAppearance {
+            layout: grid
+            gridColumns: 3
+        }
+
+        action open-profile (
+            type: fullCard
+            layout {
+                sequence: 10
+            }
+            behavior {
+                type: redirectThisApp
+                target: {
+                    page: 22
+                    items: {
+                        P22_USER_ID: &USER_ID.
+                    }
+                    clearCache: 22
+                }
+            }
+        )
+    )
+
+    region search (
+        name: Search
+        type: facetedSearch
+        source {
+            filteredRegion: @people
+        }
+        layout {
+            sequence: 10
+            slot: leftColumn
+            columnSpan: 4
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noPadding
+                t-Region--hideHeader js-addHiddenHeadingRoleDesc
+                t-Region--scrollBody
+            ]
+        }
+        settings {
+            showCurrentFacets: selector
+            currentFacetsSelector: #active_facets
+            showTotalRowCount: true
+        }
+
+        facet P21_SEARCH (
+            type: search
+            label {
+                label: Search
+            }
+            layout {
+                sequence: 10
+            }
+            source {
+                dbColumns: DISPLAY_NAME,HEADLINE,JOB_TITLE,CURRENT_ORG,SKILLS_TEXT
+            }
+        )
+
+        facet P21_SKILL (
+            type: checkboxGroup
+            label {
+                label: Skill
+            }
+            lov {
+                type: distinctValues
+            }
+            layout {
+                sequence: 20
+            }
+            listEntries {
+                maxDisplayedEntries: 10
+            }
+            source {
+                databaseColumn: SKILL_LIST
+                dataType: varchar2
+            }
+            multipleValues {
+                type: delimitedList
+                separator: |
+                trimWhitespace: true
+                filterCombination: and
+            }
+        )
+
+        facet P21_ORG (
+            type: checkboxGroup
+            label {
+                label: Current organisation
+            }
+            lov {
+                type: distinctValues
+            }
+            layout {
+                sequence: 30
+            }
+            listEntries {
+                maxDisplayedEntries: 7
+            }
+            source {
+                databaseColumn: CURRENT_ORG
+                dataType: varchar2
+            }
+        )
+
+        facet P21_LOCATION (
+            type: checkboxGroup
+            label {
+                label: Location
+            }
+            lov {
+                type: distinctValues
+            }
+            layout {
+                sequence: 40
+            }
+            listEntries {
+                maxDisplayedEntries: 7
+            }
+            source {
+                databaseColumn: LOCATION_NAME
+                dataType: varchar2
+            }
+        )
+
+        facet P21_CHAPTER (
+            type: checkboxGroup
+            label {
+                label: Chapter
+            }
+            lov {
+                type: distinctValues
+            }
+            layout {
+                sequence: 50
+            }
+            listEntries {
+                maxDisplayedEntries: 7
+            }
+            source {
+                databaseColumn: CHAPTER_LIST
+                dataType: varchar2
+            }
+            multipleValues {
+                type: delimitedList
+                separator: |
+                trimWhitespace: true
+                filterCombination: or
+            }
+        )
+
+        facet P21_TENURE (
+            type: checkboxGroup
+            label {
+                label: Years at Oracle
+            }
+            lov {
+                type: distinctValues
+            }
+            layout {
+                sequence: 60
+            }
+            source {
+                databaseColumn: ORACLE_TENURE
+                dataType: varchar2
+            }
+        )
+
+    )
+
+    pageItem P21_ORDER_BY (
+        type: selectList
+        label {
+            label: Sort by
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:Name;NAME,Organisation;ORG
+            displayExtraValues: false
+            displayNullValue: false
+        }
+        layout {
+            sequence: 10
+            region: @people
+            slot: sortOrder
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+        }
+        advanced {
+            warnOnUnsavedChanges: ignore
+        }
+        default {
+            type: static
+            staticValue: NAME
+        }
+        security {
+            sessionStateProtection: unrestricted
+        }
+    )
+
+)

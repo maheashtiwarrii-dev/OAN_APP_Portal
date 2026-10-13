@@ -1,5 +1,5 @@
 appProcess set-display-name (
-    name: Set display name
+    name: Set display name and AI_ items
     type: executeCode
     execution {
         point: afterAuthentication
@@ -10,13 +10,24 @@ appProcess set-display-name (
         language: plsql
         plsqlCode:
             ```plsql
-            -- APP_USER is an opaque generated key (NFR-01); show the member's name instead
+            -- APP_USER is an opaque generated key (NFR-01); show the member's name instead.
+            -- Also sets the Build Pack AI_ items (display only; security stays in OAN_CTX).
             oan_ctx_pkg.set_viewer;
-            select coalesce(trim(first_name || ' ' || last_name), 'New member')
-              into :APP_USER_DISPLAY
-              from oan_my_account_v;
+            begin
+                select display_name, to_char(user_id), privacy_visibility,
+                       case when unread_notifications > 0 then to_char(least(unread_notifications, 99)) end
+                  into :APP_USER_DISPLAY, :AI_MEMBER_ID, :AI_PRIVACY_VISIBILITY, :AI_UNREAD_NOTIFICATIONS
+                  from oan_my_shell_v;
             exception
-              when no_data_found then :APP_USER_DISPLAY := 'New member';
+                when no_data_found then
+                    :APP_USER_DISPLAY := 'New member';
+            end;
+            select listagg(role_static_id, ':') within group (order by role_static_id)
+              into :AI_MEMBER_ROLES
+              from apex_appl_acl_user_roles
+             where application_id = :APP_ID
+               and user_name = :APP_USER;
+            :AI_ORG_ID := null;   -- organisations arrive with W5.1
             ```
     }
 )
@@ -48,5 +59,63 @@ appProcess enforce-terms-reacceptance (
         type: expression
         language: plsql
         plsqlExpression: :APP_USER != 'nobody' and :APP_PAGE_ID not in (0, 44, 11, 3, 7, 8, 12, 13, 14, 9, 9000, 9001, 1)
+    }
+)
+
+appProcess refresh-unread-count (
+    name: Refresh unread notification count
+    type: executeCode
+    execution {
+        point: beforeHeader
+        sequence: 30
+    }
+    source {
+        location: localDatabase
+        language: plsql
+        plsqlCode:
+            ```plsql
+            -- Badge value for the navigation bar on every page view (Build Pack §3.2); empty when zero
+            declare
+                l_cnt number := oan_notify_api.unread_count(null);
+            begin
+                :AI_UNREAD_NOTIFICATIONS := case when l_cnt > 0 then to_char(least(l_cnt, 99)) end;
+            end;
+            ```
+    }
+    serverSideCondition {
+        type: expression
+        language: plsql
+        plsqlExpression: sys_context('OAN_CTX','VIEWER_ID') is not null
+    }
+)
+
+appProcess oan-unread-count (
+    name: OAN_UNREAD_COUNT
+    type: executeCode
+    execution {
+        point: ajaxCallback
+        sequence: 10
+    }
+    source {
+        location: localDatabase
+        language: plsql
+        plsqlCode:
+            ```plsql
+            -- Timer refresh of the notification badge (oan-shell.js, every 60s while the tab is visible)
+            declare
+                l_cnt number := 0;
+            begin
+                if sys_context('OAN_CTX','VIEWER_ID') is not null then
+                    l_cnt := oan_notify_api.unread_count(null);
+                end if;
+                :AI_UNREAD_NOTIFICATIONS := case when l_cnt > 0 then to_char(least(l_cnt, 99)) end;
+                apex_json.open_object;
+                apex_json.write('count', l_cnt);
+                apex_json.close_object;
+            end;
+            ```
+    }
+    security {
+        authorizationScheme: @is-signed-in
     }
 )

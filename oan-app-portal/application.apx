@@ -39,6 +39,16 @@ app OAN-APP-PORTAL (
         listTemplate: @/navigation-bar
         templateOptions: #DEFAULT#
     }
+    javaScript {
+        fileUrls: [
+            #APP_FILES#oan-shell.js
+        ]
+    }
+    css {
+        fileUrls: [
+            #APP_FILES#oan-shell.css
+        ]
+    }
     userInterface {
         currentTheme: @universal-theme
         globalPage: 0

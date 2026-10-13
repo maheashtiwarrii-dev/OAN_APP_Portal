@@ -33,3 +33,48 @@ appItem REAUTH_RETURN_PAGE (
         comments: Page to return to after re-authentication (see page 15).
     }
 )
+
+appItem AI_MEMBER_ID (
+    security {
+        sessionStateProtection: restricted
+    }
+    comments {
+        comments: Build Pack §2.4. The signed-in member's OAN_USERS id, set after authentication. Display and navigation only; authorisation always uses OAN_CTX (NFR-03).
+    }
+)
+
+appItem AI_ORG_ID (
+    security {
+        sessionStateProtection: restricted
+    }
+    comments {
+        comments: Build Pack §2.4. The member's organisation id. Empty until organisations arrive with W5.1.
+    }
+)
+
+appItem AI_MEMBER_ROLES (
+    security {
+        sessionStateProtection: restricted
+    }
+    comments {
+        comments: Build Pack §2.4. Colon-separated APEX ACL role static ids, for display. Authorisation schemes check roles directly.
+    }
+)
+
+appItem AI_PRIVACY_VISIBILITY (
+    security {
+        sessionStateProtection: restricted
+    }
+    comments {
+        comments: Build Pack §2.4. The member's section visibility as SECTION=LEVEL pairs (oan_my_shell_v). Display only.
+    }
+)
+
+appItem AI_UNREAD_NOTIFICATIONS (
+    security {
+        sessionStateProtection: restricted
+    }
+    comments {
+        comments: Build Pack §2.4. Unread notification count for the navigation-bar badge; empty when zero. Refreshed every 60s by the OAN_UNREAD_COUNT callback (oan-shell.js).
+    }
+)

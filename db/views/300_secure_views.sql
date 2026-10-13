@@ -268,7 +268,8 @@ select c.id, c.post_id, c.body, c.created_at, c.edited_at, c.author_id,
                        or (b.blocked_id = c.author_id and b.blocker_id = to_number(sys_context('OAN_CTX','VIEWER_ID'))));
 
 create or replace view oan_announcements_v as
-select a.id, a.title, a.body, a.publish_from
+select a.id, a.kind, a.title, a.author_label, a.post_id, a.body,
+       dbms_lob.substr(a.body, 400, 1) summary, a.publish_from
   from oan_announcements a
  where a.publish_from <= systimestamp and (a.publish_to is null or a.publish_to > systimestamp)
    and sys_context('OAN_CTX','VIEWER_TYPE') = 'MEMBER';
@@ -394,3 +395,41 @@ select t.doc_type, t.id terms_version_id, t.title
                       and c.consent_type = t.doc_type and c.granted = 'Y'
                       and (c.terms_version_id = t.id
                            or exists (select 1 from oan_terms_versions nv where nv.id = t.id and nv.requires_reaccept = 'N')));
+
+------------------------------------------------------------- W1 shell (Build Pack §3.2) --
+-- Leadership-letter carousel on Home 10: newest six live letters
+create or replace view oan_leadership_letters_v as
+select a.id, a.title, a.author_label, a.summary, a.post_id, a.publish_from,
+       row_number() over (order by a.publish_from desc, a.id desc) slide_no
+  from oan_announcements_v a
+ where a.kind = 'LEADERSHIP_LETTER'
+ order by a.publish_from desc, a.id desc
+ fetch first 6 rows only;
+
+-- "What's new" feed on Home 10: announcements and Library insights by recency.
+-- Built on the secure views, so it inherits their member and chapter-scope rules.
+-- Events join this feed when W3 lands.
+create or replace view oan_whats_new_v as
+select 'ANNOUNCEMENT' item_kind, 'Announcement' kind_label, a.id item_id, a.title,
+       a.summary, a.publish_from published_at, 62 link_page, 'P62_ID' link_item, a.post_id link_value
+  from oan_announcements_v a
+ where a.kind = 'ANNOUNCEMENT'
+union all
+select 'INSIGHT', initcap(replace(l.category, '_', ' ')), l.id, l.title,
+       l.summary, l.published_at, 35, 'P35_ID', l.id
+  from oan_library_v l;
+
+-- Global page 0 profile card and application items (AI_*). Display only: authorisation
+-- always comes from OAN_CTX, never from these values (NFR-03).
+create or replace view oan_my_shell_v as
+select a.user_id,
+       coalesce(trim(a.first_name || ' ' || a.last_name), 'New member') display_name,
+       upper(substr(a.first_name, 1, 1) || substr(a.last_name, 1, 1)) initials,
+       coalesce(a.headline, a.job_title) headline,
+       a.current_org,
+       a.completeness,
+       (select c.name from oan_chapters c where c.id = a.primary_chapter_id) primary_chapter,
+       (select count(*) from oan_notifications n where n.user_id = a.user_id and n.is_read = 'N') unread_notifications,
+       (select listagg(s.section || '=' || s.vis_level, ':') within group (order by s.sort_order)
+          from oan_my_section_vis_v s) privacy_visibility
+  from oan_my_account_v a;

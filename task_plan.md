@@ -29,9 +29,10 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 - **13 Oct (iteration 3):** onboarding conversation built offline: `oan_chat_pkg`, tables, views, page 115, Home routing, page 109, `ut_oan_chat` (9 tests). Board exported to an A4 landscape PDF.
 - **13 Oct (iteration 4):** plan v3.1 for Q29/Q30 (11 gates; same 16 sprints); CI brand check added; W0 admin approval and member pages built offline.
 - **13 Oct (iteration 8, Q31):** APEX Build Pack v1.1 prioritised. Pages renumbered to Build Pack numbers, App ID 200, intent codes and API contracts per the Build Pack; see `docs/06-build-pack-alignment.md`. **Page ids in the task tables below are pre-Q31 ids; use the map in docs/06 §3.**
+- **13 Oct (iteration 9):** dev ADB `aiatp` probed (APEX 26.1.5, accepted as Q32); the bootstrap waits for an ADMIN run. Offline: W1 shell (global page 0, Home 10), W0.21 API contracts, most of W0.22.
 - **Next, in Build Pack order:**
-  1. W1: global page 0 + Home 10 to the Build Pack spec;
-  2. W0.21 `OAN_CHAT_API` / `OAN_NOTIFY_API`; W0.22 `AI_` items, IS_* schemes, Build Pack Build Options;
+  1. G0 on the real database: ADMIN bootstrap, install as OAN_DEPLOY, spikes 0.11–0.14, first compile of every package;
+  2. W0.22 IS_* scheme names;
   3. W2: 20/21 directory, 22/23 profile grids, 25 work profile, 24 My CV.
   PRD-only admin extras (1071-1073 → 124-126, 70/71 → 90/91) follow later in their wave.
 - **Every iteration is committed and pushed** to `github.com/maheashtiwarrii-dev/OAN_APP_Portal`. The Kanban board (`docs/delivery-board.html` + PDF) is updated **only on request** (user, 13 Oct).
@@ -176,7 +177,7 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 ## Milestones and gates (critical path)
 | Gate | Condition | Due | If missed |
 |---|---|---|---|
-| **G0** | Dev ADB on **APEX 26.2** (0.10); workspace + SQLcl connection; Google OAuth client; **staffing decision: 3 devs + 0.5 FTE QA** (S27). Toolchain ✔ done 12 Oct. **13 Oct:** dev ADB `aiatp` (Mumbai) ✔ on APEX **26.1.5** (Q27 fallback: build on 26.1); workspace `OAN_APP` ✔; SQLcl `oan_app_dev` ✔; ADMIN run of `00_admin_bootstrap.sql` pending | End S0 | Offline `[A]` work continues; nothing reaches `[x]` |
+| **G0** | Dev ADB (APEX 26.1.5 accepted, Q32); workspace + SQLcl connection; Google OAuth client; **staffing decision: 3 devs + 0.5 FTE QA** (S27). Toolchain ✔ done 12 Oct. **13 Oct:** dev ADB `aiatp` (Mumbai) ✔ on APEX **26.1.5**, accepted by the user (Q32); workspace `OAN_APP` ✔; SQLcl `oan_app_dev` ✔; ADMIN run of `00_admin_bootstrap.sql` pending | End S0 | Offline `[A]` work continues; nothing reaches `[x]` |
 | **G1** | OI-4 content inventory + owner; **product owner signs off the Must/Should/Could AC list** (S22) | End S2 | Library import at risk; go-live criterion undefined, so escalate |
 | **G-RB** | Re-baseline: S1–S2 velocity and `[A]` rework vs plan (S28). If velocity < 20 pd/sprint, invoke the descope lane and re-issue the sprint map | End S2 | — |
 | **G-AI** | `AI_ASSISTANT` DPIA annex + GenAI DPA signed (S04) | End S3 | Onboarding stays deterministic; W0.9 moves to the descope lane / v1.x |
@@ -218,7 +219,7 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 |---|---|---|---|---|---|
 | 0.1 | Node LTS, JDK 21, SQLcl 26.2 via winget; on PATH | toolchain | 0.5 | Dev | **[x]** Node 24.20, JDK 21.0.12, SQLcl 26.2.2 |
 | 0.1b | Optional local Oracle AI Database Free + utPLSQL | DoD | 1 | Dev | [ ] |
-| 0.2 | Dev ADB on **APEX 26.2**, synthetic data only | Q27 | 0.5 | Dev | [!] G0 |
+| 0.2 | Dev ADB (APEX 26.1.5 per Q32), synthetic data only | Q27, Q32 | 0.5 | Dev | [~] ADB + workspace ready; ADMIN bootstrap pending |
 | 0.3 | ADMIN bootstrap:<br>• **explicit ACE hosts** (Google, LinkedIn, `slack.com`, `graph.facebook.com`, GenAI), replacing the wildcard (S18);<br>• `grant execute on dbms_lock` (S17);<br>• proxy `OAN_DEPLOY[OAN_APP]` (S14);<br>• `OAN_API` schema (S15). | NFR-03, R02 | 1 | Dev | [~] |
 | 0.4 | Workspace probe; deployment files; SQLcl connections | skill | 0.5 | Dev | [!] workspace name |
 | 0.5 | `git init`, layout, `.gitignore` | NFR-14 | 0.25 | Dev | [x] |
@@ -305,15 +306,15 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 | W0.17 | 9000, 9001 health pages | NFR-08 | 0.25 | 3.16 | [ ] |
 | W0.18 | **Shared components + security baseline (S01).**<br>• Already authored: auth schemes, authorizations, app items/processes, email templates, automations, LOVs, lists.<br>• Text Messages; all email templates (v2 2.8).<br>• **Security baseline:** SSP/checksums; escaping; deep-linking off except landing/login/register; CSP (self + allow-list, incl. Ajax polling, no third-party script), HSTS, XFO DENY, Referrer-Policy; cookies Secure/HttpOnly/SameSite=Lax; debug off; Advisor zero findings; ORDS module inventory.<br>• Error handler; cookie notice.<br>• 5.7 rows. | NFR-04/13, FR-23 | 7.5 | 2.1–2.11 | [~] partly `[A]` |
 | W0.19 | 70 Suggest taxonomy term; 71 Request a chapter | FR-28/16 | 0.5 | 3.11 | [ ] |
-| W0.21 | **Build Pack API contracts (Q31):** `OAN_CHAT_API` (start_session, add_message, log_user_turn, map_intent, route_intent, get_transcript, close_session, register_from_chat, respond_and_route; channel and profile-update routines with W4/W2) and `OAN_NOTIFY_API` (notify, notify_many, unread_count, mark_read, mark_all_read, wants_channel, send_pending_emails; event helpers with their waves) over `oan_chat_pkg` / `oan_notify_pkg` | FR-34, FR-23 | 2 | — | [ ] |
-| W0.22 | **Build Pack conventions (Q31):** `AI_MEMBER_ID`, `AI_ORG_ID`, `AI_MEMBER_ROLES`, `AI_PRIVACY_VISIBILITY`, `AI_UNREAD_NOTIFICATIONS` (display only; security from `OAN_CTX`); IS_* scheme names; Build Options OAN_ADMIN, OAN_AI_ASSISTANT, OAN_PARTNER_WORKSPACE, OAN_RECOGNITION | NFR-02 | 0.75 | — | [ ] |
+| W0.21 | **Build Pack API contracts (Q31):** `OAN_CHAT_API` (start_session, add_message, log_user_turn, map_intent, route_intent, get_transcript, close_session, register_from_chat, respond_and_route; channel and profile-update routines with W4/W2) and `OAN_NOTIFY_API` (notify, notify_many, unread_count, mark_read, mark_all_read, wants_channel, send_pending_emails; event helpers with their waves) over `oan_chat_pkg` / `oan_notify_pkg` | FR-34, FR-23 | 2 | — | [A] 13 Oct: `296_oan_chat_api.sql`, `297_oan_notify_api.sql`, suite `ut_oan_bp_api` (7 tests). Codes-only transcript (R21), live-only routing (R05), viewer-only read state; event helpers raise "not available yet" until their wave |
+| W0.22 | **Build Pack conventions (Q31):** `AI_MEMBER_ID`, `AI_ORG_ID`, `AI_MEMBER_ROLES`, `AI_PRIVACY_VISIBILITY`, `AI_UNREAD_NOTIFICATIONS` (display only; security from `OAN_CTX`); IS_* scheme names; Build Options OAN_ADMIN, OAN_AI_ASSISTANT, OAN_PARTNER_WORKSPACE, OAN_RECOGNITION | NFR-02 | 0.75 | — | [~] 13 Oct: AI_ items (set after login from `oan_my_shell_v`), the four Build Pack options plus wave options W2_DIRECTORY / W4_MESSAGING / W5_OPPORTUNITIES; IS_* scheme names open |
 | W0.20 | **Build Option wiring (S03):**<br>• replace `PHASE_2/3/4` with `CHANNELS`, `AI_ASSISTANT`, `CAREERS_FEED`, `CV_PDF`, `ORACLE_IDP` (no `HR_INTEGRATION`, Q29) (exclude, onUpgradeKeepStatus);<br>• `oan_config_pkg.enable_feature` (audited);<br>• 5.7 row: option on in Builder without sign-off → nothing processed. | R12 | 1.5 | 2.6 | [ ] |
 
 ### W1 — Shell, Home, global search (S3)
 | ID | Page(s) / task | Delivers | Est | Status |
 |---|---|---|---|---|
-| W1.1 | 0 Global page: rail, profile card, badge, search box, 4 breakpoints | FR-29, NFR-11 | 1.5 | [A] base |
-| W1.2 | 1 Home: intent route cards driven by `live_yn` with fallback | FR-29, R05 | 2 | [A] base |
+| W1.1 | 0 Global page: rail, profile card, badge, search box, 4 breakpoints | FR-29, NFR-11 | 1.5 | [A] 13 Oct: 7-destination rail (Directory, Messages, Opportunities hidden by wave options until built), profile card, badge with 60s refresh (`OAN_UNREAD_COUNT`), search box; `oan-shell.js/.css`; breakpoints use Universal Theme defaults, search box hidden under 640px |
+| W1.2 | 10 Home: greeting, leadership-letter carousel, What's new; intent route cards driven by `live_yn` with fallback | FR-29, R05 | 2 | [~] 13 Oct: greeting, carousel (Ink panel, max 6, pause on hover, dots; `oan_leadership_letters_v`), What's new (`oan_whats_new_v`), checklist, recent posts. Route cards wait for the first live journey |
 | W1.3 | 40 Global search results (scopes added per wave; never messages or private groups) | FR-02, R20 | 1.5 | [ ] |
 
 ### W2 — Directory, profile, CV, work profile, connections (S4–S5)

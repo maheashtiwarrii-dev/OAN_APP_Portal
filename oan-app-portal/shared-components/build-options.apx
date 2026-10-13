@@ -39,3 +39,80 @@ buildOption linkedin (
         comments: LinkedIn sign-in button; include once the LinkedIn OIDC app is approved (plan 0.6).
     }
 )
+
+buildOption w2-directory (
+    name: W2_DIRECTORY
+    status {
+        status: exclude
+        onUpgradeKeepStatus: true
+    }
+    comments {
+        comments: Wave W2 pages (20 Directory search, 21 results). Include when the wave is built; hides the rail entry until then (R05).
+    }
+)
+
+buildOption w4-messaging (
+    name: W4_MESSAGING
+    status {
+        status: exclude
+        onUpgradeKeepStatus: true
+    }
+    comments {
+        comments: Wave W4 pages (40 Messages and channels). Include when the wave is built (R05).
+    }
+)
+
+buildOption w5-opportunities (
+    name: W5_OPPORTUNITIES
+    status {
+        status: exclude
+        onUpgradeKeepStatus: true
+    }
+    comments {
+        comments: Wave W5 pages (50 Opportunities). Include when the wave is built (R05).
+    }
+)
+
+buildOption oan-admin (
+    name: OAN_ADMIN
+    status {
+        status: include
+        onUpgradeKeepStatus: true
+    }
+    comments {
+        comments: Build Pack §2.1. Administration pages 100-127 and their menu.
+    }
+)
+
+buildOption oan-ai-assistant (
+    name: OAN_AI_ASSISTANT
+    status {
+        status: exclude
+        onUpgradeKeepStatus: true
+    }
+    comments {
+        comments: Build Pack §2.1; same switch as our AI_ASSISTANT (R15). Off until the assistant is approved.
+    }
+)
+
+buildOption oan-partner-workspace (
+    name: OAN_PARTNER_WORKSPACE
+    status {
+        status: exclude
+        onUpgradeKeepStatus: true
+    }
+    comments {
+        comments: Build Pack §2.1. Partner workspace (page 70 and its journeys), W6.
+    }
+)
+
+buildOption oan-recognition (
+    name: OAN_RECOGNITION
+    status {
+        status: exclude
+        onUpgradeKeepStatus: true
+    }
+    comments {
+        comments: Build Pack §2.1. Recognition and badges, W7.
+    }
+)

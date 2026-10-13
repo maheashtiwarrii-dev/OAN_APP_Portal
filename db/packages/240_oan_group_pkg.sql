@@ -12,8 +12,11 @@ create or replace package oan_group_pkg authid definer as
   procedure edit_post(p_post_id in number, p_title in varchar2, p_body in clob);
   procedure edit_comment(p_comment_id in number, p_body in clob);
   procedure accept_answer(p_post_id in number, p_comment_id in number);
+  -- p_kind LEADERSHIP_LETTER feeds the Home carousel (Build Pack page 10); returns the post id
   function  create_announcement(p_title in varchar2, p_body in clob,
-                                p_publish_to in timestamp with time zone default null) return number;
+                                p_publish_to   in timestamp with time zone default null,
+                                p_kind         in varchar2 default 'ANNOUNCEMENT',
+                                p_author_label in varchar2 default null) return number;
   -- R20: keep OAN_POSTS.SEARCH_BODY in step with post status and group visibility
   procedure refresh_search_body(p_post_id in number);
   procedure refresh_group_search(p_group_id in number);
@@ -161,16 +164,19 @@ create or replace package body oan_group_pkg as
   end accept_answer;
 
   function create_announcement(p_title in varchar2, p_body in clob,
-                               p_publish_to in timestamp with time zone default null) return number is
+                               p_publish_to   in timestamp with time zone default null,
+                               p_kind         in varchar2 default 'ANNOUNCEMENT',
+                               p_author_label in varchar2 default null) return number is
     l_id    number;
     l_group number;
   begin
     oan_security_pkg.require_admin;
-    insert into oan_announcements (title, body, publish_to, created_by)
-    values (p_title, p_body, p_publish_to, oan_util.viewer_id);
+    oan_util.assert(p_kind in ('ANNOUNCEMENT','LEADERSHIP_LETTER'), 'Unknown announcement kind.');
     select id into l_group from oan_groups where code = 'ANNOUNCEMENTS';
     l_id := create_post(l_group, p_title, p_body, 'ANNOUNCEMENT');
-    oan_audit_pkg.log('ANNOUNCEMENT', 'POST', l_id);
+    insert into oan_announcements (kind, title, author_label, post_id, body, publish_to, created_by)
+    values (p_kind, p_title, p_author_label, l_id, p_body, p_publish_to, oan_util.viewer_id);
+    oan_audit_pkg.log('ANNOUNCEMENT', 'POST', l_id, null, json_object('kind' value p_kind));
     return l_id;
   end create_announcement;
 

@@ -15,14 +15,31 @@ page 10 (
         formAutoComplete: false
     }
     comments {
-        comments: FR-29 member home (P1): onboarding checklist, announcements, new/featured Library, recent group posts, notifications. Non-active users are routed to their status page.
+        comments: Build Pack §3.2 Home (W1) with FR-29: greeting, onboarding checklist, leadership-letter carousel, What's new (announcements + insights), recent community posts. Unread notifications live in the navigation-bar badge. Non-members are routed to their status page.
     }
 
-    region welcome (
-        name: Welcome, &APP_USER_DISPLAY.
-        type: staticContent
+    region greeting (
+        name: Hello, &APP_USER_DISPLAY.
+        type: dynamicContent
         source {
-            htmlCode: <p>Your OAN community: knowledge, groups and your chapters in one place.</p>
+            plsqlFunctionBody:
+                ```plsql
+                -- Build Pack §3.2 personal greeting, in the member's own time zone
+                declare
+                    l_hour pls_integer;
+                begin
+                    select to_number(to_char(systimestamp at time zone coalesce(a.timezone, sessiontimezone), 'HH24'))
+                      into l_hour
+                      from oan_my_account_v a;
+                    return '<p>' || case when l_hour < 12 then 'Good morning.'
+                                         when l_hour < 18 then 'Good afternoon.'
+                                         else 'Good evening.' end
+                        || ' Here is what is new across your OAN community.</p>';
+                exception
+                    when no_data_found then
+                        return '<p>Here is what is new across your OAN community.</p>';
+                end;
+                ```
         }
         layout {
             sequence: 5
@@ -33,7 +50,6 @@ page 10 (
             templateOptions: #DEFAULT#
         }
     )
-
     region onboarding (
         name: Get started
         type: classicReport
@@ -87,18 +103,73 @@ page 10 (
 
     )
 
-    region announcements (
-        name: Announcements
+    region r10_leadership_letters (
+        name: From OAN leadership
+        type: dynamicContent
+        source {
+            plsqlFunctionBody:
+                ```plsql
+                -- Build Pack §3.2 leadership-letter carousel: Ink panel, max 6 slides, pause on hover,
+                -- pagination dots (oan-shell.js). Text only: no logos or images (Q30).
+                declare
+                    l_slides clob;
+                    l_dots   clob;
+                    l_n      pls_integer := 0;
+                begin
+                    for l in (select title, author_label, summary, post_id from oan_leadership_letters_v order by slide_no) loop
+                        l_n := l_n + 1;
+                        l_slides := l_slides
+                            || '<article class="oan-slide" role="group" aria-roledescription="slide" aria-label="' || l_n || '">'
+                            || case when l.author_label is not null
+                                    then '<div class="oan-slide-from">' || apex_escape.html(l.author_label) || '</div>' end
+                            || '<h3>' || apex_escape.html(l.title) || '</h3>'
+                            || '<p>' || apex_escape.html(l.summary) || '</p>'
+                            || case when l.post_id is not null
+                                    then '<a href="' || apex_page.get_url(p_page => 62, p_items => 'P62_ID', p_values => l.post_id)
+                                      || '">Read the letter</a>' end
+                            || '</article>';
+                        l_dots := l_dots || '<button type="button" class="oan-carousel-dot" aria-label="Show letter ' || l_n || '"></button>';
+                    end loop;
+                    if l_n = 0 then
+                        return null;
+                    end if;
+                    return '<section class="oan-carousel' || case when l_n = 1 then ' is-static' end
+                        || '" aria-roledescription="carousel" aria-label="Letters from OAN leadership" tabindex="0">'
+                        || l_slides
+                        || case when l_n > 1 then '<div class="oan-carousel-dots">' || l_dots || '</div>' end
+                        || '</section>';
+                end;
+                ```
+        }
+        layout {
+            sequence: 15
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery: select 1 from oan_leadership_letters_v
+        }
+    )
+
+    region r10_whats_new (
+        name: What's new
         type: classicReport
         source {
             location: localDatabase
             type: sqlQuery
             sqlQuery:
                 ```sql
-                select title, to_char(publish_from, 'DD Mon YYYY') published
-                  from oan_announcements_v
-                 order by publish_from desc
-                 fetch first 5 rows only
+                select item_kind, kind_label, title, summary,
+                       to_char(published_at, 'DD Mon YYYY') published,
+                       case when link_value is not null
+                            then apex_page.get_url(p_page => link_page, p_items => link_item, p_values => link_value) end link_url
+                  from oan_whats_new_v
+                 order by published_at desc
+                 fetch first 12 rows only
                 ```
         }
         layout {
@@ -114,70 +185,83 @@ page 10 (
             templateOptions: #DEFAULT#
         }
         messages {
-            whenNoDataFound: No announcements right now. Check back soon.
+            whenNoDataFound: Nothing new yet. Announcements and new insights will appear here.
+        }
+        comments {
+            comments: Build Pack §3.2 "What's new": announcements and Library insights by recency (oan_whats_new_v). Events join when W3 lands.
         }
 
-        column TITLE (
+        column ITEM_KIND (
             reportColumnQueryId: 1
             derivedColumn: N
-            heading {
-                heading: Announcement
-            }
+            type: hidden
             layout {
                 sequence: 1
             }
         )
 
-        column PUBLISHED (
+        column KIND_LABEL (
             reportColumnQueryId: 2
             derivedColumn: N
             heading {
-                heading: Published
+                heading: Type
             }
             layout {
                 sequence: 2
             }
         )
 
-    )
+        column TITLE (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Title
+            }
+            layout {
+                sequence: 3
+            }
+            link {
+                target: {
+                    type: url
+                    url: #LINK_URL#
+                }
+                linkText: #TITLE#
+            }
+        )
 
-    region new-in-library (
-        name: New in the Knowledge Library
-        type: cards
-        source {
-            location: localDatabase
-            type: sqlQuery
-            sqlQuery:
-                ```sql
-                select id, title, summary, initcap(replace(category, '_', ' ')) category,
-                       case is_featured when 'Y' then 'Featured' end featured
-                  from oan_library_v
-                 order by is_featured desc, published_at desc
-                 fetch first 6 rows only
-                ```
-        }
-        layout {
-            sequence: 30
-            slot: body
-        }
-        appearance {
-            template: @/cards-container
-            templateOptions: #DEFAULT#
-        }
-        title {
-            column: TITLE
-        }
-        body {
-            column: SUMMARY
-        }
-        iconAndBadge {
-            badgeColumn: CATEGORY
-        }
-        messages {
-            whenNoDataFound: The Library is being filled with OAN content. Be the first to contribute from the Knowledge Library page.
-        }
-    )
+        column SUMMARY (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Summary
+            }
+            layout {
+                sequence: 4
+            }
+        )
 
+        column PUBLISHED (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Published
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+        column LINK_URL (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 6
+            }
+        )
+
+    )
     region recent-discussions (
         name: Recent posts
         type: classicReport
@@ -285,61 +369,6 @@ page 10 (
 
     )
 
-    region unread-notifications (
-        name: Unread notifications
-        type: classicReport
-        source {
-            location: localDatabase
-            type: sqlQuery
-            sqlQuery:
-                ```sql
-                select title, to_char(created_at, 'DD Mon HH24:MI') received
-                  from oan_my_notifications_v
-                 where is_read = 'N'
-                 order by created_at desc
-                 fetch first 5 rows only
-                ```
-        }
-        layout {
-            sequence: 50
-            slot: body
-        }
-        appearance {
-            template: @/standard
-            templateOptions: #DEFAULT#
-        }
-        componentAppearance {
-            template: @/standard
-            templateOptions: #DEFAULT#
-        }
-        messages {
-            whenNoDataFound: You are all caught up.
-        }
-
-        column TITLE (
-            reportColumnQueryId: 1
-            derivedColumn: N
-            heading {
-                heading: Notification
-            }
-            layout {
-                sequence: 1
-            }
-        )
-
-        column RECEIVED (
-            reportColumnQueryId: 2
-            derivedColumn: N
-            heading {
-                heading: Received
-            }
-            layout {
-                sequence: 2
-            }
-        )
-
-    )
-
     button dismiss-onboarding (
         buttonName: DISMISS_ONBOARDING
         label: Hide checklist
@@ -356,27 +385,6 @@ page 10 (
             ]
         }
         behavior {
-            warnOnUnsavedChanges: doNotCheck
-        }
-    )
-
-    button all-notifications (
-        buttonName: ALL_NOTIFICATIONS
-        label: All notifications
-        layout {
-            sequence: 10
-            region: @unread-notifications
-            slot: next
-        }
-        appearance {
-            buttonTemplate: @/text
-            templateOptions: #DEFAULT#
-        }
-        behavior {
-            action: redirectThisApp
-            target: {
-                page: 41
-            }
             warnOnUnsavedChanges: doNotCheck
         }
     )
@@ -402,7 +410,7 @@ page 10 (
             language: plsql
             plsqlFunctionBody:
                 ```plsql
-                -- Verified but not yet applied: the onboarding conversation (115) first, then the application (110)
+                -- Verified but not yet applied: the onboarding conversation (2) first, then the application (6)
                 for a in (select status from oan_my_account_v) loop
                     if a.status = 'PENDING_REGISTRATION' then
                         if nvl(oan_chat_pkg.current_step, 'WELCOME') != 'DONE' then

@@ -27,6 +27,84 @@ page 0 (
         }
     )
 
+    region r0_global_search (
+        name: Global search
+        type: staticContent
+        source {
+            htmlCode:
+                ```html
+                <form id="oan-global-search" class="oan-search" role="search" data-url="f?p=&APP_ID.:19:&APP_SESSION.::NO:RP:P19_Q:">
+                  <label for="oan-global-search-q" class="u-VisuallyHidden">Search OAN</label>
+                  <input id="oan-global-search-q" type="search" maxlength="200" placeholder="Search people, insights, posts" autocomplete="off">
+                </form>
+                ```
+        }
+        layout {
+            sequence: 5
+            slot: beforeNavigationBar
+        }
+        appearance {
+            template: @/blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: expression
+            language: plsql
+            plsqlExpression: sys_context('OAN_CTX','VIEWER_TYPE') = 'MEMBER'
+        }
+        comments {
+            comments: Build Pack §3.2 global search box. Opens page 19 (search results, FR-02); oan-shell.js builds the URL.
+        }
+    )
+
+    region r0_profile_card (
+        name: Profile card
+        type: dynamicContent
+        source {
+            plsqlFunctionBody:
+                ```plsql
+                -- Build Pack §3.2 profile card; oan-shell.js moves it to the top of the left rail.
+                -- Initials only: photos follow the PHOTO section visibility and arrive with W2.
+                declare
+                    l_html clob;
+                begin
+                    for s in (select display_name, initials, headline, primary_chapter, completeness
+                                from oan_my_shell_v) loop
+                        l_html := '<a class="oan-profile-card" href="' || apex_page.get_url(p_page => 23) || '">'
+                               || '<span class="oan-avatar" aria-hidden="true">' || apex_escape.html(nvl(s.initials, '?')) || '</span>'
+                               || '<span class="oan-pc-text"><span class="oan-pc-name">' || apex_escape.html(s.display_name) || '</span>'
+                               || case when s.headline is not null
+                                       then '<span class="oan-pc-meta">' || apex_escape.html(s.headline) || '</span>' end
+                               || case when s.primary_chapter is not null
+                                       then '<span class="oan-pc-meta">' || apex_escape.html(s.primary_chapter) || '</span>' end
+                               || case when nvl(s.completeness, 0) < 100
+                                       then '<span class="oan-pc-meta">Profile ' || nvl(s.completeness, 0) || '% complete</span>'
+                                         || '<span class="oan-pc-meter" aria-hidden="true"><span style="width:'
+                                         || nvl(s.completeness, 0) || '%"></span></span>' end
+                               || '</span></a>';
+                    end loop;
+                    return l_html;
+                end;
+                ```
+        }
+        layout {
+            sequence: 30
+            slot: dialogsDrawersAndPopups
+        }
+        appearance {
+            template: @/blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: expression
+            language: plsql
+            plsqlExpression: sys_context('OAN_CTX','VIEWER_TYPE') = 'MEMBER'
+        }
+        comments {
+            comments: Build Pack §3.2. Shown to approved members only; pending applicants have no rail destinations yet.
+        }
+    )
+
     region cookie-notice (
         name: Cookie notice
         type: staticContent

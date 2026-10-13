@@ -60,7 +60,8 @@ using (select 'ACCOUNT_DECISION' c,     1 ph, 'INSTANT' m, 'Y' mand, 'Account ap
        select 'ENDORSEMENT',            2, 'DIGEST',  'N', 'Endorsement received' from dual union all
        select 'CHAPTER_EVENT',          2, 'DIGEST',  'N', 'Chapter event published / changed' from dual union all
        select 'TRAINING',               3, 'INSTANT', 'N', 'Training reminder, certificate issued' from dual union all
-       select 'STARTUP_INVITATION',     4, 'INSTANT', 'N', 'Startup invitation' from dual) s
+       select 'STARTUP_INVITATION',     4, 'INSTANT', 'N', 'Startup invitation' from dual union all
+       select 'SYSTEM',                 1, 'OFF',     'N', 'Service notices (OAN_NOTIFY_API c_type_system); in-app only by default' from dual) s
    on (n.code = s.c)
  when not matched then insert (code, phase, default_mode, mandatory, email_template, description)
                        values (s.c, s.ph, s.m, s.mand, 'OAN_GENERIC', s.d);

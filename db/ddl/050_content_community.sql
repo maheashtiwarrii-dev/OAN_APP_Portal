@@ -178,11 +178,16 @@ create index oan_post_acc_ix on oan_posts (accepted_comment_id);
 
 create table oan_announcements (
   id           number generated always as identity primary key,
+  -- LEADERSHIP_LETTER rows feed the Home carousel (Build Pack page 10, max 6 shown)
+  kind         varchar2(20 char) default 'ANNOUNCEMENT' not null
+               constraint oan_ann_kind_ck check (kind in ('ANNOUNCEMENT','LEADERSHIP_LETTER')),
   title        varchar2(300 char) not null,
+  author_label varchar2(200 char),             -- e.g. "From the OAN Chair"; a role, never a logo
+  post_id      number,                         -- the matching post in the ANNOUNCEMENTS group (page 62)
   body         clob,
   publish_from timestamp with time zone default systimestamp not null,
   publish_to   timestamp with time zone,
   created_by   number constraint oan_ann_user_fk references oan_users on delete set null,
   created_at   timestamp with time zone default systimestamp not null
 );
-create index oan_ann_pub_ix on oan_announcements (publish_from, publish_to);
+create index oan_ann_pub_ix on oan_announcements (kind, publish_from, publish_to);

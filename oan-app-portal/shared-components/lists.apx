@@ -14,8 +14,16 @@ list navigation-bar (
                 page: 41
             }
         }
+        userDefinedAttributes {
+            1: &AI_UNREAD_NOTIFICATIONS.
+            2: oan-notif
+            4: Notifications
+        }
         security {
             authorizationScheme: @is-active
+        }
+        comments {
+            comments: Build Pack §3.2 notification bell. A01 is the badge (empty when zero); oan-shell.js refreshes it every 60s.
         }
     )
 
@@ -79,6 +87,25 @@ list navigation-bar (
         }
     )
 
+    entry my-decisions (
+        label: Moderation decisions
+        icon {
+            imageIconCssClasses: fa-gavel
+        }
+        layout {
+            sequence: 18
+            parentEntry: @app-user
+        }
+        link {
+            target: {
+                page: 81
+            }
+        }
+        security {
+            authorizationScheme: @is-active
+        }
+    )
+
     entry list_item (
         label: ---
         layout {
@@ -137,6 +164,9 @@ list navigation-menu (
         security {
             authorizationScheme: @is-active
         }
+        comments {
+            comments: Build Pack §3.2 left rail, destination 1 of 7.
+        }
     )
 
     entry application-status (
@@ -157,13 +187,53 @@ list navigation-menu (
         }
     )
 
+    entry directory (
+        label: Directory
+        icon {
+            imageIconCssClasses: fa-address-book-o
+        }
+        layout {
+            sequence: 20
+        }
+        isCurrent {
+            type: pages
+            pages: [
+                20
+                21
+                22
+            ]
+        }
+        link {
+            target: {
+                page: 20
+            }
+        }
+        security {
+            authorizationScheme: @is-active
+        }
+        config {
+            buildOption: @w2-directory
+        }
+        comments {
+            comments: Destination 2 of 7. Hidden until wave W2 is built (R05).
+        }
+    )
+
     entry library (
-        label: Knowledge Library
+        label: Insights & Knowledge
         icon {
             imageIconCssClasses: fa-book
         }
         layout {
-            sequence: 20
+            sequence: 30
+        }
+        isCurrent {
+            type: pages
+            pages: [
+                34
+                35
+                36
+            ]
         }
         link {
             target: {
@@ -173,15 +243,74 @@ list navigation-menu (
         security {
             authorizationScheme: @is-active
         }
+        comments {
+            comments: Destination 3 of 7 (Build Pack content pages 30-36).
+        }
+    )
+
+    entry messages (
+        label: Messages
+        icon {
+            imageIconCssClasses: fa-envelope-o
+        }
+        layout {
+            sequence: 40
+        }
+        link {
+            target: {
+                page: 40
+            }
+        }
+        security {
+            authorizationScheme: @is-active
+        }
+        config {
+            buildOption: @w4-messaging
+        }
+        comments {
+            comments: Destination 4 of 7. Hidden until wave W4 is built (R05).
+        }
+    )
+
+    entry opportunities (
+        label: Opportunities
+        icon {
+            imageIconCssClasses: fa-briefcase
+        }
+        layout {
+            sequence: 50
+        }
+        link {
+            target: {
+                page: 50
+            }
+        }
+        security {
+            authorizationScheme: @is-active
+        }
+        config {
+            buildOption: @w5-opportunities
+        }
+        comments {
+            comments: Destination 5 of 7. Hidden until wave W5 is built (R05).
+        }
     )
 
     entry discussions (
-        label: Groups
+        label: Community
         icon {
             imageIconCssClasses: fa-comments-o
         }
         layout {
-            sequence: 30
+            sequence: 60
+        }
+        isCurrent {
+            type: pages
+            pages: [
+                60
+                62
+                73
+            ]
         }
         link {
             target: {
@@ -191,23 +320,8 @@ list navigation-menu (
         security {
             authorizationScheme: @is-active
         }
-    )
-
-    entry search (
-        label: Search
-        icon {
-            imageIconCssClasses: fa-search
-        }
-        layout {
-            sequence: 40
-        }
-        link {
-            target: {
-                page: 19
-            }
-        }
-        security {
-            authorizationScheme: @is-active
+        comments {
+            comments: Destination 6 of 7 (groups and posts).
         }
     )
 
@@ -217,7 +331,14 @@ list navigation-menu (
             imageIconCssClasses: fa-id-card-o
         }
         layout {
-            sequence: 50
+            sequence: 70
+        }
+        isCurrent {
+            type: pages
+            pages: [
+                23
+                26
+            ]
         }
         link {
             target: {
@@ -227,23 +348,8 @@ list navigation-menu (
         security {
             authorizationScheme: @is-signed-in
         }
-    )
-
-    entry my-decisions (
-        label: Moderation decisions
-        icon {
-            imageIconCssClasses: fa-gavel
-        }
-        layout {
-            sequence: 60
-        }
-        link {
-            target: {
-                page: 81
-            }
-        }
-        security {
-            authorizationScheme: @is-active
+        comments {
+            comments: Destination 7 of 7.
         }
     )
 
@@ -262,6 +368,9 @@ list navigation-menu (
         }
         security {
             authorizationScheme: @can-moderate-queue
+        }
+        config {
+            buildOption: @oan-admin
         }
     )
 

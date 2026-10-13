@@ -115,3 +115,14 @@
 ## Next
 - ADMIN runs `db/grants/00_admin_bootstrap.sql` (or saves an `oan_admin_dev` SQLcl connection so it can be run here), then `db/install.sql` as OAN_DEPLOY[OAN_DATA], grants and synonyms, then spikes 0.11–0.14 on the real database.
 - Continue W1 offline: global page 0 and Home 10 to the Build Pack spec; W0.21/W0.22.
+
+## Iteration 9b — W1 shell and Build Pack API contracts (13 Oct 2026, offline)
+| Step | Action | Result |
+|---|---|---|
+| I9-4 | User accepted APEX 26.1.5 | Decision Q32; G0 and task 0.2 updated |
+| I9-5 | ADMIN connection | The save-connection prompt needs the ADMIN password, typed by the user. A SQLcl window was opened for it; nothing saved yet. The OAN_APP password cannot run the bootstrap |
+| I9-6 | W0.21 API contracts | `OAN_CHAT_API` (296) and `OAN_NOTIFY_API` (297) with Build Pack signatures over our packages; `ut_oan_bp_api` (7 tests); grants and install updated; `SYSTEM` notification type seeded |
+| I9-7 | Leadership letters and feed | `oan_announcements.kind/author_label/post_id`; `create_announcement(p_kind, p_author_label)`; views `oan_leadership_letters_v`, `oan_whats_new_v`, `oan_my_shell_v` |
+| I9-8 | W1 shell | AI_ items set after login; badge refresh (before-header process + `OAN_UNREAD_COUNT` callback, 60s timer); 7-destination rail with wave build options; Build Pack build options; global search box and profile card on page 0; `oan-shell.js` / `oan-shell.css` |
+| I9-9 | Home 10 | Greeting (member's time zone), leadership-letter carousel (Ink panel, max 6, pause on hover, dots, reduced-motion aware), What's new, onboarding checklist, recent posts |
+| I9-10 | Validation | `apex validate`: successful (page arrays must be multi-line); brand check: passed. PL/SQL is not compiled yet; that waits for the database |

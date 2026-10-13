@@ -42,6 +42,8 @@ whenever sqlerror continue
 @@packages/280_oan_jobs_pkg.sql
 @@packages/290_oan_error_pkg.sql
 @@packages/295_oan_chat_pkg.sql
+@@packages/296_oan_chat_api.sql
+@@packages/297_oan_notify_api.sql
 
 prompt == Secure views
 @@views/300_secure_views.sql
@@ -74,5 +76,6 @@ whenever sqlerror continue
 @@tests/ut_oan_vis.sql
 @@tests/ut_oan_registry_auth.sql
 @@tests/ut_oan_chat.sql
+@@tests/ut_oan_bp_api.sql
 
 prompt Install complete. Run 20_app_synonyms.sql as OAN_APP, then 30_assert_no_table_grants.sql.

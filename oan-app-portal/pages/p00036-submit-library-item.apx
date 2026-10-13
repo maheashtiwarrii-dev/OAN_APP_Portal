@@ -1,0 +1,481 @@
+page 36 (
+    name: Submit Library Item
+    alias: SUBMIT-LIBRARY-ITEM
+    title: Submit an item to the Knowledge Library
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: true
+    }
+    security {
+        authorizationScheme: @is-active
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: FR-19 submission with P21 IP/confidentiality controls (rights basis + attestation). Pre-moderated; Sales/Product and screening hits need a second admin.
+    }
+
+    region item (
+        name: Item
+        type: staticContent
+        source {
+            htmlCode: <p>Every submission is reviewed before it is published. Do not share Oracle-confidential, customer-confidential or third-party proprietary material.</p>
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region rights (
+        name: Rights and confidentiality
+        type: staticContent
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region training-details (
+        name: Training details (optional)
+        type: staticContent
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P36_TITLE (
+        type: textField
+        label {
+            label: Title
+        }
+        layout {
+            sequence: 10
+            region: @item
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+            maxLength: 300
+        }
+    )
+
+    pageItem P36_SUMMARY (
+        type: textarea
+        label {
+            label: Summary
+        }
+        layout {
+            sequence: 20
+            region: @item
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 4000
+        }
+    )
+
+    pageItem P36_ITEM_TYPE (
+        type: radioGroup
+        label {
+            label: Type
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:Document upload;DOCUMENT,Link;LINK,Video link;VIDEO
+        }
+        layout {
+            sequence: 30
+            region: @item
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+        }
+        default {
+            type: static
+            staticValue: LINK
+        }
+    )
+
+    pageItem P36_URL (
+        type: textField
+        label {
+            label: Link (https://...)
+        }
+        layout {
+            sequence: 40
+            region: @item
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 1000
+        }
+    )
+
+    pageItem P36_FILE (
+        type: fileUpload
+        label {
+            label: Document (pdf, docx, pptx, xlsx, png, jpg - max 20 MB)
+        }
+        display {
+            displayAs: inlineDropzone
+        }
+        storage {
+            type: appTempFiles
+            purgeFileAt: endOfRequest
+            fileTypes: .pdf,.docx,.pptx,.xlsx,.png,.jpg,.jpeg
+            maxFileSize: 20480
+        }
+        layout {
+            sequence: 50
+            region: @item
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P36_CATEGORY (
+        type: selectList
+        label {
+            label: Category
+        }
+        lov {
+            type: sharedComponent
+            lov: @oan-library-categories
+        }
+        layout {
+            sequence: 60
+            region: @item
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+        }
+    )
+
+    pageItem P36_OWNER_TYPE (
+        type: selectList
+        label {
+            label: Source
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:My own content;MEMBER,External resource;EXTERNAL,OAN-owned (administrators);OAN
+        }
+        layout {
+            sequence: 70
+            region: @item
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        default {
+            type: static
+            staticValue: MEMBER
+        }
+    )
+
+    pageItem P36_TAGS (
+        type: selectMany
+        label {
+            label: Tags
+        }
+        lov {
+            type: sharedComponent
+            lov: @oan-tags
+        }
+        layout {
+            sequence: 80
+            region: @item
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P36_CHAPTERS (
+        type: selectMany
+        label {
+            label: Limit to chapters (leave empty for all members)
+        }
+        lov {
+            type: sharedComponent
+            lov: @oan-chapters
+        }
+        layout {
+            sequence: 90
+            region: @item
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P36_RIGHTS_BASIS (
+        type: selectList
+        label {
+            label: Rights basis
+        }
+        lov {
+            type: sharedComponent
+            lov: @oan-rights-basis
+        }
+        layout {
+            sequence: 10
+            region: @rights
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+        }
+    )
+
+    pageItem P36_RIGHTS_NOTE (
+        type: textField
+        label {
+            label: Licence or source URL (required for Licensed / Publicly available)
+        }
+        layout {
+            sequence: 20
+            region: @rights
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 1000
+        }
+    )
+
+    pageItem P36_ATTEST (
+        type: checkbox
+        label {
+            label: I confirm this contains no Oracle-confidential, customer-confidential or third-party proprietary material, and I have the right to share it.
+        }
+        settings {
+            useDefaults: false
+            checkedValue: Y
+            uncheckedValue: N
+        }
+        layout {
+            sequence: 30
+            region: @rights
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P36_SKILL_LEVEL (
+        type: selectList
+        label {
+            label: Level
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:Beginner;BEGINNER,Intermediate;INTERMEDIATE,Advanced;ADVANCED
+        }
+        layout {
+            sequence: 10
+            region: @training-details
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P36_PROVIDER (
+        type: textField
+        label {
+            label: Provider
+        }
+        layout {
+            sequence: 20
+            region: @training-details
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 200
+        }
+    )
+
+    pageItem P36_DURATION (
+        type: numberField
+        label {
+            label: Duration (minutes)
+        }
+        layout {
+            sequence: 30
+            region: @training-details
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P36_FORMAT (
+        type: textField
+        label {
+            label: Format (course, webinar, workshop...)
+        }
+        layout {
+            sequence: 40
+            region: @training-details
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 30
+        }
+    )
+
+    button submit (
+        buttonName: SUBMIT
+        label: Submit for review
+        layout {
+            sequence: 10
+            region: @item
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process submit (
+        name: Submit item
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare
+                    l_file_id number;
+                    l_item_id number;
+                begin
+                    if :P36_ITEM_TYPE = 'DOCUMENT' then
+                        if :P36_FILE is null then
+                            raise_application_error(-20400, 'Choose a document to upload.');
+                        end if;
+                        l_file_id := oan_file_pkg.store(:P36_FILE, 'LIBRARY_ITEM');
+                    end if;
+                    l_item_id := oan_library_pkg.submit(
+                        p_title            => :P36_TITLE,
+                        p_summary          => :P36_SUMMARY,
+                        p_item_type        => :P36_ITEM_TYPE,
+                        p_url              => case when :P36_ITEM_TYPE in ('LINK','VIDEO') then :P36_URL end,
+                        p_file_id          => l_file_id,
+                        p_category         => :P36_CATEGORY,
+                        p_owner_type       => :P36_OWNER_TYPE,
+                        p_rights_basis     => :P36_RIGHTS_BASIS,
+                        p_rights_note      => :P36_RIGHTS_NOTE,
+                        p_attested         => :P36_ATTEST,
+                        p_tag_ids          => :P36_TAGS,
+                        p_skill_level      => :P36_SKILL_LEVEL,
+                        p_provider         => :P36_PROVIDER,
+                        p_duration_minutes => :P36_DURATION,
+                        p_delivery_format  => :P36_FORMAT,
+                        p_chapter_ids      => :P36_CHAPTERS);
+                end;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        serverSideCondition {
+            whenButtonPressed: @submit
+        }
+        successMessage {
+            successMessage: Thank you. Your item was submitted for review.
+        }
+    )
+
+    branch to-library (
+        name: Back to the Library
+        behavior {
+            type: pageOrUrl
+            target: {
+                page: 34
+            }
+        }
+        execution {
+            point: afterProcessing
+            sequence: 10
+        }
+    )
+
+)

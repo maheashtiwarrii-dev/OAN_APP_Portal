@@ -9,7 +9,7 @@ breadcrumb breadcrumb (
         }
         link {
             target: {
-                page: 1
+                page: 10
             }
         }
     )

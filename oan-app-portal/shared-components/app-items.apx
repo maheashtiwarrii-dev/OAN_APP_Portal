@@ -30,6 +30,6 @@ appItem REAUTH_RETURN_PAGE (
         sessionStateProtection: restricted
     }
     comments {
-        comments: Page to return to after re-authentication (see page 108).
+        comments: Page to return to after re-authentication (see page 15).
     }
 )

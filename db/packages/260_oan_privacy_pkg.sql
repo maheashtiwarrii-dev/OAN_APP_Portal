@@ -106,7 +106,7 @@ create or replace package body oan_privacy_pkg as
     oan_audit_pkg.log('PRIVACY_EXPORT_READY', 'PRIVACY_REQUEST', p_request_id, l_req.user_id);
     -- The email only says the export is ready; download requires sign-in + re-auth (P20)
     oan_notify_pkg.notify(l_req.user_id, 'EXPORT_READY', 'Your OAN data export is ready',
-      'Sign in to download it from your Privacy centre within 7 days.', 60);
+      'Sign in to download it from your Privacy centre within 7 days.', 27);
   end build_export;
 
   procedure process_export_queue is
@@ -299,7 +299,7 @@ create or replace package body oan_privacy_pkg as
     returning id into l_id;
     oan_audit_pkg.log('PRIVACY_REQUEST_RAISED', 'PRIVACY_REQUEST', l_id, me, json_object('type' value p_type));
     oan_notify_pkg.notify_role('PRIVACY_OFFICER', 'MODERATION_QUEUE', 'New privacy request (' || p_type || ')',
-                               'Respond within 30 days.', 1100);
+                               'Respond within 30 days.', 121);
     return l_id;
   end raise_request;
 
@@ -316,7 +316,7 @@ create or replace package body oan_privacy_pkg as
     oan_audit_pkg.log('PRIVACY_REQUEST_UPDATED', 'PRIVACY_REQUEST', p_request_id, l_req.user_id,
                       json_object('status' value p_status));
     if l_req.user_id is not null and p_status in ('COMPLETED','REJECTED') then
-      oan_notify_pkg.notify(l_req.user_id, 'ACCOUNT_DECISION', 'Update on your privacy request', p_response, 60);
+      oan_notify_pkg.notify(l_req.user_id, 'ACCOUNT_DECISION', 'Update on your privacy request', p_response, 27);
     end if;
   end update_request;
 

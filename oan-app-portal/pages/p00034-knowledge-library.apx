@@ -1,0 +1,379 @@
+page 34 (
+    name: Knowledge Library
+    alias: KNOWLEDGE-LIBRARY
+    title: OAN Knowledge Library
+    appearance {
+        pageTemplate: @/left-side-column
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        authorizationScheme: @is-active
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: FR-19 Knowledge Library (+ FR-08 training in P1). Faceted search over OAN_LIBRARY_V only (Q07); facets never see unpublished/out-of-scope items.
+    }
+
+    region button-bar (
+        name: Button Bar
+        type: staticContent
+        source {
+            htmlCode: <div id="active_facets"></div>
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/buttons-container
+            templateOptions: [
+                #DEFAULT#
+                t-ButtonRegion--noPadding
+                t-ButtonRegion--noUI
+            ]
+        }
+    )
+
+    region items (
+        name: Library
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select id, title, summary, category, owner_type, skill_level, provider, tags,
+                       initcap(replace(category, '_', ' ')) category_label,
+                       initcap(owner_type) owner_label,
+                       case is_featured when 'Y' then 'Featured' end featured,
+                       helpful_count, view_count, published_at
+                  from oan_library_v
+                ```
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noPadding
+            ]
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+                t-Report--rowHighlight
+            ]
+        }
+        reportLayout {
+            numberOfRows: 25
+        }
+        pagination {
+            type: nextAndPreviousLinks
+        }
+        messages {
+            whenNoDataFound: Nothing matches yet. Try fewer filters, or contribute an item with "Submit to the Library".
+        }
+
+        column ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column TITLE (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Title
+            }
+            layout {
+                sequence: 2
+            }
+            link {
+                target: {
+                    page: 35
+                    items: {
+                        P35_ID: \#ID#\
+                    }
+                }
+                linkText: #TITLE#
+            }
+        )
+
+        column SUMMARY (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Summary
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column CATEGORY (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 4
+            }
+        )
+
+        column OWNER_TYPE (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 5
+            }
+        )
+
+        column SKILL_LEVEL (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 6
+            }
+        )
+
+        column PROVIDER (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 7
+            }
+        )
+
+        column TAGS (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            heading {
+                heading: Tags
+            }
+            layout {
+                sequence: 8
+            }
+        )
+
+        column CATEGORY_LABEL (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            heading {
+                heading: Category
+            }
+            layout {
+                sequence: 9
+            }
+        )
+
+        column OWNER_LABEL (
+            reportColumnQueryId: 10
+            derivedColumn: N
+            heading {
+                heading: Source
+            }
+            layout {
+                sequence: 10
+            }
+        )
+
+        column FEATURED (
+            reportColumnQueryId: 11
+            derivedColumn: N
+            heading {
+                heading: Featured
+            }
+            layout {
+                sequence: 11
+            }
+        )
+
+        column HELPFUL_COUNT (
+            reportColumnQueryId: 12
+            derivedColumn: N
+            heading {
+                heading: Helpful
+            }
+            layout {
+                sequence: 12
+            }
+        )
+
+        column VIEW_COUNT (
+            reportColumnQueryId: 13
+            derivedColumn: N
+            heading {
+                heading: Views
+            }
+            layout {
+                sequence: 13
+            }
+        )
+
+        column PUBLISHED_AT (
+            reportColumnQueryId: 14
+            derivedColumn: N
+            heading {
+                heading: Published
+            }
+            layout {
+                sequence: 14
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+    )
+
+    region search (
+        name: Search
+        type: facetedSearch
+        source {
+            filteredRegion: @items
+        }
+        layout {
+            sequence: 10
+            slot: leftColumn
+            columnSpan: 4
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noPadding
+                t-Region--hideHeader js-addHiddenHeadingRoleDesc
+                t-Region--scrollBody
+            ]
+        }
+        settings {
+            showCurrentFacets: selector
+            currentFacetsSelector: #active_facets
+            showTotalRowCount: true
+        }
+
+        facet P34_SEARCH (
+            type: search
+            label {
+                label: Search
+            }
+            layout {
+                sequence: 10
+            }
+            source {
+                dbColumns: TITLE,SUMMARY,TAGS,PROVIDER
+            }
+        )
+
+        facet P34_CATEGORY (
+            type: checkboxGroup
+            label {
+                label: Category
+            }
+            lov {
+                type: sharedComponent
+                lov: @oan-library-categories
+            }
+            layout {
+                sequence: 20
+            }
+            listEntries {
+                maxDisplayedEntries: 7
+            }
+            source {
+                databaseColumn: CATEGORY
+            }
+        )
+
+        facet P34_OWNER_TYPE (
+            type: checkboxGroup
+            label {
+                label: Source
+            }
+            lov {
+                type: distinctValues
+            }
+            layout {
+                sequence: 30
+            }
+            listEntries {
+                maxDisplayedEntries: 7
+            }
+            source {
+                databaseColumn: OWNER_TYPE
+            }
+        )
+
+        facet P34_SKILL_LEVEL (
+            type: checkboxGroup
+            label {
+                label: Level (training)
+            }
+            lov {
+                type: distinctValues
+            }
+            layout {
+                sequence: 40
+            }
+            listEntries {
+                maxDisplayedEntries: 7
+            }
+            source {
+                databaseColumn: SKILL_LEVEL
+            }
+        )
+
+    )
+
+    button submit-item (
+        buttonName: SUBMIT_ITEM
+        label: Submit to the Library
+        layout {
+            sequence: 10
+            region: @items
+            slot: edit
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 36
+                clearCache: 36
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process explore-step (
+        name: Mark onboarding step
+        type: executeCode
+        source {
+            plsqlCode: oan_profile_pkg.mark_step('EXPLORE_LIBRARY');
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+    )
+
+)

@@ -1,0 +1,251 @@
+page 101 (
+    name: Members
+    alias: MEMBERS
+    title: Members
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: firstItemOnPage
+    }
+    security {
+        authorizationScheme: @administration-rights
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: W0.11 (FR-24, NFR-01/02, R16). Platform Admin member search. Data from OAN_ADMIN_USERS_V (Platform Admin only; SYSTEM rows excluded). Opens 116 for roles, MFA attestation, suspension and reactivation.
+    }
+
+    region filters (
+        name: Find a member
+        type: staticContent
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region results (
+        name: Members
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select user_id, display_name, email,
+                       initcap(replace(status, '_', ' ')) status_label,
+                       coalesce(roles, '-') roles,
+                       coalesce(idp_links, 'Email and password') sign_in,
+                       case when mfa_attested_at is not null then to_char(mfa_attested_at, 'DD Mon YYYY') end mfa_attested,
+                       to_char(last_login_at, 'DD Mon YYYY') last_login
+                  from oan_admin_users_v
+                 where (:P101_SEARCH is null
+                        or instr(lower(display_name || ' ' || email), lower(:P101_SEARCH)) > 0)
+                   and (:P101_STATUS is null or status = :P101_STATUS)
+                 order by display_name
+                ```
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+            ]
+        }
+        reportLayout {
+            numberOfRows: 50
+        }
+        pagination {
+            type: nextAndPreviousLinks
+        }
+        messages {
+            whenNoDataFound: No members match these filters.
+        }
+
+        column USER_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column DISPLAY_NAME (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Name
+            }
+            layout {
+                sequence: 2
+            }
+            link {
+                target: {
+                    page: 116
+                    clearCache: 116
+                    items: {
+                        P116_USER_ID: \#USER_ID#\
+                    }
+                }
+                linkText: #DISPLAY_NAME#
+            }
+        )
+
+        column EMAIL (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Email
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column STATUS_LABEL (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Status
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column ROLES (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Roles
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+        column SIGN_IN (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Sign-in
+            }
+            layout {
+                sequence: 6
+            }
+        )
+
+        column MFA_ATTESTED (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: 2-step verification attested
+            }
+            layout {
+                sequence: 7
+            }
+        )
+
+        column LAST_LOGIN (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            heading {
+                heading: Last sign-in
+            }
+            layout {
+                sequence: 8
+            }
+        )
+
+    )
+
+    pageItem P101_SEARCH (
+        type: textField
+        label {
+            label: Name or email
+        }
+        layout {
+            sequence: 10
+            region: @filters
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 200
+        }
+    )
+
+    pageItem P101_STATUS (
+        type: selectList
+        label {
+            label: Status
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:Active;ACTIVE,Applied;PENDING,Verified, not applied;PENDING_REGISTRATION,Suspended;SUSPENDED,Deactivated;DEACTIVATED,Deletion pending;DELETION_PENDING,Rejected;REJECTED,Unverified;UNVERIFIED
+        }
+        layout {
+            sequence: 20
+            region: @filters
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    button search (
+        buttonName: SEARCH
+        label: Search
+        layout {
+            sequence: 10
+            region: @filters
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    branch stay (
+        name: Show results
+        behavior {
+            type: pageOrUrl
+            target: {
+                page: 101
+            }
+        }
+        execution {
+            point: afterProcessing
+            sequence: 10
+        }
+    )
+
+)

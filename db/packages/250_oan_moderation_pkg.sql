@@ -67,7 +67,7 @@ create or replace package body oan_moderation_pkg as
     returning id into l_id;
     oan_audit_pkg.log('REPORT_FILED', p_object_type, p_object_id, l_subject, json_object('reason' value p_reason));
     oan_notify_pkg.notify_role('MODERATOR', 'MODERATION_QUEUE', 'New report: ' || lower(replace(p_reason, '_', ' ')),
-                               null, 1050, l_subject);
+                               null, 107, l_subject);
     return l_id;
   end report;
 
@@ -135,7 +135,7 @@ create or replace package body oan_moderation_pkg as
        where id = p_report_id;
     end if;
     if p_action = 'ESCALATE' then
-      oan_notify_pkg.notify_role('ADMIN', 'MODERATION_QUEUE', 'Moderation escalation', p_reason, 1050, l_subject);
+      oan_notify_pkg.notify_role('ADMIN', 'MODERATION_QUEUE', 'Moderation escalation', p_reason, 107, l_subject);
     end if;
 
     oan_audit_pkg.log('MODERATION_' || p_action, p_object_type, p_object_id, l_subject,
@@ -157,7 +157,7 @@ create or replace package body oan_moderation_pkg as
     insert into oan_appeals (action_id, appellant_id, statement) values (p_action_id, oan_util.viewer_id, p_statement)
     returning id into l_id;
     oan_audit_pkg.log('APPEAL_FILED', 'MODERATION_ACTION', p_action_id, oan_util.viewer_id);
-    oan_notify_pkg.notify_role('ADMIN', 'MODERATION_QUEUE', 'New appeal', null, 1051, l_act.actor_id);
+    oan_notify_pkg.notify_role('ADMIN', 'MODERATION_QUEUE', 'New appeal', null, 119, l_act.actor_id);
     return l_id;
   exception
     when dup_val_on_index then

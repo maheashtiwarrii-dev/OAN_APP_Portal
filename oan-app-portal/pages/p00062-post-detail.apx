@@ -1,0 +1,443 @@
+page 62 (
+    name: Post detail
+    alias: POST-DETAIL
+    title: Post
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    security {
+        authorizationScheme: @is-active
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: FR-41 post detail (Build Pack page 62; R29/Q31: formerly Topic 31, then 37). Post, comments, @mentions, accepted answer (asker only), report (FR-25). Data from OAN_POSTS_V / OAN_POST_COMMENTS_V (group access and blocks applied).
+    }
+
+    region post (
+        name: &P62_TITLE.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select author_name,
+                       group_name,
+                       to_char(created_at, 'DD Mon YYYY HH24:MI') || case when edited_at is not null then ' (edited)' end posted,
+                       body
+                  from oan_posts_v
+                 where id = :P62_ID
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+            ]
+        }
+        reportLayout {
+            numberOfRows: 1
+        }
+        pagination {
+            type: rowRangesXToYNoPagination
+        }
+        messages {
+            whenNoDataFound: This post is not available.
+        }
+
+        column AUTHOR_NAME (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: Member
+            }
+            layout {
+                sequence: 1
+            }
+        )
+
+        column GROUP_NAME (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Group
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column POSTED (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Posted
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column BODY (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Message
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+    )
+
+    region comments (
+        name: Comments
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select author_name,
+                       to_char(created_at, 'DD Mon YYYY HH24:MI') || case when edited_at is not null then ' (edited)' end posted,
+                       case is_accepted when 'Y' then 'Accepted answer' end accepted,
+                       body
+                  from oan_post_comments_v
+                 where post_id = :P62_ID
+                 order by created_at
+                ```
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+            ]
+        }
+        reportLayout {
+            numberOfRows: 50
+        }
+        pagination {
+            type: nextAndPreviousLinks
+        }
+        messages {
+            whenNoDataFound: No comments yet.
+        }
+
+        column AUTHOR_NAME (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: Member
+            }
+            layout {
+                sequence: 1
+            }
+        )
+
+        column POSTED (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Posted
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column ACCEPTED (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Status
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column BODY (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Comment
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+    )
+
+    region add-comment (
+        name: Add a comment
+        type: staticContent
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery: select 1 from oan_posts_v where id = :P62_ID and status = 'OPEN' and post_type != 'ANNOUNCEMENT'
+        }
+    )
+
+    region accept-answer (
+        name: Accept an answer
+        type: staticContent
+        layout {
+            sequence: 40
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery: select 1 from oan_posts_v where id = :P62_ID and is_mine = 'Y' and post_type = 'QUESTION'
+        }
+    )
+
+    pageItem P62_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @post
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P62_TITLE (
+        type: hidden
+        layout {
+            sequence: 20
+            region: @post
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: restricted
+        }
+    )
+
+    pageItem P62_BODY (
+        type: textarea
+        label {
+            label: Your comment
+        }
+        layout {
+            sequence: 10
+            region: @add-comment
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 32000
+        }
+    )
+
+    pageItem P62_MENTIONS (
+        type: selectMany
+        label {
+            label: Mention members (optional)
+        }
+        lov {
+            type: sharedComponent
+            lov: @oan-members
+        }
+        layout {
+            sequence: 20
+            region: @add-comment
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P62_ACCEPT_COMMENT_ID (
+        type: selectList
+        label {
+            label: Answer to accept
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select author_name || ': ' || dbms_lob.substr(body, 80, 1) d, id r
+                  from oan_post_comments_v
+                 where post_id = :P62_ID and is_mine = 'N'
+                 order by created_at
+                ```
+        }
+        layout {
+            sequence: 10
+            region: @accept-answer
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    button add-comment (
+        buttonName: ADD_COMMENT
+        label: Post comment
+        layout {
+            sequence: 10
+            region: @add-comment
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button accept (
+        buttonName: ACCEPT
+        label: Mark as accepted answer
+        layout {
+            sequence: 10
+            region: @accept-answer
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button report (
+        buttonName: REPORT
+        label: Report post
+        layout {
+            sequence: 10
+            region: @post
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--simple
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 80
+                clearCache: 80
+                items: {
+                    P80_OBJECT_TYPE: POST
+                    P80_OBJECT_ID: &P62_ID.
+                }
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process load (
+        name: Load post
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                for r in (select title from oan_posts_v where id = :P62_ID) loop
+                    :P62_TITLE := r.title;
+                end loop;
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+    )
+
+    process add-comment (
+        name: Add comment
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare
+                    l_id number;
+                begin
+                    l_id := oan_group_pkg.add_comment(:P62_ID, :P62_BODY, :P62_MENTIONS);
+                    :P62_BODY := null;
+                    :P62_MENTIONS := null;
+                end;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        serverSideCondition {
+            whenButtonPressed: @add-comment
+        }
+        successMessage {
+            successMessage: Comment posted.
+        }
+    )
+
+    process accept (
+        name: Accept answer
+        type: executeCode
+        source {
+            plsqlCode: oan_group_pkg.accept_answer(:P62_ID, :P62_ACCEPT_COMMENT_ID);
+        }
+        execution {
+            sequence: 20
+        }
+        serverSideCondition {
+            whenButtonPressed: @accept
+        }
+        successMessage {
+            successMessage: Answer accepted.
+        }
+    )
+
+)

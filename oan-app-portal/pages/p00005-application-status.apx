@@ -1,0 +1,403 @@
+page 5 (
+    name: Application Status
+    alias: APPLICATION-STATUS
+    title: Your OAN membership application
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    security {
+        authorizationScheme: @is-pending
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: FR-29 pending home: status, more-info response, withdraw, deletion grace-period cancel (FR-26 AC3), links to profile and privacy centre.
+    }
+
+    region status (
+        name: Application status
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select initcap(replace(r.status, '_', ' ')) status_label,
+                       to_char(r.submitted_at, 'DD Mon YYYY') submitted,
+                       case when r.status in ('SUBMITTED','RESUBMITTED')
+                            then 'By ' || to_char(r.sla_due_at, 'DD Mon YYYY') end expected_decision,
+                       r.decision_reason,
+                       case when r.status = 'REJECTED' then to_char(r.reapply_after, 'DD Mon YYYY') end reapply_from
+                  from oan_my_registration_v r
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/value-attribute-pairs-column
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: You have not submitted a membership application yet.
+        }
+
+        column STATUS_LABEL (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: Status
+            }
+            layout {
+                sequence: 1
+            }
+        )
+
+        column SUBMITTED (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Submitted
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column EXPECTED_DECISION (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Expected decision
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column DECISION_REASON (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Reviewer note
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column REAPPLY_FROM (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: You may re-apply from
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+    )
+
+    region more-info (
+        name: The reviewer asked for more information
+        type: staticContent
+        source {
+            htmlCode: <p><strong>&P5_MORE_INFO_REQUEST.</strong></p>
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--accent5
+            ]
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery: select 1 from oan_my_registration_v where status = 'MORE_INFO'
+        }
+    )
+
+    region deletion-pending (
+        name: Account deletion scheduled
+        type: staticContent
+        source {
+            htmlCode: <p>Your account is scheduled for deletion on &P5_DELETION_DUE.. If you changed your mind, cancel the deletion now.</p>
+        }
+        layout {
+            sequence: 5
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--accent9
+            ]
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery: select 1 from oan_my_account_v where status = 'DELETION_PENDING'
+        }
+    )
+
+    region meanwhile (
+        name: Meanwhile
+        type: staticContent
+        source {
+            htmlCode:
+                ```html
+                <ul>
+                  <li><a href="f?p=&APP_ID.:23:&APP_SESSION.">Prepare your profile</a> - it becomes visible to members once you are approved.</li>
+                  <li><a href="f?p=&APP_ID.:27:&APP_SESSION.">Privacy centre</a> - download or delete your data at any time.</li>
+                </ul>
+                ```
+        }
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P5_APP_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @status
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P5_MORE_INFO_REQUEST (
+        type: hidden
+        layout {
+            sequence: 20
+            region: @status
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: restricted
+        }
+    )
+
+    pageItem P5_DELETION_DUE (
+        type: hidden
+        layout {
+            sequence: 30
+            region: @status
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: restricted
+        }
+    )
+
+    pageItem P5_RESPONSE (
+        type: textarea
+        label {
+            label: Your answer
+        }
+        layout {
+            sequence: 10
+            region: @more-info
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 2000
+        }
+    )
+
+    button respond (
+        buttonName: RESPOND
+        label: Send answer
+        layout {
+            sequence: 10
+            region: @more-info
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button withdraw (
+        buttonName: WITHDRAW
+        label: Withdraw application
+        layout {
+            sequence: 10
+            region: @status
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--danger
+                t-Button--simple
+            ]
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            requiresConfirmation: true
+        }
+        confirmation {
+            message: Withdraw your membership application?
+            style: danger
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery: select 1 from oan_my_registration_v where status in ('SUBMITTED','MORE_INFO','RESUBMITTED')
+        }
+    )
+
+    button apply (
+        buttonName: APPLY
+        label: Complete your application
+        layout {
+            sequence: 20
+            region: @status
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 6
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery:
+                ```sql
+                select 1 from oan_my_account_v a
+                 where a.status = 'PENDING_REGISTRATION'
+                    or (a.status = 'REJECTED' and exists (select 1 from oan_my_registration_v r where r.reapply_after <= sysdate))
+                ```
+        }
+    )
+
+    button cancel-deletion (
+        buttonName: CANCEL_DELETION
+        label: Cancel deletion
+        layout {
+            sequence: 10
+            region: @deletion-pending
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process load (
+        name: Load application
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                for r in (select app_id, more_info_request from oan_my_registration_v) loop
+                    :P5_APP_ID := r.app_id;
+                    :P5_MORE_INFO_REQUEST := r.more_info_request;
+                end loop;
+                for a in (select deletion_due_at from oan_my_account_v where status = 'DELETION_PENDING') loop
+                    :P5_DELETION_DUE := to_char(a.deletion_due_at, 'DD Mon YYYY');
+                end loop;
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+    )
+
+    process respond (
+        name: Respond to reviewer
+        type: executeCode
+        source {
+            plsqlCode: oan_registration_pkg.respond_more_info(:P5_APP_ID, :P5_RESPONSE);
+        }
+        execution {
+            sequence: 10
+        }
+        serverSideCondition {
+            whenButtonPressed: @respond
+        }
+        successMessage {
+            successMessage: Thank you. Your answer was sent to the reviewer.
+        }
+    )
+
+    process withdraw (
+        name: Withdraw application
+        type: executeCode
+        source {
+            plsqlCode: oan_registration_pkg.withdraw(:P5_APP_ID);
+        }
+        execution {
+            sequence: 20
+        }
+        serverSideCondition {
+            whenButtonPressed: @withdraw
+        }
+        successMessage {
+            successMessage: Your application was withdrawn.
+        }
+    )
+
+    process cancel-deletion (
+        name: Cancel account deletion
+        type: executeCode
+        source {
+            plsqlCode: oan_privacy_pkg.cancel_deletion;
+        }
+        execution {
+            sequence: 30
+        }
+        serverSideCondition {
+            whenButtonPressed: @cancel-deletion
+        }
+        successMessage {
+            successMessage: Deletion cancelled. Welcome back.
+        }
+    )
+
+)

@@ -1,7 +1,7 @@
 --------------------------------------------------------------------------------
 -- oan_chat_pkg (FR-34, R21, S30; FSD OAN_CHAT_API): deterministic onboarding conversation.
---   Runs on page 115 for verified, not-yet-applied users (status PENDING_REGISTRATION),
---   between email confirmation (102) and the membership application (110).
+--   Runs on page 2 (Build Pack numbering, Q31) for verified, not-yet-applied users (status
+--   PENDING_REGISTRATION), between email confirmation (7) and the membership application (6).
 --   * Profile answers are written straight to the draft profile (OAN_PROFILES / skills).
 --   * The session keeps codes only: current step, one primary intent, optional role codes.
 --   * The transcript (OAN_CHAT_MESSAGES) keeps step and option codes only; purged after 90 days.

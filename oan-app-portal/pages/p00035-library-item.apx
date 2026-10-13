@@ -1,0 +1,397 @@
+page 35 (
+    name: Library Item
+    alias: LIBRARY-ITEM
+    title: Knowledge Library item
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        authorizationScheme: @is-active
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: FR-19 item detail. Data from OAN_LIBRARY_V; download through OAN_DOWNLOAD_V (FR-33 single authorized path).
+    }
+
+    region details (
+        name: &P35_TITLE.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select summary,
+                       initcap(replace(category, '_', ' ')) category,
+                       initcap(owner_type) source_type,
+                       initcap(replace(rights_basis, '_', ' ')) rights,
+                       author_name, tags,
+                       case when skill_level is not null then initcap(skill_level) end training_level,
+                       provider,
+                       case when duration_minutes is not null then duration_minutes || ' min' end duration,
+                       to_char(published_at, 'DD Mon YYYY') published,
+                       helpful_count || ' members found this helpful' helpful
+                  from oan_library_v
+                 where id = :P35_ID
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/value-attribute-pairs-column
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: This item is not available.
+        }
+
+        column SUMMARY (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: Summary
+            }
+            layout {
+                sequence: 1
+            }
+        )
+
+        column CATEGORY (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Category
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column SOURCE_TYPE (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Source
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column RIGHTS (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Rights basis
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column AUTHOR_NAME (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Contributed by
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+        column TAGS (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Tags
+            }
+            layout {
+                sequence: 6
+            }
+        )
+
+        column TRAINING_LEVEL (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: Level
+            }
+            layout {
+                sequence: 7
+            }
+        )
+
+        column PROVIDER (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            heading {
+                heading: Provider
+            }
+            layout {
+                sequence: 8
+            }
+        )
+
+        column DURATION (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            heading {
+                heading: Duration
+            }
+            layout {
+                sequence: 9
+            }
+        )
+
+        column PUBLISHED (
+            reportColumnQueryId: 10
+            derivedColumn: N
+            heading {
+                heading: Published
+            }
+            layout {
+                sequence: 10
+            }
+        )
+
+        column HELPFUL (
+            reportColumnQueryId: 11
+            derivedColumn: N
+            heading {
+                heading: Helpful
+            }
+            layout {
+                sequence: 11
+            }
+        )
+
+    )
+
+    pageItem P35_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @details
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P35_TITLE (
+        type: hidden
+        layout {
+            sequence: 20
+            region: @details
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: restricted
+        }
+    )
+
+    pageItem P35_URL (
+        type: hidden
+        layout {
+            sequence: 30
+            region: @details
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: restricted
+        }
+    )
+
+    pageItem P35_FILE_ID (
+        type: hidden
+        layout {
+            sequence: 40
+            region: @details
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: restricted
+        }
+    )
+
+    button open-link (
+        buttonName: OPEN_LINK
+        label: Open
+        layout {
+            sequence: 10
+            region: @details
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+            ]
+            icon: fa-external-link
+        }
+        behavior {
+            action: redirectUrl
+            targetUrl: &P35_URL.
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P35_URL
+        }
+    )
+
+    button download (
+        buttonName: DOWNLOAD
+        label: Download
+        layout {
+            sequence: 20
+            region: @details
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+            ]
+            icon: fa-download
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 35
+                request: DOWNLOAD
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P35_FILE_ID
+        }
+    )
+
+    button helpful (
+        buttonName: HELPFUL
+        label: Helpful
+        layout {
+            sequence: 30
+            region: @details
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text-with-icon
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+            ]
+            icon: fa-thumbs-o-up
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button report (
+        buttonName: REPORT
+        label: Report
+        layout {
+            sequence: 40
+            region: @details
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--simple
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 80
+                clearCache: 80
+                items: {
+                    P80_OBJECT_TYPE: LIBRARY_ITEM
+                    P80_OBJECT_ID: &P35_ID.
+                }
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process load (
+        name: Load item and count view
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                for r in (select title, url, file_id from oan_library_v where id = :P35_ID) loop
+                    :P35_TITLE   := r.title;
+                    :P35_URL     := r.url;
+                    :P35_FILE_ID := r.file_id;
+                    oan_library_pkg.record_view(:P35_ID);
+                end loop;
+                oan_profile_pkg.mark_step('EXPLORE_LIBRARY');
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+    )
+
+    process toggle-helpful (
+        name: Toggle helpful
+        type: executeCode
+        source {
+            plsqlCode: oan_library_pkg.toggle_helpful(:P35_ID);
+        }
+        execution {
+            sequence: 10
+        }
+        serverSideCondition {
+            whenButtonPressed: @helpful
+        }
+    )
+
+    process download-file (
+        name: Download file
+        type: download
+        fileHandling {
+            multipleFiles: false
+            viewFileAs: attachment
+        }
+        source {
+            sqlQuery:
+                ```sql
+                select content, filename, mime_type from oan_download_v where file_id = :P35_FILE_ID
+                ```
+        }
+        execution {
+            sequence: 20
+            point: beforeHeader
+        }
+        serverSideCondition {
+            type: request=Value
+            value: DOWNLOAD
+        }
+    )
+
+)

@@ -77,7 +77,7 @@ create or replace package body oan_group_pkg as
                                      or (b.blocker_id = oan_util.viewer_id and b.blocked_id = u.id))
                fetch first 10 rows only) loop
       oan_notify_pkg.notify(m.id, 'MENTION', 'You were mentioned in "' || l_title || '"', null,
-                            37, 'P37_ID:' || p_post_id, 'POST', p_post_id);
+                            62, 'P62_ID:' || p_post_id, 'POST', p_post_id);
     end loop;
   end notify_mentions;
 
@@ -123,7 +123,7 @@ create or replace package body oan_group_pkg as
      where id = p_post_id;
     if l_post.author_id != oan_util.viewer_id then
       oan_notify_pkg.notify(l_post.author_id, 'POST_COMMENT', 'New comment on "' || l_post.title || '"', null,
-                            37, 'P37_ID:' || p_post_id, 'POST', p_post_id);
+                            62, 'P62_ID:' || p_post_id, 'POST', p_post_id);
     end if;
     notify_mentions(p_post_id, p_mention_ids);
     return l_cid;
@@ -156,7 +156,7 @@ create or replace package body oan_group_pkg as
     select author_id into l_author from oan_post_comments where id = p_comment_id;
     if l_author != oan_util.viewer_id then
       oan_notify_pkg.notify(l_author, 'ACCEPTED_ANSWER', 'Your answer was accepted', null,
-                            37, 'P37_ID:' || p_post_id, 'POST', p_post_id);
+                            62, 'P62_ID:' || p_post_id, 'POST', p_post_id);
     end if;
   end accept_answer;
 

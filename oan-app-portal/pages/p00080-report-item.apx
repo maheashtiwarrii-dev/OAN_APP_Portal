@@ -15,7 +15,7 @@ page 80 (
         formAutoComplete: false
     }
     comments {
-        comments: W0.15 (FR-25, FR-19). Reached from the Report buttons on pages 11 (profile), 21 (Library item) and 37 (post). Creates a report through OAN_MODERATION_PKG.REPORT (throttled 20 per day; harassment is high priority with a 1-business-day SLA). "Remove my contribution" applies to Library items only. Links to the Community Guidelines on page 104.
+        comments: W0.15 (FR-25, FR-19). Reached from the Report buttons on pages 22 (profile), 35 (Library item) and 62 (post). Creates a report through OAN_MODERATION_PKG.REPORT (throttled 20 per day; harassment is high priority with a 1-business-day SLA). "Remove my contribution" applies to Library items only. Links to the Community Guidelines on page 12.
     }
 
     region report (
@@ -25,7 +25,7 @@ page 80 (
             htmlCode:
                 ```html
                 <p>Tell the moderators what is wrong. Your report is confidential: the member is not told who reported them.
-                Read the <a href="f?p=&APP_ID.:104:&APP_SESSION.">Community Guidelines</a> for what is allowed.</p>
+                Read the <a href="f?p=&APP_ID.:12:&APP_SESSION.">Community Guidelines</a> for what is allowed.</p>
                 ```
         }
         layout {
@@ -137,7 +137,7 @@ page 80 (
         behavior {
             action: redirectThisApp
             target: {
-                page: 1
+                page: 10
             }
             warnOnUnsavedChanges: doNotCheck
         }
@@ -173,7 +173,7 @@ page 80 (
         behavior {
             type: pageOrUrl
             target: {
-                page: 1
+                page: 10
             }
         }
         execution {

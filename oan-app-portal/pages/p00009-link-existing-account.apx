@@ -1,0 +1,44 @@
+page 9 (
+    name: Link Existing Account
+    alias: LINK-EXISTING-ACCOUNT
+    title: Existing OAN account
+    appearance {
+        pageTemplate: @/login
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    security {
+        authentication: public
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: FR-01 AC6 / P07: social sign-in whose verified email matches an existing account never links automatically.
+    }
+
+    region explanation (
+        name: You already have an OAN account
+        type: staticContent
+        source {
+            htmlCode:
+                ```html
+                <p>An OAN account already uses this email address. For your security we never connect a Google or LinkedIn sign-in to an existing account automatically.</p>
+                <ol>
+                  <li><a href="f?p=&APP_ID.:1:&APP_SESSION.">Sign in with your email and password</a> (or <a href="f?p=&APP_ID.:8:&APP_SESSION.">reset it</a>).</li>
+                  <li>Open <strong>Account settings</strong> and choose <strong>Link Google</strong> or <strong>Link LinkedIn</strong>.</li>
+                </ol>
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        appearance {
+            template: @/login
+            templateOptions: #DEFAULT#
+        }
+    )
+
+)

@@ -97,7 +97,7 @@ create or replace package body oan_chapter_pkg as
     insert into oan_chapter_requests (requested_by, proposed_name, parent_chapter_id, justification)
     values (oan_util.viewer_id, p_name, p_parent_id, p_justification)
     returning id into l_id;
-    oan_notify_pkg.notify_role('ADMIN', 'APPROVAL_QUEUE', 'New chapter request: ' || p_name, p_justification, 1031,
+    oan_notify_pkg.notify_role('ADMIN', 'APPROVAL_QUEUE', 'New chapter request: ' || p_name, p_justification, 118,
                                oan_util.viewer_id);
     return l_id;
   end request_chapter;

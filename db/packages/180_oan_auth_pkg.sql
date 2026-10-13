@@ -350,7 +350,7 @@ create or replace package body oan_auth_pkg as
         l_token := create_token(l_user.id, 'RESET', 60);
         oan_notify_pkg.send_email(l_user.email, 'Reset your OAN password',
           'Use this link within 1 hour to choose a new password. If you did not ask for this, ignore this email.',
-          oan_notify_pkg.page_url(103, 'P103_TOKEN:' || l_token), 'Reset password');
+          oan_notify_pkg.page_url(8, 'P8_TOKEN:' || l_token), 'Reset password');
       else
         oan_notify_pkg.send_email(l_user.email, 'OAN sign-in help',
           'Your OAN account signs in with Google or LinkedIn, so it has no password to reset.');
@@ -415,10 +415,10 @@ create or replace package body oan_auth_pkg as
     l_t_old := create_token(l_user_id, 'EMAIL_CHANGE_OLD', 1440, p_new_email);
     oan_notify_pkg.send_email(p_new_email, 'Confirm your new OAN email address',
       'Confirm this address within 24 hours. The change completes once both your old and new addresses are confirmed.',
-      oan_notify_pkg.page_url(102, 'P102_TOKEN,P102_KIND:' || l_t_new || ',EMAIL_CHANGE'), 'Confirm new address');
+      oan_notify_pkg.page_url(7, 'P7_TOKEN,P7_KIND:' || l_t_new || ',EMAIL_CHANGE'), 'Confirm new address');
     oan_notify_pkg.send_email(l_old, 'Confirm the change of your OAN email address',
       'Someone asked to change your OAN email to ' || p_new_email || '. Confirm only if this was you.',
-      oan_notify_pkg.page_url(102, 'P102_TOKEN,P102_KIND:' || l_t_old || ',EMAIL_CHANGE_OLD'), 'Confirm change');
+      oan_notify_pkg.page_url(7, 'P7_TOKEN,P7_KIND:' || l_t_old || ',EMAIL_CHANGE_OLD'), 'Confirm change');
     oan_audit_pkg.log('EMAIL_CHANGE_REQUESTED', 'USER', l_user_id, l_user_id);
   end request_email_change;
 

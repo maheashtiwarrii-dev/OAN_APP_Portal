@@ -9,7 +9,7 @@ create or replace package oan_notify_pkg authid definer as
                    p_title       in varchar2,
                    p_body        in varchar2 default null,
                    p_link_page   in number   default null,
-                   p_link_params in varchar2 default null,   -- "P11_USER_ID:42"
+                   p_link_params in varchar2 default null,   -- "P22_USER_ID:42"
                    p_object_type in varchar2 default null,
                    p_object_id   in number   default null);
   -- Notify Platform Admins plus Chapter Admins of p_chapter_id and its ancestors (approval queues)
@@ -228,7 +228,7 @@ create or replace package body oan_notify_pkg as
                  order by created_at fetch first 30 rows only) loop
         l_body := substr(l_body || '- ' || n.title || chr(10), 1, 3900);
       end loop;
-      send_email(u.email, 'Your OAN daily digest', l_body, page_url(50), 'View all notifications');
+      send_email(u.email, 'Your OAN daily digest', l_body, page_url(41), 'View all notifications');
       update oan_notifications set email_status = 'SENT' where user_id = u.user_id and email_status = 'DIGEST';
     end loop;
   end send_daily_digests;

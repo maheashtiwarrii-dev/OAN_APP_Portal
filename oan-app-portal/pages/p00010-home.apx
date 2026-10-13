@@ -1,0 +1,450 @@
+page 10 (
+    name: Home
+    alias: HOME
+    title: OAN Portal
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        authorizationScheme: @is-signed-in
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: FR-29 member home (P1): onboarding checklist, announcements, new/featured Library, recent group posts, notifications. Non-active users are routed to their status page.
+    }
+
+    region welcome (
+        name: Welcome, &APP_USER_DISPLAY.
+        type: staticContent
+        source {
+            htmlCode: <p>Your OAN community: knowledge, groups and your chapters in one place.</p>
+        }
+        layout {
+            sequence: 5
+            slot: body
+        }
+        appearance {
+            template: @/hero
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region onboarding (
+        name: Get started
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select case done when 'Y' then '<span class="fa fa-check-circle u-success-text" aria-hidden="true"></span> '
+                                 else '<span class="fa fa-circle-o" aria-hidden="true"></span> ' end
+                       || '<a href="' || apex_page.get_url(p_page => link_page) || '">' || apex_escape.html(label) || '</a>' step_html
+                  from oan_my_onboarding_v
+                 order by sort_order
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery:
+                ```sql
+                select 1 from oan_my_account_v a
+                 where a.onboarding_dismissed = 'N'
+                   and exists (select 1 from oan_my_onboarding_v o where o.done = 'N')
+                ```
+        }
+
+        column STEP_HTML (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: Your onboarding checklist
+            }
+            layout {
+                sequence: 1
+            }
+            security {
+                escapeSpecialChars: false
+            }
+        )
+
+    )
+
+    region announcements (
+        name: Announcements
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select title, to_char(publish_from, 'DD Mon YYYY') published
+                  from oan_announcements_v
+                 order by publish_from desc
+                 fetch first 5 rows only
+                ```
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: No announcements right now. Check back soon.
+        }
+
+        column TITLE (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: Announcement
+            }
+            layout {
+                sequence: 1
+            }
+        )
+
+        column PUBLISHED (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Published
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+    )
+
+    region new-in-library (
+        name: New in the Knowledge Library
+        type: cards
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select id, title, summary, initcap(replace(category, '_', ' ')) category,
+                       case is_featured when 'Y' then 'Featured' end featured
+                  from oan_library_v
+                 order by is_featured desc, published_at desc
+                 fetch first 6 rows only
+                ```
+        }
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            template: @/cards-container
+            templateOptions: #DEFAULT#
+        }
+        title {
+            column: TITLE
+        }
+        body {
+            column: SUMMARY
+        }
+        iconAndBadge {
+            badgeColumn: CATEGORY
+        }
+        messages {
+            whenNoDataFound: The Library is being filled with OAN content. Be the first to contribute from the Knowledge Library page.
+        }
+    )
+
+    region recent-discussions (
+        name: Recent posts
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select id, title, group_name, author_name, to_char(last_activity_at, 'DD Mon HH24:MI') last_activity, comment_count
+                  from oan_posts_v
+                 where group_visibility = 'OPEN'
+                 order by last_activity_at desc
+                 fetch first 6 rows only
+                ```
+        }
+        layout {
+            sequence: 40
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: No posts yet. Start one from the Groups page.
+        }
+
+        column ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column TITLE (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Post
+            }
+            layout {
+                sequence: 2
+            }
+            link {
+                target: {
+                    page: 62
+                    items: {
+                        P62_ID: \#ID#\
+                    }
+                }
+                linkText: #TITLE#
+            }
+        )
+
+        column GROUP_NAME (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Group
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column AUTHOR_NAME (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Posted by
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column LAST_ACTIVITY (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Last activity
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+        column COMMENT_COUNT (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Comments
+            }
+            layout {
+                sequence: 6
+            }
+        )
+
+    )
+
+    region unread-notifications (
+        name: Unread notifications
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select title, to_char(created_at, 'DD Mon HH24:MI') received
+                  from oan_my_notifications_v
+                 where is_read = 'N'
+                 order by created_at desc
+                 fetch first 5 rows only
+                ```
+        }
+        layout {
+            sequence: 50
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: You are all caught up.
+        }
+
+        column TITLE (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: Notification
+            }
+            layout {
+                sequence: 1
+            }
+        )
+
+        column RECEIVED (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Received
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+    )
+
+    button dismiss-onboarding (
+        buttonName: DISMISS_ONBOARDING
+        label: Hide checklist
+        layout {
+            sequence: 10
+            region: @onboarding
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--simple
+            ]
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button all-notifications (
+        buttonName: ALL_NOTIFICATIONS
+        label: All notifications
+        layout {
+            sequence: 10
+            region: @unread-notifications
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 41
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process dismiss-onboarding (
+        name: Dismiss onboarding
+        type: executeCode
+        source {
+            plsqlCode: oan_profile_pkg.dismiss_onboarding;
+        }
+        execution {
+            sequence: 10
+        }
+        serverSideCondition {
+            whenButtonPressed: @dismiss-onboarding
+        }
+    )
+
+    branch route-applicants (
+        name: Route non-members to their status page
+        behavior {
+            type: functionReturningUrl
+            language: plsql
+            plsqlFunctionBody:
+                ```plsql
+                -- Verified but not yet applied: the onboarding conversation (115) first, then the application (110)
+                for a in (select status from oan_my_account_v) loop
+                    if a.status = 'PENDING_REGISTRATION' then
+                        if nvl(oan_chat_pkg.current_step, 'WELCOME') != 'DONE' then
+                            return apex_page.get_url(p_page => 2);
+                        end if;
+                        return apex_page.get_url(p_page => 6);
+                    end if;
+                end loop;
+                return apex_page.get_url(p_page => 5);
+                ```
+        }
+        execution {
+            point: beforeHeader
+            sequence: 10
+        }
+        serverSideCondition {
+            type: expression
+            language: plsql
+            plsqlExpression: nvl(sys_context('OAN_CTX','VIEWER_TYPE'), 'NONE') = 'PENDING'
+        }
+    )
+
+    branch route-journey (
+        name: Route a newly approved member to their onboarding journey
+        behavior {
+            type: functionReturningUrl
+            language: plsql
+            plsqlFunctionBody:
+                ```plsql
+                -- First login after approval only (R21); journeys whose wave is not live stay on Home (R05)
+                return apex_page.get_url(p_page => oan_chat_pkg.landing_page_after_approval);
+                ```
+        }
+        execution {
+            point: beforeHeader
+            sequence: 20
+        }
+        serverSideCondition {
+            type: expression
+            language: plsql
+            plsqlExpression: sys_context('OAN_CTX','VIEWER_TYPE') = 'MEMBER' and oan_chat_pkg.pending_journey_page is not null
+        }
+    )
+
+)

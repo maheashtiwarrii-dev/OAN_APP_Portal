@@ -71,7 +71,7 @@ create or replace package body oan_registration_pkg as
       -- Generic outcome (no enumeration): tell the existing owner instead of the requester
       oan_notify_pkg.send_email(l_email, 'OAN sign-up attempt',
         'Someone tried to create an OAN account with this email address. If it was you, sign in or reset your password.',
-        oan_notify_pkg.page_url(9999), 'Sign in');
+        oan_notify_pkg.page_url(1), 'Sign in');
       return;
     end if;
 
@@ -86,7 +86,7 @@ create or replace package body oan_registration_pkg as
     l_token := oan_auth_pkg.create_token(l_user_id, 'VERIFY', 1440);
     oan_notify_pkg.send_email(l_email, 'Verify your email for OAN Portal',
       'Confirm your email address within 24 hours to continue your OAN registration.',
-      oan_notify_pkg.page_url(102, 'P102_TOKEN,P102_KIND:' || l_token || ',VERIFY'), 'Verify email');
+      oan_notify_pkg.page_url(7, 'P7_TOKEN,P7_KIND:' || l_token || ',VERIFY'), 'Verify email');
     oan_audit_pkg.log('USER_CREATED', 'USER', l_user_id, l_user_id, json_object('via' value 'LOCAL'));
   end create_local_account;
 
@@ -111,7 +111,7 @@ create or replace package body oan_registration_pkg as
     l_token := oan_auth_pkg.create_token(l_user_id, 'VERIFY', 1440);
     oan_notify_pkg.send_email(lower(trim(p_email)), 'Verify your email for OAN Portal',
       'Confirm your email address within 24 hours to continue your OAN registration.',
-      oan_notify_pkg.page_url(102, 'P102_TOKEN,P102_KIND:' || l_token || ',VERIFY'), 'Verify email');
+      oan_notify_pkg.page_url(7, 'P7_TOKEN,P7_KIND:' || l_token || ',VERIFY'), 'Verify email');
   exception
     when no_data_found then null;   -- generic
   end resend_verification;
@@ -240,7 +240,7 @@ create or replace package body oan_registration_pkg as
         oan_security_pkg.grant_member_role(l_app.user_id);
         oan_security_pkg.end_user_sessions(l_app.user_id);   -- next sign-in picks up MEMBER rights
         oan_notify_pkg.notify(l_app.user_id, 'ACCOUNT_DECISION', 'Welcome to OAN - your membership is approved',
-          'Sign in to complete your onboarding checklist.', 1);
+          'Sign in to complete your onboarding checklist.', 10);
       when 'REJECT' then
         update oan_registration_apps
            set status = 'REJECTED', decided_by = oan_util.viewer_id, decided_at = systimestamp,
@@ -248,13 +248,13 @@ create or replace package body oan_registration_pkg as
          where id = p_app_id;
         update oan_users set status = 'REJECTED', row_version = row_version + 1 where id = l_app.user_id;
         oan_notify_pkg.notify(l_app.user_id, 'ACCOUNT_DECISION', 'Your OAN membership application was not approved',
-          p_reason || ' You may re-apply after 30 days.', 2);
+          p_reason || ' You may re-apply after 30 days.', 5);
       when 'MORE_INFO' then
         update oan_registration_apps
            set status = 'MORE_INFO', more_info_request = p_reason, row_version = row_version + 1
          where id = p_app_id;
         oan_notify_pkg.notify(l_app.user_id, 'ACCOUNT_DECISION', 'More information needed for your OAN application',
-          p_reason, 2);
+          p_reason, 5);
     end case;
 
     insert into oan_moderation_actions (object_type, object_id, queue, action, reason, actor_id, subject_user_id)
@@ -274,7 +274,7 @@ create or replace package body oan_registration_pkg as
       update oan_registration_apps set routed_chapter_id = null, escalated_at = systimestamp where id = a.id;
       oan_audit_pkg.log('REGISTRATION_ESCALATED', 'REGISTRATION', a.id, a.user_id);
       oan_notify_pkg.notify_role('ADMIN', 'APPROVAL_QUEUE', 'Application escalated',
-        'A membership application passed its 3-business-day review target and moved to the Platform Admin queue.', 1010);
+        'A membership application passed its 3-business-day review target and moved to the Platform Admin queue.', 114);
     end loop;
   end escalate_overdue;
 

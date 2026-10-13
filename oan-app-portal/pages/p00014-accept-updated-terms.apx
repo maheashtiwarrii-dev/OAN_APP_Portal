@@ -1,0 +1,120 @@
+page 14 (
+    name: Accept Updated Terms
+    alias: ACCEPT-UPDATED-TERMS
+    title: Updated terms and policies
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    security {
+        authorizationScheme: @is-signed-in
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region updated-documents (
+        name: We have updated these documents
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select title from oan_my_terms_pending_v
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: You are up to date. Nothing to accept.
+        }
+
+        column TITLE (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: Document
+            }
+            layout {
+                sequence: 1
+            }
+        )
+
+    )
+
+    region read-them (
+        name: Read before accepting
+        type: staticContent
+        source {
+            htmlCode: <p>Please read the updated documents on the <a href="f?p=&APP_ID.:12:&APP_SESSION.">Terms, Privacy and Guidelines</a> page. To keep using OAN Portal, accept them below; otherwise you can sign out or delete your account from the Privacy centre.</p>
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    button accept (
+        buttonName: ACCEPT
+        label: I accept the updated documents
+        layout {
+            sequence: 10
+            region: @read-them
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process accept (
+        name: Record acceptance
+        type: executeCode
+        source {
+            plsqlCode: oan_registration_pkg.accept_current_terms;
+        }
+        execution {
+            sequence: 10
+        }
+        serverSideCondition {
+            whenButtonPressed: @accept
+        }
+    )
+
+    branch to-home (
+        name: To home
+        behavior {
+            type: pageOrUrl
+            target: {
+                page: 10
+            }
+        }
+        execution {
+            point: afterProcessing
+            sequence: 10
+        }
+    )
+
+)

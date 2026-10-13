@@ -69,7 +69,7 @@ create or replace package body ut_oan_chat as
     l_id number := oan_chat_pkg.start_or_resume;
   begin
     begin
-      oan_chat_pkg.answer_intent('J01');             -- still at WELCOME
+      oan_chat_pkg.answer_intent('JOB_SEARCH');     -- still at WELCOME
       ut.fail('Answering out of order must fail');
     exception
       when others then ut.expect(sqlcode).to_equal(oan_util.c_err_conflict);
@@ -80,7 +80,7 @@ create or replace package body ut_oan_chat as
     l_id number := oan_chat_pkg.start_or_resume;
   begin
     run_to_intent;
-    oan_chat_pkg.answer_intent('J04');
+    oan_chat_pkg.answer_intent('EXPERIENCE_SHARING');
     oan_chat_pkg.answer_roles(null, p_skip => 'Y');
     ut.expect(oan_chat_pkg.current_step).to_equal('SUMMARY');
   end skips_allowed;
@@ -96,11 +96,11 @@ create or replace package body ut_oan_chat as
     exception
       when others then ut.expect(sqlcode).to_equal(oan_util.c_err_validation);
     end;
-    oan_chat_pkg.answer_intent('J20');
+    oan_chat_pkg.answer_intent('KEEP_CV_CURRENT');
     oan_chat_pkg.answer_roles(null, p_skip => 'Y');
     oan_chat_pkg.confirm_summary;
     select primary_intent into l_intent from oan_chat_sessions where id = l_id;
-    ut.expect(l_intent).to_equal('J20');
+    ut.expect(l_intent).to_equal('KEEP_CV_CURRENT');
     ut.expect(oan_chat_pkg.current_step).to_equal('DONE');
   end intent_required;
 
@@ -136,7 +136,7 @@ create or replace package body ut_oan_chat as
     l_roles oan_chat_sessions.role_codes%type;
   begin
     run_to_intent;
-    oan_chat_pkg.answer_intent('J05');
+    oan_chat_pkg.answer_intent('COACHING');
     oan_chat_pkg.answer_roles('MENTOR:HACKER:TRAINER');
     select role_codes into l_roles from oan_chat_sessions where id = l_id;
     ut.expect(l_roles).to_equal('TRAINER:MENTOR');            -- ordered by sort_order, unknown code dropped
@@ -159,7 +159,7 @@ create or replace package body ut_oan_chat as
     l_routed timestamp with time zone;
   begin
     run_to_intent;
-    oan_chat_pkg.answer_intent('J01');                 -- landing page 27, not live in W0
+    oan_chat_pkg.answer_intent('JOB_SEARCH');         -- landing page 50, not live in W0
     oan_chat_pkg.answer_roles(null, p_skip => 'Y');
     oan_chat_pkg.confirm_summary;
     update oan_users set status = 'ACTIVE' where id = g_user;

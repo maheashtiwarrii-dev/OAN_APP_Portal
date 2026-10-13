@@ -12,7 +12,8 @@ create table oan_lu_codes (
   description  varchar2(1000 char),
   sort_order   number default 0 not null,
   journey      varchar2(10 char),                   -- FSD journey id, e.g. J-01
-  landing_page number,                              -- APEX page id the intent routes to
+  landing_page number,                              -- APEX page id the intent routes to (Build Pack numbering, Q31)
+  landing_alias varchar2(60 char),                  -- page alias returned by OAN_CHAT_API.route_intent
   live_yn      varchar2(1 char) default 'N' not null constraint oan_lu_live_ck check (live_yn in ('Y','N')),
   active_yn    varchar2(1 char) default 'Y' not null constraint oan_lu_act_ck check (active_yn in ('Y','N')),
   constraint oan_lu_pk primary key (code_type, code)

@@ -33,7 +33,7 @@ create or replace package body oan_jobs_pkg as
         commit;
         begin
           oan_notify_pkg.notify_role('ADMIN', 'SECURITY_ALERT', 'Scheduled job failed: ' || p_name,
-                                     substr(sqlerrm, 1, 500), 1090);
+                                     substr(sqlerrm, 1, 500), 123);   -- 123 Job runs (Build Pack numbering, Q31)
           commit;
         exception
           when others then null;
@@ -50,7 +50,7 @@ create or replace package body oan_jobs_pkg as
                  and inactivity_notice_at is null) loop
       update oan_users set inactivity_notice_at = systimestamp where id = u.id;
       oan_notify_pkg.notify(u.id, 'INACTIVITY_NOTICE', 'We miss you at OAN',
-        'Your account has been inactive for 24 months. Sign in within 60 days to keep it active.', 1);
+        'Your account has been inactive for 24 months. Sign in within 60 days to keep it active.', 10);
     end loop;
     update oan_users
        set status = 'DEACTIVATED', deactivated_at = systimestamp

@@ -234,7 +234,7 @@ create or replace package body oan_security_pkg as
                where u.mfa_attested_at < systimestamp - interval '12' month
                  and u.mfa_attested_at >= systimestamp - interval '12' month - interval '1' day) loop
       oan_notify_pkg.notify_role('ADMIN', 'SECURITY_ALERT',
-        'MFA re-attestation due', 'A privileged user needs annual 2-step verification re-attestation within 30 days.', 1020);
+        'MFA re-attestation due', 'A privileged user needs annual 2-step verification re-attestation within 30 days.', 101);
     end loop;
   end remind_mfa_reattestation;
 

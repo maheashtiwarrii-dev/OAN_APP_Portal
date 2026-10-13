@@ -45,12 +45,12 @@ select s.section, s.label, s.sort_order,
 create or replace view oan_my_onboarding_v as
 select st.step, st.label, st.sort_order, st.link_page,
        case when o.done_at is not null then 'Y' else 'N' end done
-  from (select 'BASIC_PROFILE' step, 'Complete your basic profile' label, 1 sort_order, 10 link_page from dual union all
-        select 'THREE_SKILLS',    'Add at least 3 skills',                2, 10 from dual union all
-        select 'PRIMARY_CHAPTER', 'Confirm your chapters',                3, 10 from dual union all
-        select 'VISIBILITY',      'Review who can see each section',      4, 10 from dual union all
-        select 'PREFERENCES',     'Set your notification and alert preferences', 5, 60 from dual union all
-        select 'EXPLORE_LIBRARY', 'Explore the Knowledge Library',        6, 20 from dual) st
+  from (select 'BASIC_PROFILE' step, 'Complete your basic profile' label, 1 sort_order, 23 link_page from dual union all
+        select 'THREE_SKILLS',    'Add at least 3 skills',                2, 23 from dual union all
+        select 'PRIMARY_CHAPTER', 'Confirm your chapters',                3, 23 from dual union all
+        select 'VISIBILITY',      'Review who can see each section',      4, 23 from dual union all
+        select 'PREFERENCES',     'Set your notification and alert preferences', 5, 27 from dual union all
+        select 'EXPLORE_LIBRARY', 'Explore the Knowledge Library',        6, 34 from dual) st
   left join oan_onboarding_steps o
     on o.step = st.step and o.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID'))
  where sys_context('OAN_CTX','VIEWER_ID') is not null;

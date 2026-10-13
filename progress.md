@@ -91,6 +91,15 @@
 | I7-3 | W0.15 page 1080 Audit log | Read-only, filtered by event, object and period; Admin + Moderator; no export (R14) |
 | I7-4 | Validation | SQLcl offline `apex validate`: successful; brand check: passed. Page texts checked against package behaviour (two claims corrected) |
 
+## 2026-10-13 — Iteration 8 (Build Pack v1.1)
+| Step | Action | Result |
+|---|---|---|
+| I8-1 | User attached the APEX Build Pack v1.1 (+ Build Plan deck, FSD) and asked to prioritise it | Build Pack read in full; companion skeletons `oan_chat_api.sql` / `oan_notify_api.sql` found in `db/packages` (FSD schema, never installed) and moved to `docs/reference/build-pack-companion/` |
+| I8-2 | User chose to adopt Build Pack page numbers (Q31) | 37 pages renumbered and renamed (e.g. Login 9999→1, Onboarding 115→2, Home 1→10, Groups 30→60, Moderation 1050→107); items, links, URLs, return pages, public-page list, notification/email-token/search links in DB packages, onboarding checklist view updated; App ID 103→200 |
+| I8-3 | Intent codes per OAN_CHAT_API skeleton | J01..J21 → JOB_SEARCH..USE_CHANNELS with Build Pack landing pages and aliases (new `landing_alias` column); keyword list seeded for `map_intent`; tests updated |
+| I8-4 | Alignment and plan | `docs/06-build-pack-alignment.md` (conflicts resolved by Q22-Q30, page map, priorities); decision Q31; PRD 1.2.3; plan v3.2 (W0.21 API contracts, W0.22 conventions; next = W1 then W2 in Build Pack order) |
+| I8-5 | Validation | SQLcl offline `apex validate`: successful; brand check: passed |
+
 ## Next
 - M.2 groups refactor (offline, before the first shared deploy), incl. the p00031 → p00037 renumber and `search_body`.
 - W0 completion offline: pages 109 and 115 and admin pages 1010–1080, plus W0.18–W0.20, each validated with `ci/validate-apex-app.ps1`.

@@ -1,0 +1,739 @@
+page 23 (
+    name: My Profile
+    alias: MY-PROFILE
+    title: My OAN profile
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: true
+    }
+    security {
+        authorizationScheme: @is-signed-in
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: FR-01 basic profile (P1), section visibility (Q9/P02), skills, chapters, photo (FR-33), followed tags (FR-23). All writes via oan_profile_pkg (Q07).
+    }
+
+    region completeness (
+        name: Profile completeness: &P23_COMPLETENESS.%
+        type: staticContent
+        source {
+            htmlCode: <p>Complete profiles help other members find the right person. You decide who can see each section below.</p>
+        }
+        layout {
+            sequence: 5
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region basics (
+        name: Basic profile
+        type: staticContent
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region skills-chapters (
+        name: Skills, chapters and interests
+        type: staticContent
+        source {
+            htmlCode: <p>Missing a skill? <a href="f?p=&APP_ID.:90:&APP_SESSION.">Suggest a new term</a>. Missing a chapter? <a href="f?p=&APP_ID.:91:&APP_SESSION.">Request a chapter</a>.</p>
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region visibility (
+        name: Who can see each section
+        type: staticContent
+        source {
+            htmlCode: <p>Your name and headline are always visible to approved members. Making a section visible to partners requires you to confirm your identity.</p>
+        }
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P23_USER_ID (
+        type: hidden
+        layout {
+            sequence: 1
+            region: @basics
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: restricted
+        }
+    )
+
+    pageItem P23_ROW_VERSION (
+        type: hidden
+        layout {
+            sequence: 2
+            region: @basics
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P23_COMPLETENESS (
+        type: hidden
+        layout {
+            sequence: 3
+            region: @basics
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: restricted
+        }
+    )
+
+    pageItem P23_FIRST_NAME (
+        type: textField
+        label {
+            label: First name
+        }
+        layout {
+            sequence: 10
+            region: @basics
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+            maxLength: 100
+        }
+    )
+
+    pageItem P23_LAST_NAME (
+        type: textField
+        label {
+            label: Last name
+        }
+        layout {
+            sequence: 20
+            region: @basics
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+            maxLength: 100
+        }
+    )
+
+    pageItem P23_HEADLINE (
+        type: textField
+        label {
+            label: Headline
+        }
+        layout {
+            sequence: 30
+            region: @basics
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 200
+        }
+    )
+
+    pageItem P23_SUMMARY (
+        type: textarea
+        label {
+            label: Professional summary
+        }
+        layout {
+            sequence: 40
+            region: @basics
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 4000
+        }
+    )
+
+    pageItem P23_CURRENT_ORG (
+        type: textField
+        label {
+            label: Current organization
+        }
+        layout {
+            sequence: 50
+            region: @basics
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 200
+        }
+    )
+
+    pageItem P23_JOB_TITLE (
+        type: textField
+        label {
+            label: Job title
+        }
+        layout {
+            sequence: 60
+            region: @basics
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 200
+        }
+    )
+
+    pageItem P23_LOCATION_ID (
+        type: popupLov
+        label {
+            label: Location
+        }
+        lov {
+            type: sharedComponent
+            lov: @oan-locations
+        }
+        layout {
+            sequence: 70
+            region: @basics
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P23_EXPERIENCE_BAND_ID (
+        type: selectList
+        label {
+            label: Total professional experience
+        }
+        lov {
+            type: sharedComponent
+            lov: @oan-experience-bands
+        }
+        layout {
+            sequence: 80
+            region: @basics
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P23_CONTACT_EMAIL (
+        type: textField
+        label {
+            label: Contact email (shown per your Contact visibility)
+        }
+        layout {
+            sequence: 90
+            region: @basics
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 320
+        }
+    )
+
+    pageItem P23_PHONE (
+        type: textField
+        label {
+            label: Phone
+        }
+        layout {
+            sequence: 100
+            region: @basics
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 50
+        }
+    )
+
+    pageItem P23_LINKEDIN_URL (
+        type: textField
+        label {
+            label: LinkedIn URL
+        }
+        layout {
+            sequence: 110
+            region: @basics
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 500
+        }
+    )
+
+    pageItem P23_PHOTO (
+        type: fileUpload
+        label {
+            label: Profile photo (PNG or JPG, max 20 MB)
+        }
+        display {
+            displayAs: inlineDropzone
+        }
+        storage {
+            type: appTempFiles
+            purgeFileAt: endOfRequest
+            fileTypes: image/png,image/jpeg
+            maxFileSize: 20480
+        }
+        layout {
+            sequence: 120
+            region: @basics
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P23_SKILLS (
+        type: selectMany
+        label {
+            label: Skills
+        }
+        lov {
+            type: sharedComponent
+            lov: @oan-skills
+        }
+        layout {
+            sequence: 10
+            region: @skills-chapters
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P23_PRIMARY_CHAPTER_ID (
+        type: popupLov
+        label {
+            label: Primary chapter
+        }
+        lov {
+            type: sharedComponent
+            lov: @oan-chapters
+        }
+        layout {
+            sequence: 20
+            region: @skills-chapters
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P23_OTHER_CHAPTERS (
+        type: selectMany
+        label {
+            label: Other chapters I belong to
+        }
+        lov {
+            type: sharedComponent
+            lov: @oan-chapters
+        }
+        layout {
+            sequence: 30
+            region: @skills-chapters
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P23_FOLLOWED_TAGS (
+        type: selectMany
+        label {
+            label: Topics I follow (new Library items notify me)
+        }
+        lov {
+            type: sharedComponent
+            lov: @oan-tags
+        }
+        layout {
+            sequence: 40
+            region: @skills-chapters
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P23_VIS_CONTACT (
+        type: selectList
+        label {
+            label: Contact (email, phone, LinkedIn)
+        }
+        lov {
+            type: sharedComponent
+            lov: @oan-visibility-levels
+        }
+        layout {
+            sequence: 10
+            region: @visibility
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P23_VIS_WORK (
+        type: selectList
+        label {
+            label: Work history (summary, tenure, organization, title)
+        }
+        lov {
+            type: sharedComponent
+            lov: @oan-visibility-levels
+        }
+        layout {
+            sequence: 20
+            region: @visibility
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P23_VIS_SKILLS (
+        type: selectList
+        label {
+            label: Skills and expertise
+        }
+        lov {
+            type: sharedComponent
+            lov: @oan-visibility-levels
+        }
+        layout {
+            sequence: 30
+            region: @visibility
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P23_VIS_EDUCATION (
+        type: selectList
+        label {
+            label: Education
+        }
+        lov {
+            type: sharedComponent
+            lov: @oan-visibility-levels
+        }
+        layout {
+            sequence: 40
+            region: @visibility
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P23_VIS_LOCATION (
+        type: selectList
+        label {
+            label: Location and chapters
+        }
+        lov {
+            type: sharedComponent
+            lov: @oan-visibility-levels
+        }
+        layout {
+            sequence: 50
+            region: @visibility
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P23_VIS_PHOTO (
+        type: selectList
+        label {
+            label: Photo
+        }
+        lov {
+            type: sharedComponent
+            lov: @oan-visibility-levels
+        }
+        layout {
+            sequence: 60
+            region: @visibility
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    button save (
+        buttonName: SAVE
+        label: Save profile
+        layout {
+            sequence: 10
+            region: @completeness
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button confirm-identity (
+        buttonName: CONFIRM_IDENTITY
+        label: Confirm identity
+        layout {
+            sequence: 10
+            region: @visibility
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--simple
+            ]
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process load (
+        name: Load profile
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                for r in (select * from oan_my_account_v) loop
+                    :P23_USER_ID            := r.user_id;
+                    :P23_ROW_VERSION        := r.row_version;
+                    :P23_COMPLETENESS       := r.completeness;
+                    :P23_FIRST_NAME         := r.first_name;
+                    :P23_LAST_NAME          := r.last_name;
+                    :P23_HEADLINE           := r.headline;
+                    :P23_SUMMARY            := r.summary;
+                    :P23_CURRENT_ORG        := r.current_org;
+                    :P23_JOB_TITLE          := r.job_title;
+                    :P23_LOCATION_ID        := r.location_id;
+                    :P23_EXPERIENCE_BAND_ID := r.experience_band_id;
+                    :P23_CONTACT_EMAIL      := r.contact_email;
+                    :P23_PHONE              := r.phone;
+                    :P23_LINKEDIN_URL       := r.linkedin_url;
+                    :P23_PRIMARY_CHAPTER_ID := r.primary_chapter_id;
+                end loop;
+                select listagg(term_id, ':') within group (order by name) into :P23_SKILLS from oan_my_skills_v;
+                select listagg(chapter_id, ':') within group (order by name) into :P23_OTHER_CHAPTERS
+                  from oan_my_chapters_v where is_primary = 'N';
+                select listagg(term_id, ':') within group (order by name) into :P23_FOLLOWED_TAGS from oan_my_tag_follows_v;
+                for v in (select section, vis_level from oan_my_section_vis_v) loop
+                    case v.section
+                        when 'CONTACT'   then :P23_VIS_CONTACT   := v.vis_level;
+                        when 'WORK'      then :P23_VIS_WORK      := v.vis_level;
+                        when 'SKILLS'    then :P23_VIS_SKILLS    := v.vis_level;
+                        when 'EDUCATION' then :P23_VIS_EDUCATION := v.vis_level;
+                        when 'LOCATION'  then :P23_VIS_LOCATION  := v.vis_level;
+                        when 'PHOTO'     then :P23_VIS_PHOTO     := v.vis_level;
+                    end case;
+                end loop;
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+    )
+
+    process save (
+        name: Save profile
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare
+                    l_file_id number;
+                begin
+                    oan_profile_pkg.save_basic(
+                        p_row_version        => :P23_ROW_VERSION,
+                        p_first_name         => :P23_FIRST_NAME,
+                        p_last_name          => :P23_LAST_NAME,
+                        p_headline           => :P23_HEADLINE,
+                        p_summary            => :P23_SUMMARY,
+                        p_current_org        => :P23_CURRENT_ORG,
+                        p_job_title          => :P23_JOB_TITLE,
+                        p_location_id        => :P23_LOCATION_ID,
+                        p_experience_band_id => :P23_EXPERIENCE_BAND_ID,
+                        p_contact_email      => :P23_CONTACT_EMAIL,
+                        p_phone              => :P23_PHONE,
+                        p_linkedin_url       => :P23_LINKEDIN_URL);
+                    oan_profile_pkg.set_skills(:P23_SKILLS);
+                    if :P23_PRIMARY_CHAPTER_ID is not null then
+                        oan_chapter_pkg.set_primary_chapter(:P23_USER_ID, :P23_PRIMARY_CHAPTER_ID);
+                    end if;
+                    oan_profile_pkg.set_additional_chapters(:P23_OTHER_CHAPTERS);
+                    -- Followed tags: follow new, unfollow removed
+                    for t in (select column_value term_id from table(apex_string.split_numbers(:P23_FOLLOWED_TAGS, ':'))) loop
+                        oan_taxonomy_pkg.follow_tag(t.term_id);
+                    end loop;
+                    for t in (select term_id from oan_my_tag_follows_v
+                               where term_id not in (select column_value from table(apex_string.split_numbers(:P23_FOLLOWED_TAGS, ':')))) loop
+                        oan_taxonomy_pkg.unfollow_tag(t.term_id);
+                    end loop;
+                    if :P23_PHOTO is not null then
+                        l_file_id := oan_file_pkg.store(:P23_PHOTO, 'PROFILE_PHOTO');
+                        oan_profile_pkg.set_photo(l_file_id);
+                    end if;
+                    -- Visibility last: raising to partners may require re-authentication (NFR-01)
+                    oan_profile_pkg.set_visibility('CONTACT',   :P23_VIS_CONTACT);
+                    oan_profile_pkg.set_visibility('WORK',      :P23_VIS_WORK);
+                    oan_profile_pkg.set_visibility('SKILLS',    :P23_VIS_SKILLS);
+                    oan_profile_pkg.set_visibility('EDUCATION', :P23_VIS_EDUCATION);
+                    oan_profile_pkg.set_visibility('LOCATION',  :P23_VIS_LOCATION);
+                    oan_profile_pkg.set_visibility('PHOTO',     :P23_VIS_PHOTO);
+                end;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        serverSideCondition {
+            whenButtonPressed: @save
+        }
+        successMessage {
+            successMessage: Profile saved.
+        }
+    )
+
+    process remember-return (
+        name: Remember return page
+        type: executeCode
+        source {
+            plsqlCode: :REAUTH_RETURN_PAGE := 23;
+        }
+        execution {
+            sequence: 20
+        }
+        serverSideCondition {
+            whenButtonPressed: @confirm-identity
+        }
+    )
+
+    branch to-reauth (
+        name: To identity confirmation
+        behavior {
+            type: pageOrUrl
+            target: {
+                page: 15
+            }
+        }
+        execution {
+            point: afterProcessing
+            sequence: 10
+        }
+        serverSideCondition {
+            whenButtonPressed: @confirm-identity
+        }
+    )
+
+)

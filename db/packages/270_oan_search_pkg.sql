@@ -55,7 +55,7 @@ create or replace package body oan_search_pkg as
                where contains(i.title, l_expr, 1) > 0
                order by score(1) desc
                fetch first p_max_rows rows only) loop
-      pipe row (oan_search_row('LIBRARY', r.id, r.title, r.snippet, 21, r.sc));
+      pipe row (oan_search_row('LIBRARY', r.id, r.title, r.snippet, 35, r.sc));
     end loop;
 
     -- Group posts: only OPEN-group posts carry search_body (R20); the secure view re-checks
@@ -68,7 +68,7 @@ create or replace package body oan_search_pkg as
                  and v.group_visibility = 'OPEN'
                order by score(2) desc
                fetch first p_max_rows rows only) loop
-      pipe row (oan_search_row('POST', r.id, r.title, r.snippet, 37, r.sc));
+      pipe row (oan_search_row('POST', r.id, r.title, r.snippet, 62, r.sc));
     end loop;
 
     -- Members: name + headline only (never section-level fields, P31)
@@ -78,7 +78,7 @@ create or replace package body oan_search_pkg as
                where contains(p.first_name, l_expr, 4) > 0
                order by score(4) desc
                fetch first p_max_rows rows only) loop
-      pipe row (oan_search_row('MEMBER', r.user_id, r.display_name, r.headline, 11, r.sc));
+      pipe row (oan_search_row('MEMBER', r.user_id, r.display_name, r.headline, 22, r.sc));
     end loop;
     return;
   end search;

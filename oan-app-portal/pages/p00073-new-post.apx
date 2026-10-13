@@ -1,0 +1,212 @@
+page 73 (
+    name: New Post
+    alias: NEW-POST
+    title: New post
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: true
+    }
+    security {
+        authorizationScheme: @is-active
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region new-post (
+        name: Start a post
+        type: staticContent
+        source {
+            htmlCode: <p>Keep it professional and follow the Community Guidelines. Never post confidential information.</p>
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P73_GROUP_ID (
+        type: selectList
+        label {
+            label: Group
+        }
+        lov {
+            type: sharedComponent
+            lov: @oan-groups
+        }
+        layout {
+            sequence: 10
+            region: @new-post
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+        }
+    )
+
+    pageItem P73_TYPE (
+        type: radioGroup
+        label {
+            label: Type
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:Discussion;DISCUSSION,Question (an answer can be accepted);QUESTION,Story (share your experience);STORY
+        }
+        layout {
+            sequence: 20
+            region: @new-post
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        default {
+            type: static
+            staticValue: DISCUSSION
+        }
+    )
+
+    pageItem P73_TITLE (
+        type: textField
+        label {
+            label: Title
+        }
+        layout {
+            sequence: 30
+            region: @new-post
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+            maxLength: 300
+        }
+    )
+
+    pageItem P73_BODY (
+        type: textarea
+        label {
+            label: Message
+        }
+        layout {
+            sequence: 40
+            region: @new-post
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+            maxLength: 32000
+        }
+    )
+
+    pageItem P73_MENTIONS (
+        type: selectMany
+        label {
+            label: Mention members (optional)
+        }
+        lov {
+            type: sharedComponent
+            lov: @oan-members
+        }
+        layout {
+            sequence: 50
+            region: @new-post
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P73_NEW_ID (
+        type: hidden
+        layout {
+            sequence: 60
+            region: @new-post
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: restricted
+        }
+    )
+
+    button post (
+        buttonName: POST
+        label: Publish post
+        layout {
+            sequence: 10
+            region: @new-post
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process post (
+        name: Create post
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                :P73_NEW_ID := oan_group_pkg.create_post(
+                    p_group_id    => :P73_GROUP_ID,
+                    p_title       => :P73_TITLE,
+                    p_body        => :P73_BODY,
+                    p_post_type   => :P73_TYPE,
+                    p_mention_ids => :P73_MENTIONS);
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        serverSideCondition {
+            whenButtonPressed: @post
+        }
+    )
+
+    branch to-post (
+        name: To the new post
+        behavior {
+            type: pageOrUrl
+            target: {
+                page: 62
+                clearCache: 62
+                items: {
+                    P62_ID: &P73_NEW_ID.
+                }
+            }
+        }
+        execution {
+            point: afterProcessing
+            sequence: 10
+        }
+    )
+
+)

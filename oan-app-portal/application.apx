@@ -19,7 +19,7 @@ app OAN-APP-PORTAL (
     }
     navigation {
         homeUrl: {
-            page: 1
+            page: 10
         }
         loginUrl: {
             page: LOGIN

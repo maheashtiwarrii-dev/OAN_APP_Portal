@@ -1,0 +1,327 @@
+page 118 (
+    name: Chapter Requests
+    alias: CHAPTER-REQUESTS
+    title: Chapter requests
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        authorizationScheme: @administration-rights
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: W0.12 (FR-16). Members' requests for a new chapter (made on page 91). Platform Admins approve or decline with a note (OAN_CHAPTER_PKG.DECIDE_REQUEST; never their own request). Approving records the decision and notifies the requester; the chapter itself is then created on page 117.
+    }
+
+    region requests (
+        name: Requests
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select id, proposed_name,
+                       coalesce(parent_name, 'No parent (new region)') parent_name,
+                       coalesce(requested_by_name, 'Former member') requested_by_name,
+                       to_char(created_at, 'DD Mon YYYY') requested,
+                       initcap(status) status_label
+                  from oan_admin_chapter_requests_v
+                 order by case status when 'OPEN' then 0 else 1 end, created_at
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+            ]
+        }
+        reportLayout {
+            numberOfRows: 50
+        }
+        pagination {
+            type: nextAndPreviousLinks
+        }
+        messages {
+            whenNoDataFound: No chapter requests.
+        }
+
+        column ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column PROPOSED_NAME (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Proposed chapter
+            }
+            layout {
+                sequence: 2
+            }
+            link {
+                target: {
+                    page: 118
+                    items: {
+                        P118_REQUEST_ID: \#ID#\
+                    }
+                }
+                linkText: #PROPOSED_NAME#
+            }
+        )
+
+        column PARENT_NAME (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Under
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column REQUESTED_BY_NAME (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Requested by
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column REQUESTED (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Requested
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+        column STATUS_LABEL (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Status
+            }
+            layout {
+                sequence: 6
+            }
+        )
+
+    )
+
+    region decide (
+        name: Decide: &P118_PROPOSED_NAME.
+        type: staticContent
+        source {
+            htmlCode:
+                ```html
+                <p><strong>Why it is needed:</strong> &P118_JUSTIFICATION!HTML.</p>
+                <p>If you approve, create the chapter on the <a href="f?p=&APP_ID.:117:&APP_SESSION.">Chapters page</a> and assign a Chapter Admin.</p>
+                ```
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: item=value
+            item: P118_STATUS
+            value: OPEN
+        }
+    )
+
+    pageItem P118_REQUEST_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @requests
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P118_STATUS (
+        type: hidden
+        layout {
+            sequence: 20
+            region: @requests
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P118_PROPOSED_NAME (
+        type: hidden
+        layout {
+            sequence: 30
+            region: @requests
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P118_JUSTIFICATION (
+        type: hidden
+        layout {
+            sequence: 40
+            region: @requests
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P118_APPROVE (
+        type: radioGroup
+        label {
+            label: Decision
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:Approve;Y,Decline;N
+        }
+        layout {
+            sequence: 10
+            region: @decide
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+        }
+    )
+
+    pageItem P118_NOTE (
+        type: textarea
+        label {
+            label: Note to the member
+        }
+        layout {
+            sequence: 20
+            region: @decide
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 1000
+        }
+    )
+
+    button submit-decision (
+        buttonName: SUBMIT_DECISION
+        label: Submit decision
+        layout {
+            sequence: 10
+            region: @decide
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process load (
+        name: Load the selected request
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                :P118_STATUS := null;
+                for r in (select * from oan_admin_chapter_requests_v where id = :P118_REQUEST_ID) loop
+                    :P118_STATUS        := r.status;
+                    :P118_PROPOSED_NAME := r.proposed_name;
+                    :P118_JUSTIFICATION := r.justification;
+                end loop;
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+    )
+
+    process decide (
+        name: Record the decision
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                oan_chapter_pkg.decide_request(:P118_REQUEST_ID, :P118_APPROVE, :P118_NOTE);
+                :P118_REQUEST_ID := null; :P118_APPROVE := null; :P118_NOTE := null;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        serverSideCondition {
+            whenButtonPressed: @submit-decision
+        }
+        successMessage {
+            successMessage: Decision recorded. The member has been notified.
+        }
+    )
+
+    branch back (
+        name: Back to the list
+        behavior {
+            type: pageOrUrl
+            target: {
+                page: 118
+            }
+        }
+        execution {
+            point: afterProcessing
+            sequence: 10
+        }
+    )
+
+)

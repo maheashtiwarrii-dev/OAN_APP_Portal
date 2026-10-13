@@ -4,7 +4,7 @@
 | Field | Value |
 |---|---|
 | Document status | **v1.2 (reviewed)**: FSD v1.1 merge (Part B) passed the 3-reviewer 2-of-3 gate; 30 of 30 amendments applied in §B10. Part A (v1.1) was approved earlier. |
-| Version | 1.2.2 |
+| Version | 1.2.3 |
 | Date | 12 October 2026 |
 | Source | BRD v0.2 (24/26 Aug 2026, Mukund Moorthy) + requirements review (`docs/01-requirements-review.md`, decisions Q1–Q28) + PRD review ballot (`docs/reviews/prd-round2-ballot.md`, 29 changes applied) + **Functional Specification v1.1 and APEX Build Plan v1.1 (06 Oct 2026)**, merged per `docs/03-fsd-v1.1-gap-analysis.md` |
 | Target platform | Oracle APEX **26.2** (APEXLang), Oracle AI Database (Autonomous), OCI (Q27) |
@@ -22,6 +22,7 @@
 | 1.2 | 12/10/2026 | 3-reviewer panel on Part B: 30 of 30 amendments applied (R01–R30; R07 = X single opportunity model, R08 = X messaging levels, R17 passed 2-1). New §B10; B3, B5 and B6 corrected. See `docs/reviews/prd12-round2-ballot.md`. |
 | 1.2.1 | 12/10/2026 | Plan-review consequences (2-of-3, `docs/reviews/plan3-round2-ballot.md`): §B10.2 secret-store erratum (S02); J-17/J-18 remapped off the Could Marketplace page (S25-Y). |
 | 1.2.2 | 13/10/2026 | User decisions Q29 (proceed without Oracle HR: no HR brokering in v1; FR-44, B7, B8, B10.8, B10.10 updated) and Q30 (no Oracle logos, CI brand check). |
+| 1.2.3 | 13/10/2026 | Q31 Build Pack alignment: page numbers follow the APEX Build Pack v1.1 (map in `docs/06-build-pack-alignment.md`; page ids elsewhere in this PRD are the pre-Q31 ids); intent codes renamed to the OAN_CHAT_API skeleton codes (JOB_SEARCH...). |
 
 ---
 

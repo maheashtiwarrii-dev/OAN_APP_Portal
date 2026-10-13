@@ -52,7 +52,7 @@ create or replace package body oan_library_pkg as
                 join oan_users u on u.id = tf.user_id and u.status = 'ACTIVE'
                where t.item_id = p_item_id) loop
       oan_notify_pkg.notify(f.user_id, 'LIBRARY_FOLLOWED_TAG', 'New in the Library: ' || l_title, null,
-                            21, 'P21_ID:' || p_item_id, 'LIBRARY_ITEM', p_item_id);
+                            35, 'P35_ID:' || p_item_id, 'LIBRARY_ITEM', p_item_id);
     end loop;
   end notify_followers;
 
@@ -129,7 +129,7 @@ create or replace package body oan_library_pkg as
     screen(l_id);
     oan_audit_pkg.log('LIBRARY_SUBMIT', 'LIBRARY_ITEM', l_id);
     -- All non-import submissions are pre-moderated (Q12), including admin ones, so screening + second review apply
-    oan_notify_pkg.notify_role('MODERATOR', 'MODERATION_QUEUE', 'Library item awaiting review', p_title, 1050,
+    oan_notify_pkg.notify_role('MODERATOR', 'MODERATION_QUEUE', 'Library item awaiting review', p_title, 107,
                                oan_util.viewer_id);
     return l_id;
   end submit;
@@ -210,7 +210,7 @@ create or replace package body oan_library_pkg as
     returning id into l_id;
     oan_audit_pkg.log('IP_REPORT', 'LIBRARY_ITEM', p_item_id);
     oan_notify_pkg.notify_role('MODERATOR', 'MODERATION_QUEUE', 'IP / confidentiality report',
-      'An item was reported. It will be hidden automatically after 1 business day unless triaged.', 1061);
+      'An item was reported. It will be hidden automatically after 1 business day unless triaged.', 107);
     return l_id;
   end report_ip;
 

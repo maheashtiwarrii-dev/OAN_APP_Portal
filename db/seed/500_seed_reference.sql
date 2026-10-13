@@ -250,33 +250,61 @@ using (select 'WELCOME' cd, 'Welcome to OAN. I will ask a few short questions to
  when not matched then insert (code_type, code, label, description, sort_order)
                        values ('ONBOARD_STEP', s.cd, s.l, s.d, s.s);
 
--- Journey intents J-01..J-21 (PRD §B10.5). live_yn is set to 'Y' when the landing page's wave closes.
+-- Journey intents J-01..J-21 (PRD §B10.5). Codes follow the Build Pack OAN_CHAT_API skeleton
+-- (JOB_SEARCH ...); landing pages and aliases follow Build Pack page numbering (Q31) and the
+-- skeleton's route_intent. live_yn is set to 'Y' when the landing page's wave closes (R05).
 merge into oan_lu_codes c
-using (select 'J01' cd, 'Find a job that suits me' l, 'J-01' j, 27 p, 1 s from dual union all
-       select 'J02', 'Learn which skills are in demand for me', 'J-02', 36, 2 from dual union all
-       select 'J03', 'Get guidance on skills and projects in demand', 'J-03', 36, 3 from dual union all
-       select 'J04', 'Hear how others in my situation got a break', 'J-04', 30, 4 from dual union all
-       select 'J05', 'Talk to someone who can coach or mentor me', 'J-05', 41, 5 from dual union all
-       select 'J06', 'Get trained or join a mock project to be job-ready', 'J-06', 43, 6 from dual union all
-       select 'J07', 'Explore business ideas and find collaborators', 'J-07', 56, 7 from dual union all
-       select 'J08', 'Find someone who can refer me', 'J-08', 33, 8 from dual union all
-       select 'J09', 'Find people with specific skills, fast', 'J-09', 48, 9 from dual union all
-       select 'J10', 'Get feedback on a candidate', 'J-10', 46, 10 from dual union all
-       select 'J11', 'Find partners for a bid', 'J-11', 48, 11 from dual union all
-       select 'J12', 'Get help solving a problem', 'J-12', 48, 12 from dual union all
-       select 'J13', 'Find someone to train my team', 'J-13', 48, 13 from dual union all
-       select 'J14', 'Reach domain experts', 'J-14', 38, 14 from dual union all
-       select 'J15', 'Find local people for a rollout', 'J-15', 48, 15 from dual union all
-       select 'J16', 'Find partners in a new geography', 'J-16', 48, 16 from dual union all
-       select 'J17', 'Find people interested in our solution', 'J-17', 48, 17 from dual union all
-       select 'J18', 'Collaborate with non-Oracle partners', 'J-18', 27, 18 from dual union all
-       select 'J19', 'Offer funded work', 'J-19', 48, 19 from dual union all
-       select 'J20', 'Keep my CV and work profile current', 'J-20', 15, 20 from dual union all
-       select 'J21', 'Use OAN from Slack or WhatsApp', 'J-21', 53, 21 from dual) s
+using (select 'JOB_SEARCH' cd, 'Find a job that suits me' l, 'J-01' j, 50 p, 'opportunities' a, 1 s from dual union all
+       select 'SKILLS_GAP', 'Learn which skills are in demand for me', 'J-02', 56, 'skills-insights', 2 from dual union all
+       select 'DEMAND_GUIDANCE', 'Get guidance on skills and projects in demand', 'J-03', 56, 'skills-insights', 3 from dual union all
+       select 'EXPERIENCE_SHARING', 'Hear how others in my situation got a break', 'J-04', 60, 'community', 4 from dual union all
+       select 'COACHING', 'Talk to someone who can coach or mentor me', 'J-05', 65, 'mentoring', 5 from dual union all
+       select 'TRAINING', 'Get trained or join a mock project to be job-ready', 'J-06', 67, 'training', 6 from dual union all
+       select 'BUSINESS_IDEA', 'Explore business ideas and find collaborators', 'J-07', 60, 'community', 7 from dual union all
+       select 'REFERRAL', 'Find someone who can refer me', 'J-08', 50, 'opportunities', 8 from dual union all
+       select 'TALENT_NEED', 'Find people with specific skills, fast', 'J-09', 70, 'partner-workspace', 9 from dual union all
+       select 'CANDIDATE_FEEDBACK', 'Get feedback on a candidate', 'J-10', 70, 'partner-workspace', 10 from dual union all
+       select 'BID_PARTNERING', 'Find partners for a bid', 'J-11', 70, 'partner-workspace', 11 from dual union all
+       select 'PROBLEM_SOLVING', 'Get help solving a problem', 'J-12', 70, 'partner-workspace', 12 from dual union all
+       select 'TEAM_TRAINING', 'Find someone to train my team', 'J-13', 70, 'partner-workspace', 13 from dual union all
+       select 'DOMAIN_EXPERTS', 'Reach domain experts', 'J-14', 63, 'experts', 14 from dual union all
+       select 'LOCAL_ROLLOUT', 'Find local people for a rollout', 'J-15', 70, 'partner-workspace', 15 from dual union all
+       select 'GEO_EXPANSION', 'Find partners in a new geography', 'J-16', 70, 'partner-workspace', 16 from dual union all
+       select 'SOLUTION_INTEREST', 'Find people interested in our solution', 'J-17', 70, 'partner-workspace', 17 from dual union all
+       select 'NON_ORACLE_PARTNERS', 'Collaborate with non-Oracle partners', 'J-18', 50, 'opportunities', 18 from dual union all
+       select 'FUNDED_WORK', 'Offer funded work', 'J-19', 70, 'partner-workspace', 19 from dual union all
+       select 'KEEP_CV_CURRENT', 'Keep my CV and work profile current', 'J-20', 24, 'my-cv', 20 from dual union all
+       select 'USE_CHANNELS', 'Use OAN from Slack or WhatsApp', 'J-21', 43, 'channel-settings', 21 from dual) s
    on (c.code_type = 'INTENT' and c.code = s.cd)
- when matched then update set c.label = s.l, c.journey = s.j, c.landing_page = s.p, c.sort_order = s.s
- when not matched then insert (code_type, code, label, journey, landing_page, sort_order, live_yn)
-                       values ('INTENT', s.cd, s.l, s.j, s.p, s.s, 'N');
+ when matched then update set c.label = s.l, c.journey = s.j, c.landing_page = s.p, c.landing_alias = s.a, c.sort_order = s.s
+ when not matched then insert (code_type, code, label, journey, landing_page, landing_alias, sort_order, live_yn)
+                       values ('INTENT', s.cd, s.l, s.j, s.p, s.a, s.s, 'N');
+
+-- Keywords used by OAN_CHAT_API.map_intent (from the Build Pack skeleton; data-driven per NFR-10)
+merge into oan_lu_codes c
+using (select 'JOB_SEARCH' cd, 'job,jobs,role,opening,vacancy,apply,position,career,employment' k from dual union all
+       select 'SKILLS_GAP', 'skill,skills,upskill,learn,learning,course,reskill,training need' from dual union all
+       select 'DEMAND_GUIDANCE', 'demand,in demand,market,trend,hot skill,what is needed' from dual union all
+       select 'EXPERIENCE_SHARING', 'experience,story,how did,someone like me,path,navigate' from dual union all
+       select 'COACHING', 'coach,coaching,mentor,mentoring,guide,guidance,lost,confused,undecided' from dual union all
+       select 'TRAINING', 'train,training,hand-holding,mock project,shadow,teach' from dual union all
+       select 'BUSINESS_IDEA', 'business idea,idea,startup,entrepreneur,venture,collaborate' from dual union all
+       select 'REFERRAL', 'refer,referral,referrer,recommend,introduction' from dual union all
+       select 'TALENT_NEED', 'hire,hiring,talent,need skills,resource,recruit,immediate need' from dual union all
+       select 'CANDIDATE_FEEDBACK', 'feedback on,candidate,validate,reference check' from dual union all
+       select 'BID_PARTNERING', 'bid,tender,rfp,partner with,consortium,proposal' from dual union all
+       select 'PROBLEM_SOLVING', 'problem,solve,issue,challenge,help us' from dual union all
+       select 'TEAM_TRAINING', 'train my team,team training,upskill team,corporate training' from dual union all
+       select 'DOMAIN_EXPERTS', 'expert,experts,specialist,domain,advisory' from dual union all
+       select 'LOCAL_ROLLOUT', 'local,locally,language,localisation,localization,rollout,region' from dual union all
+       select 'GEO_EXPANSION', 'expand,expansion,geography,new market,country' from dual union all
+       select 'SOLUTION_INTEREST', 'solution,product,application,offering,interested in' from dual union all
+       select 'NON_ORACLE_PARTNERS', 'non-oracle,non oracle,other vendors,ecosystem' from dual union all
+       select 'FUNDED_WORK', 'budget,funded,pay,contract,statement of work,sow' from dual union all
+       select 'KEEP_CV_CURRENT', 'cv,resume,work profile,out of date,update my profile' from dual union all
+       select 'USE_CHANNELS', 'slack,whatsapp,channel' from dual) s
+   on (c.code_type = 'INTENT' and c.code = s.cd)
+ when matched then update set c.description = s.k;
 
 -- Optional role answers (FR-34 step 8, S30). Stored as codes on the chat session only;
 -- they become draft applications after approval (W5.1, W6.2).

@@ -2,7 +2,7 @@
 
 > **Tracking format (planning-with-files):** `task_plan.md` holds the plan and status, `findings.md` holds research and decisions, and `progress.md` is the session log.
 > **Scope source:** `docs/02-PRD.md` **v1.2.2** (Part A + Part B + §B10). Every task cites the FR/NFR or the R-item it delivers.
-> **Version:** **v3.1** (13 Oct 2026). v3.1 applies user decisions Q29 (proceed without Oracle HR approval: no HR brokering, gate G-HR removed, S8–S10 rebalanced) and Q30 (no Oracle logos, CI brand check 0.9).
+> **Version:** **v3.2** (13 Oct 2026). v3.2 applies Q31 (Build Pack v1.1 prioritised: page numbers, App ID 200, wave order, API contracts). v3.1 v3.1 applies user decisions Q29 (proceed without Oracle HR approval: no HR brokering, gate G-HR removed, S8–S10 rebalanced) and Q30 (no Oracle logos, CI brand check 0.9).
 >   - Plan review: 3 reviewers under the 2-of-3 rule; all 31 ballot items applied (S25 = Option Y). See `docs/reviews/plan3-round2-ballot.md`. Ballot IDs are cited as (Sxx).
 >   - v2 is archived at `docs/reviews/task_plan-v2.md`; the "was" column gives a task's v2 ID.
 > **Status legend:**
@@ -28,11 +28,12 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 - **13 Oct:** M.2 groups refactor done offline (`[A]`). Flow priority set in `docs/05-flow-priority.md` (P0–P4); it orders work within waves, the test order and the descope order.
 - **13 Oct (iteration 3):** onboarding conversation built offline: `oan_chat_pkg`, tables, views, page 115, Home routing, page 109, `ut_oan_chat` (9 tests). Board exported to an A4 landscape PDF.
 - **13 Oct (iteration 4):** plan v3.1 for Q29/Q30 (11 gates; same 16 sprints); CI brand check added; W0 admin approval and member pages built offline.
-- **Next:** W0 P0 admin flows offline, in rank order:
-  1. 1071-1073 terms, deny-list, breached passwords; 9000/9001 health;
-  2. 70/71 suggest a term, request a chapter (W0.19);
-  3. W0.18 shared components + security baseline; W0.20 Build Option wiring;
-  4. spikes once G0 is met.
+- **13 Oct (iteration 8, Q31):** APEX Build Pack v1.1 prioritised. Pages renumbered to Build Pack numbers, App ID 200, intent codes and API contracts per the Build Pack; see `docs/06-build-pack-alignment.md`. **Page ids in the task tables below are pre-Q31 ids; use the map in docs/06 §3.**
+- **Next, in Build Pack order:**
+  1. W1: global page 0 + Home 10 to the Build Pack spec;
+  2. W0.21 `OAN_CHAT_API` / `OAN_NOTIFY_API`; W0.22 `AI_` items, IS_* schemes, Build Pack Build Options;
+  3. W2: 20/21 directory, 22/23 profile grids, 25 work profile, 24 My CV.
+  PRD-only admin extras (1071-1073 → 124-126, 70/71 → 90/91) follow later in their wave.
 - **Every iteration is committed and pushed** to `github.com/maheashtiwarrii-dev/OAN_APP_Portal`. The Kanban board (`docs/delivery-board.html` + PDF) is updated **only on request** (user, 13 Oct).
 
 ---
@@ -48,7 +49,7 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 | WS0 env + spikes | 17.5 |
 | M migration/refactor | 5 |
 | WS1 DB foundation | 57 |
-| W0 | 40.25 |
+| W0 | 43 |
 | W1 | 5 |
 | W2 | 30.75 |
 | W3 | 16.75 |
@@ -60,8 +61,8 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 | WS6 | 2.5 |
 | WS8 | 3.25 |
 | WS9 dev share | 10 |
-| **Total** | **≈ 287.5 pd** |
-| **+ 20% contingency** | **≈ 345 pd** |
+| **Total** | **≈ 290 pd** |
+| **+ 20% contingency** | **≈ 348 pd** |
 
 - **Credit for offline work:** about 49 pd is authored (`[A]`). It still needs deployment, fixes and tests, estimated at 40%. Remaining effort ≈ 260 pd, or **≈ 312 pd with contingency**.
   - The 40% figure is unproven. It is checked at **G-RB** (S28).
@@ -304,6 +305,8 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 | W0.17 | 9000, 9001 health pages | NFR-08 | 0.25 | 3.16 | [ ] |
 | W0.18 | **Shared components + security baseline (S01).**<br>• Already authored: auth schemes, authorizations, app items/processes, email templates, automations, LOVs, lists.<br>• Text Messages; all email templates (v2 2.8).<br>• **Security baseline:** SSP/checksums; escaping; deep-linking off except landing/login/register; CSP (self + allow-list, incl. Ajax polling, no third-party script), HSTS, XFO DENY, Referrer-Policy; cookies Secure/HttpOnly/SameSite=Lax; debug off; Advisor zero findings; ORDS module inventory.<br>• Error handler; cookie notice.<br>• 5.7 rows. | NFR-04/13, FR-23 | 7.5 | 2.1–2.11 | [~] partly `[A]` |
 | W0.19 | 70 Suggest taxonomy term; 71 Request a chapter | FR-28/16 | 0.5 | 3.11 | [ ] |
+| W0.21 | **Build Pack API contracts (Q31):** `OAN_CHAT_API` (start_session, add_message, log_user_turn, map_intent, route_intent, get_transcript, close_session, register_from_chat, respond_and_route; channel and profile-update routines with W4/W2) and `OAN_NOTIFY_API` (notify, notify_many, unread_count, mark_read, mark_all_read, wants_channel, send_pending_emails; event helpers with their waves) over `oan_chat_pkg` / `oan_notify_pkg` | FR-34, FR-23 | 2 | — | [ ] |
+| W0.22 | **Build Pack conventions (Q31):** `AI_MEMBER_ID`, `AI_ORG_ID`, `AI_MEMBER_ROLES`, `AI_PRIVACY_VISIBILITY`, `AI_UNREAD_NOTIFICATIONS` (display only; security from `OAN_CTX`); IS_* scheme names; Build Options OAN_ADMIN, OAN_AI_ASSISTANT, OAN_PARTNER_WORKSPACE, OAN_RECOGNITION | NFR-02 | 0.75 | — | [ ] |
 | W0.20 | **Build Option wiring (S03):**<br>• replace `PHASE_2/3/4` with `CHANNELS`, `AI_ASSISTANT`, `CAREERS_FEED`, `CV_PDF`, `ORACLE_IDP` (no `HR_INTEGRATION`, Q29) (exclude, onUpgradeKeepStatus);<br>• `oan_config_pkg.enable_feature` (audited);<br>• 5.7 row: option on in Builder without sign-off → nothing processed. | R12 | 1.5 | 2.6 | [ ] |
 
 ### W1 — Shell, Home, global search (S3)

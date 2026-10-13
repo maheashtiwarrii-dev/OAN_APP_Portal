@@ -1,0 +1,406 @@
+page 26 (
+    name: Account Settings
+    alias: ACCOUNT-SETTINGS
+    title: Your account settings
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    security {
+        authorizationScheme: @is-signed-in
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: FR-01 account management (P07): change password, change email (re-auth + confirmation at both addresses), link/unlink Google or LinkedIn (link only after authenticating to this account).
+    }
+
+    region sign-in-methods (
+        name: Sign-in methods
+        type: staticContent
+        source {
+            htmlCode: <p>Linked providers: <strong>&P26_PROVIDERS.</strong></p>
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region change-password (
+        name: Change password
+        type: staticContent
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery: select 1 from oan_my_account_v where has_local_password > 0
+        }
+    )
+
+    region change-email (
+        name: Change email address
+        type: staticContent
+        source {
+            htmlCode: <p>Current email: <strong>&P26_EMAIL.</strong>. Changing it requires confirming your identity and confirming the change from both your old and new addresses.</p>
+        }
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P26_PROVIDERS (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @sign-in-methods
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: restricted
+        }
+    )
+
+    pageItem P26_EMAIL (
+        type: hidden
+        layout {
+            sequence: 20
+            region: @sign-in-methods
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: restricted
+        }
+    )
+
+    pageItem P26_CURRENT_PASSWORD (
+        type: password
+        label {
+            label: Current password
+        }
+        layout {
+            sequence: 10
+            region: @change-password
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 200
+        }
+        sessionState {
+            storage: request
+        }
+    )
+
+    pageItem P26_NEW_PASSWORD (
+        type: password
+        label {
+            label: New password (at least 12 characters)
+        }
+        layout {
+            sequence: 20
+            region: @change-password
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 200
+        }
+        sessionState {
+            storage: request
+        }
+    )
+
+    pageItem P26_NEW_EMAIL (
+        type: textField
+        label {
+            label: New email address
+        }
+        layout {
+            sequence: 10
+            region: @change-email
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 320
+        }
+    )
+
+    button link-google (
+        buttonName: LINK_GOOGLE
+        label: Link Google
+        layout {
+            sequence: 10
+            region: @sign-in-methods
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text-with-icon
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+            ]
+            icon: fa-google
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: noRowsReturned
+            sqlQuery: select 1 from oan_my_account_v where instr(linked_providers, 'GOOGLE') > 0
+        }
+    )
+
+    button unlink-google (
+        buttonName: UNLINK_GOOGLE
+        label: Unlink Google
+        layout {
+            sequence: 20
+            region: @sign-in-methods
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--simple
+            ]
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            requiresConfirmation: true
+        }
+        confirmation {
+            message: Remove Google as a sign-in method?
+            style: danger
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery: select 1 from oan_my_account_v where instr(linked_providers, 'GOOGLE') > 0
+        }
+    )
+
+    button confirm-identity (
+        buttonName: CONFIRM_IDENTITY
+        label: Confirm identity
+        layout {
+            sequence: 30
+            region: @sign-in-methods
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--simple
+            ]
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button change-password (
+        buttonName: CHANGE_PASSWORD
+        label: Change password
+        layout {
+            sequence: 10
+            region: @change-password
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button change-email (
+        buttonName: CHANGE_EMAIL
+        label: Send confirmation emails
+        layout {
+            sequence: 10
+            region: @change-email
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process load (
+        name: Load account
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                for r in (select email, coalesce(linked_providers, 'none (email and password only)') providers
+                            from oan_my_account_v) loop
+                    :P26_EMAIL := r.email;
+                    :P26_PROVIDERS := r.providers;
+                end loop;
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+    )
+
+    process start-link (
+        name: Start linking Google
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare
+                    l_token varchar2(64);
+                begin
+                    l_token := oan_auth_pkg.start_link;   -- requires recent re-authentication; sets LINK_INTENT
+                end;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        serverSideCondition {
+            whenButtonPressed: @link-google
+        }
+    )
+
+    process unlink-google (
+        name: Unlink Google
+        type: executeCode
+        source {
+            plsqlCode: oan_auth_pkg.unlink('GOOGLE');
+        }
+        execution {
+            sequence: 20
+        }
+        serverSideCondition {
+            whenButtonPressed: @unlink-google
+        }
+        successMessage {
+            successMessage: Google was removed as a sign-in method.
+        }
+    )
+
+    process change-password (
+        name: Change password
+        type: executeCode
+        source {
+            plsqlCode: oan_auth_pkg.change_password(:P26_CURRENT_PASSWORD, :P26_NEW_PASSWORD);
+        }
+        execution {
+            sequence: 30
+        }
+        serverSideCondition {
+            whenButtonPressed: @change-password
+        }
+        successMessage {
+            successMessage: Your password was changed.
+        }
+    )
+
+    process change-email (
+        name: Request email change
+        type: executeCode
+        source {
+            plsqlCode: oan_auth_pkg.request_email_change(:P26_NEW_EMAIL);
+        }
+        execution {
+            sequence: 40
+        }
+        serverSideCondition {
+            whenButtonPressed: @change-email
+        }
+        successMessage {
+            successMessage: We sent confirmation links to your old and new addresses. The change completes when both are confirmed.
+        }
+    )
+
+    process remember-return (
+        name: Remember return page
+        type: executeCode
+        source {
+            plsqlCode: :REAUTH_RETURN_PAGE := 26;
+        }
+        execution {
+            sequence: 50
+        }
+        serverSideCondition {
+            whenButtonPressed: @confirm-identity
+        }
+    )
+
+    branch to-google-link (
+        name: To Google sign-in for linking
+        behavior {
+            type: functionReturningUrl
+            language: plsql
+            plsqlFunctionBody: return 'f?p=' || :APP_ID || ':26:' || :APP_SESSION || ':APEX_AUTHENTICATION=OAN_GOOGLE';
+        }
+        execution {
+            point: afterProcessing
+            sequence: 10
+        }
+        serverSideCondition {
+            whenButtonPressed: @link-google
+        }
+    )
+
+    branch to-reauth (
+        name: To identity confirmation
+        behavior {
+            type: pageOrUrl
+            target: {
+                page: 15
+            }
+        }
+        execution {
+            point: afterProcessing
+            sequence: 20
+        }
+        serverSideCondition {
+            whenButtonPressed: @confirm-identity
+        }
+    )
+
+)

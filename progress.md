@@ -67,6 +67,14 @@
 | I4-5 | W0.11 pages 1020 Members + 1021 Member detail | Search by name/email/status; role grant/revoke (re-auth, IdP + MFA rule for privileged roles), MFA attestation, suspend/reactivate; texts checked against package behaviour |
 | I4-6 | Validation | SQLcl offline `apex validate`: successful; brand check: passed |
 
+## 2026-10-13 — Iteration 5
+| Step | Action | Result |
+|---|---|---|
+| I5-1 | User repeated: no Oracle HR, revised sprints, no Oracle logos; **Kanban only on request** | Q29/Q30 and plan v3.1 already applied; board updates now on request only (memory + plan) |
+| I5-2 | W0.14 page 1050 Moderation queue | Summary tiles; one list for Library review, member reports and IP reports (priority then SLA); decision panel offers only valid actions per type via `oan_library_pkg.review`, `oan_moderation_pkg.act`, `oan_library_pkg.triage_ip` |
+| I5-3 | W0.14 page 1051 Appeals | Open-first list; final decision via `oan_moderation_pkg.decide_appeal`; labels match package statuses (OVERTURNED / UPHELD) |
+| I5-4 | Validation | SQLcl offline `apex validate`: successful; brand check: passed |
+
 ## Next
 - M.2 groups refactor (offline, before the first shared deploy), incl. the p00031 → p00037 renumber and `search_body`.
 - W0 completion offline: pages 109 and 115 and admin pages 1010–1080, plus W0.18–W0.20, each validated with `ci/validate-apex-app.ps1`.

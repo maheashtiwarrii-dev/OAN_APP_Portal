@@ -1,0 +1,354 @@
+page 1051 (
+    name: Appeals
+    alias: APPEALS
+    title: Moderation appeals
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        authorizationScheme: @administration-rights
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: W0.14 (FR-25). One appeal per moderation decision, filed within 14 days. Decided by a Platform Admin who is neither the original decision maker nor the appellant (OAN_APPEALS_V filter + OAN_MODERATION_PKG.DECIDE_APPEAL checks). Overturning a hide or removal restores the content (status OVERTURNED); keeping it records UPHELD. The decision is final.
+    }
+
+    region appeals (
+        name: Appeals
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select appeal_id,
+                       coalesce(appellant_name, 'Former member') appellant,
+                       initcap(replace(object_type, '_', ' ')) || ' #' || object_id item,
+                       initcap(action) original_action,
+                       to_char(filed_at, 'DD Mon YYYY') filed,
+                       case status when 'OPEN' then 'Open'
+                                   when 'OVERTURNED' then 'Decision overturned'
+                                   else 'Decision kept' end status_label
+                  from oan_appeals_v
+                 order by case status when 'OPEN' then 0 else 1 end, filed_at
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+            ]
+        }
+        reportLayout {
+            numberOfRows: 50
+        }
+        pagination {
+            type: nextAndPreviousLinks
+        }
+        messages {
+            whenNoDataFound: There are no appeals for you to decide.
+        }
+
+        column APPEAL_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column APPELLANT (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Appellant
+            }
+            layout {
+                sequence: 2
+            }
+            link {
+                target: {
+                    page: 1051
+                    items: {
+                        P1051_APPEAL_ID: \#APPEAL_ID#\
+                    }
+                }
+                linkText: #APPELLANT#
+            }
+        )
+
+        column ITEM (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Item
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column ORIGINAL_ACTION (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Original decision
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column FILED (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Filed
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+        column STATUS_LABEL (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Status
+            }
+            layout {
+                sequence: 6
+            }
+        )
+
+    )
+
+    region decide (
+        name: Decide the appeal
+        type: staticContent
+        source {
+            htmlCode:
+                ```html
+                <dl class="t-AVPList t-AVPList--leftAligned">
+                  <dt class="t-AVPList-label">Original decision</dt><dd class="t-AVPList-value">&P1051_ORIGINAL!HTML.</dd>
+                  <dt class="t-AVPList-label">Original reason</dt><dd class="t-AVPList-value">&P1051_ORIGINAL_REASON!HTML.</dd>
+                  <dt class="t-AVPList-label">Appellant's statement</dt><dd class="t-AVPList-value">&P1051_STATEMENT!HTML.</dd>
+                </dl>
+                <p>Your decision is final and is sent to the appellant with your note.</p>
+                ```
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: item=value
+            item: P1051_STATUS
+            value: OPEN
+        }
+    )
+
+    pageItem P1051_APPEAL_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @appeals
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P1051_STATUS (
+        type: hidden
+        layout {
+            sequence: 20
+            region: @appeals
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P1051_ORIGINAL (
+        type: hidden
+        layout {
+            sequence: 30
+            region: @appeals
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P1051_ORIGINAL_REASON (
+        type: hidden
+        layout {
+            sequence: 40
+            region: @appeals
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P1051_STATEMENT (
+        type: hidden
+        layout {
+            sequence: 50
+            region: @appeals
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P1051_OVERTURN (
+        type: radioGroup
+        label {
+            label: Outcome
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:Overturn the decision (accept the appeal);Y,Keep the decision (reject the appeal);N
+        }
+        layout {
+            sequence: 10
+            region: @decide
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+        }
+    )
+
+    pageItem P1051_NOTE (
+        type: textarea
+        label {
+            label: Note to the appellant
+        }
+        layout {
+            sequence: 20
+            region: @decide
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+            maxLength: 2000
+        }
+    )
+
+    button submit-decision (
+        buttonName: SUBMIT_DECISION
+        label: Submit final decision
+        layout {
+            sequence: 10
+            region: @decide
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            requiresConfirmation: true
+        }
+        confirmation {
+            message: This decision is final. Submit it?
+            style: warning
+        }
+    )
+
+    process load (
+        name: Load the selected appeal
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                :P1051_STATUS := null;
+                for a in (select * from oan_appeals_v where appeal_id = :P1051_APPEAL_ID) loop
+                    :P1051_STATUS          := a.status;
+                    :P1051_ORIGINAL        := initcap(a.action) || ' on ' || lower(replace(a.object_type, '_', ' '))
+                                              || ' #' || a.object_id || ', ' || to_char(a.acted_at, 'DD Mon YYYY');
+                    :P1051_ORIGINAL_REASON := a.original_reason;
+                    :P1051_STATEMENT       := a.statement;
+                end loop;
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+    )
+
+    process decide (
+        name: Record the appeal decision
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                oan_moderation_pkg.decide_appeal(:P1051_APPEAL_ID, :P1051_OVERTURN, :P1051_NOTE);
+                :P1051_APPEAL_ID := null; :P1051_OVERTURN := null; :P1051_NOTE := null;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        serverSideCondition {
+            whenButtonPressed: @submit-decision
+        }
+        successMessage {
+            successMessage: Appeal decided. The appellant has been notified.
+        }
+    )
+
+    branch back (
+        name: Back to the appeals list
+        behavior {
+            type: pageOrUrl
+            target: {
+                page: 1051
+            }
+        }
+        execution {
+            point: afterProcessing
+            sequence: 10
+        }
+    )
+
+)

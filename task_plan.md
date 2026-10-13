@@ -29,9 +29,9 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 - **13 Oct (iteration 3):** onboarding conversation built offline: `oan_chat_pkg`, tables, views, page 115, Home routing, page 109, `ut_oan_chat` (9 tests). Board exported to an A4 landscape PDF.
 - **13 Oct (iteration 4):** plan v3.1 for Q29/Q30 (11 gates; same 16 sprints); CI brand check added; W0 admin approval and member pages built offline.
 - **Next:** W0 P0 admin flows offline, in rank order:
-  1. 1030/1031 chapters; 1040 taxonomy;
-  2. 1080 audit log, 80/81 report modal + my decisions;
-  3. 1071-1073 terms, deny-list, breached passwords; 9000/9001 health;
+  1. 1080 audit log, 80/81 report modal + my decisions;
+  2. 1071-1073 terms, deny-list, breached passwords; 9000/9001 health;
+  3. 70/71 suggest a term, request a chapter (W0.19);
   4. spikes once G0 is met.
 - **Every iteration is committed and pushed** to `github.com/maheashtiwarrii-dev/OAN_APP_Portal`. The Kanban board (`docs/delivery-board.html` + PDF) is updated **only on request** (user, 13 Oct).
 
@@ -296,8 +296,8 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 | W0.9 | `AI_ASSISTANT`: GenAI service + Web Credential (static id) + ACE; read-only, requester-scoped; opt-in; injection set ≥ 20 | R15 | 3 | — | [G] G-AI |
 | W0.10 | 1010, 1011 Approvals | FR-01/25 | 2 | 4.2 | [A] 13 Oct: queue summary + overdue-first ordering; review shows onboarding answers; decide with row_version |
 | W0.11 | 1020, 1021 Members (staff roles via the 1.31 API, scopes) | FR-24, R16 | 3 | 4.3 | [A] 13 Oct: search; role grant/revoke with re-auth + MFA attestation; attest; suspend/reactivate (roles list extends with 1.31) |
-| W0.12 | 1030, 1031 Chapters | FR-16 | 1.5 | 4.4 | [ ] |
-| W0.13 | 1040 Lookups/Taxonomy (incl. `OAN_LU_CODE.live_yn`) | FR-28 | 2 | 4.5 | [ ] |
+| W0.12 | 1030, 1031 Chapters | FR-16 | 1.5 | 4.4 | [A] 13 Oct: chapter tree, create chapter, assign/remove Chapter Admins (IdP + 2-step rule, re-auth); requests decided with note |
+| W0.13 | 1040 Lookups/Taxonomy (incl. `OAN_LU_CODE.live_yn`) | FR-28 | 2 | 4.5 | [A] 13 Oct: filters; add term (new `add_term`), approve/reject suggestions, merge with synonym; lookup codes are seeded (live switch via wave close) |
 | W0.14 | 1050 Moderation (basic, CoI); 1051 Appeals | FR-25 | 2.5 | 4.6 | [A] 13 Oct: one queue for Library review, member reports and IP reports with type-specific decisions; appeals with final decision |
 | W0.15 | 1080 Audit log; 80 Report modal; 81 My decisions + appeal | NFR-05, FR-25 | 2 | 3.14/4.8 | [ ] |
 | W0.16 | 1071 Terms versions; 1072 Deny-list; 1073 Breached passwords | FR-19, NFR-01 | 0.75 | 4.8 | [ ] |

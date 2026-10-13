@@ -128,6 +128,16 @@ select c.id, c.parent_id, c.chapter_level, c.name, c.slug, c.path, c.status,
   from oan_chapters c
  where sys_context('OAN_CTX','IS_ADMIN') = 'Y';
 
+-- One row per Chapter Admin assignment (page 1030: remove an admin)
+create or replace view oan_admin_chapter_admins_v as
+select a.chapter_id, a.user_id, c.name chapter_name,
+       p.first_name || ' ' || p.last_name admin_name, u.status admin_status, u.mfa_attested_at
+  from oan_chapter_admins a
+  join oan_chapters c on c.id = a.chapter_id
+  join oan_users u on u.id = a.user_id
+  left join oan_profiles p on p.user_id = a.user_id
+ where sys_context('OAN_CTX','IS_ADMIN') = 'Y';
+
 create or replace view oan_admin_chapter_requests_v as
 select r.id, r.proposed_name, r.justification, r.status, r.created_at, r.decision_note,
        pc.name parent_name,

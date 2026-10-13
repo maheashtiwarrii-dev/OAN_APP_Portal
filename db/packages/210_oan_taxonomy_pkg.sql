@@ -3,6 +3,7 @@
 --------------------------------------------------------------------------------
 create or replace package oan_taxonomy_pkg authid definer as
   function  suggest(p_type in varchar2, p_name in varchar2) return number;
+  function  add_term(p_type in varchar2, p_name in varchar2) return number;   -- Platform Admin: approved immediately (page 1040)
   procedure approve(p_term_id in number);
   procedure reject(p_term_id in number, p_reason in varchar2);
   procedure merge_terms(p_from_id in number, p_into_id in number);
@@ -29,6 +30,22 @@ create or replace package body oan_taxonomy_pkg as
     when dup_val_on_index then
       oan_util.raise_error(oan_util.c_err_conflict, 'This term already exists or has already been suggested.');
   end suggest;
+
+  function add_term(p_type in varchar2, p_name in varchar2) return number is
+    l_id number;
+  begin
+    oan_security_pkg.require_admin;
+    oan_util.assert(p_type in ('SKILL','INDUSTRY','TOPIC','LANGUAGE','EXPERIENCE_BAND'), 'Invalid term type');
+    oan_util.assert(length(trim(p_name)) between 2 and 200, 'Enter a term between 2 and 200 characters.');
+    insert into oan_taxonomy_terms (term_type, name, status, decided_by, decided_at)
+    values (p_type, trim(p_name), 'APPROVED', oan_util.viewer_id, systimestamp)
+    returning id into l_id;
+    oan_audit_pkg.log('TAXONOMY_ADD', 'TERM', l_id);
+    return l_id;
+  exception
+    when dup_val_on_index then
+      oan_util.raise_error(oan_util.c_err_conflict, 'This term already exists.');
+  end add_term;
 
   procedure approve(p_term_id in number) is
   begin

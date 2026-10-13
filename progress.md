@@ -75,6 +75,14 @@
 | I5-3 | W0.14 page 1051 Appeals | Open-first list; final decision via `oan_moderation_pkg.decide_appeal`; labels match package statuses (OVERTURNED / UPHELD) |
 | I5-4 | Validation | SQLcl offline `apex validate`: successful; brand check: passed |
 
+## 2026-10-13 — Iteration 6
+| Step | Action | Result |
+|---|---|---|
+| I6-1 | W0.12 page 1030 Chapters (file p01030-chapters-admin) | Tree with members and admins; create chapter (level/parent rules); assign/remove Chapter Admin through oan_security_pkg (IdP + 2-step, re-auth); new view `oan_admin_chapter_admins_v` |
+| I6-2 | W0.12 page 1031 Chapter requests | Open-first list; approve/decline with note via `oan_chapter_pkg.decide_request`; status value checked against DDL (OPEN) |
+| I6-3 | W0.13 page 1040 Taxonomy | Search/filter; add term (new `oan_taxonomy_pkg.add_term`), approve/reject suggestions, merge into canonical term |
+| I6-4 | Validation | SQLcl offline `apex validate`: successful; brand check: passed |
+
 ## Next
 - M.2 groups refactor (offline, before the first shared deploy), incl. the p00031 → p00037 renumber and `search_body`.
 - W0 completion offline: pages 109 and 115 and admin pages 1010–1080, plus W0.18–W0.20, each validated with `ci/validate-apex-app.ps1`.

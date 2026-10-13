@@ -165,3 +165,4 @@
 | I13-4 | User shared a real sign-up list (~250 entries) and 15 CVs, asking to create members | Paused: real personal data conflicts with Q12 (synthetic only on dev). User chose **realistic look-alikes** loaded into the DB. Attachments were not saved anywhere |
 | I13-5 | `oan_synth_pkg.generate_alumni` | Uses only aggregate patterns (city mix, Oracle practices, seniority, tenure); fictional names and orgs, no email/phone/client/figure copied. Created 15 CV-archetype personas + 250 members (seed 7), ~10 skills each, 4 connections each; directory mix as before |
 | I13-6 | Result on dev | 766 synthetic accounts; test member sees 671 in the directory |
+| I13-7 | User: proceed (keep only the realistic cohort) | `oan_synth_pkg.purge_generic` (guarded, audited) removed the 500 generic members; test member reconnected to 12 alumni (connections-only first). Dev now: 265 alumni + 1 test member; test member sees 238 in the directory |

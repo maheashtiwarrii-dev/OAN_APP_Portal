@@ -28,6 +28,10 @@ create or replace package oan_synth_pkg authid definer as
   -- seniority, tenure) WITHOUT copying any name, email, phone, client or figure. All fictional,
   -- all @synthetic.oan.invalid. Returns the number created.
   function generate_alumni(p_count in pls_integer default 250, p_seed in number default 7) return pls_integer;
+  -- Deletes only the generic members from generate_members (email ends .NNNNNN@synthetic.oan.invalid);
+  -- keeps the alumni cohort and test members. Returns the count.
+  function purge_generic return pls_integer;
+
   -- Deletes every @synthetic.oan.invalid account (cascades to its rows). Returns the count.
   function purge return pls_integer;
 end oan_synth_pkg;
@@ -456,6 +460,19 @@ create or replace package body oan_synth_pkg as
     commit;
     return l_ids.count;
   end generate_alumni;
+
+  function purge_generic return pls_integer is
+    l_cnt pls_integer;
+  begin
+    require_allowed;
+    delete from oan_users
+     where email like '%' || c_domain
+       and regexp_like(email, '\.[0-9]{6}@synthetic\.oan\.invalid$');
+    l_cnt := sql%rowcount;
+    oan_audit_pkg.log('SYNTHETIC_GENERIC_PURGED', null, null, null, json_object('count' value l_cnt));
+    commit;
+    return l_cnt;
+  end purge_generic;
 
   function purge return pls_integer is
     l_cnt pls_integer;

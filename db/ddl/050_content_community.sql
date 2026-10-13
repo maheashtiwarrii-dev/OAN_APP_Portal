@@ -1,5 +1,5 @@
 --------------------------------------------------------------------------------
--- 050 Knowledge Library (FR-19, FR-08 P1), IP reports, Discussions (FR-17)
+-- 050 Knowledge Library (FR-19, FR-08 P1), IP reports, Community groups (FR-17 → FR-41, R29)
 --------------------------------------------------------------------------------
 create table oan_library_items (
   id                    number generated always as identity primary key,
@@ -97,55 +97,84 @@ create table oan_ip_reports (
 );
 create index oan_ipr_status_ix on oan_ip_reports (status, hide_due_at);
 
-create table oan_forums (
+-- Community groups (FR-41, R19). R29: formerly OAN_FORUMS / OAN_THREADS / OAN_POSTS, renamed in place
+-- before the first shared deploy (db-baseline-v1). Governance pages arrive in W6.1.
+create table oan_groups (
   id              number generated always as identity primary key,
-  code            varchar2(30 char) not null constraint oan_forum_code_uk unique,
+  code            varchar2(30 char) not null constraint oan_grp_code_uk unique,
   name            varchar2(200 char) not null,
   description     varchar2(1000 char),
-  forum_type      varchar2(20 char) default 'TOPIC' not null
-                  constraint oan_forum_type_ck check (forum_type in ('TOPIC','ANNOUNCEMENTS','IMPORTED')),
+  group_type      varchar2(20 char) default 'TOPIC' not null
+                  constraint oan_grp_type_ck check (group_type in ('TOPIC','ANNOUNCEMENTS','IMPORTED','CHAPTER','BUSINESS_IDEAS')),
+  -- OPEN: anyone ACTIVE can read and join; REQUEST: owner approves joins; PRIVATE: invite only (R19)
+  visibility      varchar2(10 char) default 'OPEN' not null
+                  constraint oan_grp_vis_ck check (visibility in ('OPEN','REQUEST','PRIVATE')),
   scope_type      varchar2(20 char) default 'GLOBAL' not null
-                  constraint oan_forum_scope_ck check (scope_type in ('GLOBAL','CHAPTER','PARTNER','INITIATIVE')),
+                  constraint oan_grp_scope_ck check (scope_type in ('GLOBAL','CHAPTER','PARTNER','INITIATIVE')),
   scope_id        number,
-  admin_post_only varchar2(1 char) default 'N' not null constraint oan_forum_apo_ck check (admin_post_only in ('Y','N')),
+  owner_id        number constraint oan_grp_owner_fk references oan_users on delete set null,
+  admin_post_only varchar2(1 char) default 'N' not null constraint oan_grp_apo_ck check (admin_post_only in ('Y','N')),
   sort_order      number default 0 not null,
-  status          varchar2(20 char) default 'ACTIVE' not null constraint oan_forum_status_ck check (status in ('ACTIVE','ARCHIVED'))
+  status          varchar2(20 char) default 'ACTIVE' not null
+                  constraint oan_grp_status_ck check (status in ('PENDING_APPROVAL','ACTIVE','REJECTED','ARCHIVED')),
+  approved_by     number,
+  approved_at     timestamp with time zone,
+  row_version     number default 1 not null,
+  created_at      timestamp with time zone default systimestamp not null
 );
+create index oan_grp_owner_ix on oan_groups (owner_id);
 
-create table oan_threads (
-  id               number generated always as identity primary key,
-  forum_id         number not null constraint oan_thr_forum_fk references oan_forums,
-  author_id        number not null constraint oan_thr_author_fk references oan_users,
-  title            varchar2(300 char) not null,
-  thread_type      varchar2(20 char) default 'DISCUSSION' not null
-                   constraint oan_thr_type_ck check (thread_type in ('DISCUSSION','QUESTION','ANNOUNCEMENT')),
-  status           varchar2(20 char) default 'OPEN' not null
-                   constraint oan_thr_status_ck check (status in ('OPEN','LOCKED','HIDDEN','REMOVED')),
-  accepted_post_id number,
-  post_count       number default 0 not null,
-  last_post_at     timestamp with time zone default systimestamp not null,
-  row_version      number default 1 not null,
-  created_at       timestamp with time zone default systimestamp not null
+-- Membership of REQUEST/PRIVATE groups; OPEN groups need no row to read (R19, gated by oan_vis.in_group)
+create table oan_group_members (
+  group_id   number not null constraint oan_gm_grp_fk references oan_groups on delete cascade,
+  user_id    number not null constraint oan_gm_user_fk references oan_users on delete cascade,
+  member_role varchar2(10 char) default 'MEMBER' not null
+             constraint oan_gm_role_ck check (member_role in ('OWNER','MODERATOR','MEMBER')),
+  status     varchar2(10 char) default 'ACTIVE' not null
+             constraint oan_gm_status_ck check (status in ('REQUESTED','INVITED','ACTIVE')),
+  joined_at  timestamp with time zone default systimestamp not null,
+  constraint oan_gm_pk primary key (group_id, user_id)
 );
-create index oan_thr_forum_ix  on oan_threads (forum_id, status, last_post_at);
-create index oan_thr_author_ix on oan_threads (author_id);
+create index oan_gm_user_ix on oan_group_members (user_id, status);
 
 create table oan_posts (
+  id                  number generated always as identity primary key,
+  group_id            number not null constraint oan_post_grp_fk references oan_groups,
+  author_id           number not null constraint oan_post_author_fk references oan_users,
+  title               varchar2(300 char) not null,
+  body                clob not null,
+  post_type           varchar2(20 char) default 'DISCUSSION' not null
+                      constraint oan_post_type_ck check (post_type in ('DISCUSSION','QUESTION','STORY','ANNOUNCEMENT')),
+  status              varchar2(20 char) default 'OPEN' not null
+                      constraint oan_post_status_ck check (status in ('OPEN','LOCKED','HIDDEN','REMOVED')),
+  -- R20: the only column in the shared Text index. Holds title + body while the post is OPEN/LOCKED
+  -- in an OPEN, ACTIVE group; NULL otherwise. Maintained by oan_group_pkg (incl. group visibility changes).
+  search_body         clob,
+  accepted_comment_id number,
+  comment_count       number default 0 not null,
+  last_activity_at    timestamp with time zone default systimestamp not null,
+  edited_at           timestamp with time zone,
+  row_version         number default 1 not null,
+  created_at          timestamp with time zone default systimestamp not null
+);
+create index oan_post_grp_ix    on oan_posts (group_id, status, last_activity_at);
+create index oan_post_author_ix on oan_posts (author_id);
+
+create table oan_post_comments (
   id         number generated always as identity primary key,
-  thread_id  number not null constraint oan_post_thr_fk references oan_threads on delete cascade,
-  author_id  number not null constraint oan_post_author_fk references oan_users,
+  post_id    number not null constraint oan_pc_post_fk references oan_posts on delete cascade,
+  author_id  number not null constraint oan_pc_author_fk references oan_users,
   body       clob not null,
-  is_first   varchar2(1 char) default 'N' not null constraint oan_post_first_ck check (is_first in ('Y','N')),
   status     varchar2(20 char) default 'VISIBLE' not null
-             constraint oan_post_status_ck check (status in ('VISIBLE','HIDDEN','REMOVED')),
+             constraint oan_pc_status_ck check (status in ('VISIBLE','HIDDEN','REMOVED')),
   created_at timestamp with time zone default systimestamp not null,
   edited_at  timestamp with time zone
 );
-create index oan_post_thr_ix    on oan_posts (thread_id, created_at);
-create index oan_post_author_ix on oan_posts (author_id);
+create index oan_pc_post_ix   on oan_post_comments (post_id, created_at);
+create index oan_pc_author_ix on oan_post_comments (author_id);
 
-alter table oan_threads add constraint oan_thr_acc_fk foreign key (accepted_post_id) references oan_posts on delete set null;
-create index oan_thr_acc_ix on oan_threads (accepted_post_id);
+alter table oan_posts add constraint oan_post_acc_fk foreign key (accepted_comment_id) references oan_post_comments on delete set null;
+create index oan_post_acc_ix on oan_posts (accepted_comment_id);
 
 create table oan_announcements (
   id           number generated always as identity primary key,

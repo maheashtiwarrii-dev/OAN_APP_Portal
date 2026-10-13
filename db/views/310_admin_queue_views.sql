@@ -44,8 +44,9 @@ select 'LIBRARY_REVIEW' queue_type, i.id object_id, 'LIBRARY_ITEM' object_type, 
 union all
 select 'REPORT', r.object_id, r.object_type,
        case r.object_type
-         when 'THREAD'       then (select t.title from oan_threads t where t.id = r.object_id)
-         when 'POST'         then (select substr(dbms_lob.substr(p.body, 200, 1), 1, 200) from oan_posts p where p.id = r.object_id)
+         when 'POST'         then (select p.title from oan_posts p where p.id = r.object_id)
+         when 'COMMENT'      then (select substr(dbms_lob.substr(c.body, 200, 1), 1, 200) from oan_post_comments c where c.id = r.object_id)
+         when 'GROUP'        then (select g.name from oan_groups g where g.id = r.object_id)
          when 'LIBRARY_ITEM' then (select l.title from oan_library_items l where l.id = r.object_id)
          when 'PROFILE'      then 'Member profile'
        end,

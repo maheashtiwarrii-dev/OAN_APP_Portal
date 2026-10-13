@@ -1,7 +1,7 @@
 page 32 (
-    name: New Topic
-    alias: NEW-TOPIC
-    title: Start a new topic
+    name: New Post
+    alias: NEW-POST
+    title: New post
     appearance {
         pageTemplate: @/standard
         templateOptions: #DEFAULT#
@@ -15,8 +15,8 @@ page 32 (
         formAutoComplete: false
     }
 
-    region topic (
-        name: Start a topic
+    region new-post (
+        name: Start a post
         type: staticContent
         source {
             htmlCode: <p>Keep it professional and follow the Community Guidelines. Never post confidential information.</p>
@@ -31,18 +31,18 @@ page 32 (
         }
     )
 
-    pageItem P32_FORUM_ID (
+    pageItem P32_GROUP_ID (
         type: selectList
         label {
-            label: Forum
+            label: Group
         }
         lov {
             type: sharedComponent
-            lov: @oan-forums
+            lov: @oan-groups
         }
         layout {
             sequence: 10
-            region: @topic
+            region: @new-post
             slot: regionBody
         }
         appearance {
@@ -61,11 +61,11 @@ page 32 (
         }
         lov {
             type: staticValues
-            staticValues: STATIC2:Discussion;DISCUSSION,Question (an answer can be accepted);QUESTION
+            staticValues: STATIC2:Discussion;DISCUSSION,Question (an answer can be accepted);QUESTION,Story (share your experience);STORY
         }
         layout {
             sequence: 20
-            region: @topic
+            region: @new-post
             slot: regionBody
             newColumn: true
         }
@@ -86,7 +86,7 @@ page 32 (
         }
         layout {
             sequence: 30
-            region: @topic
+            region: @new-post
             slot: regionBody
         }
         appearance {
@@ -106,7 +106,7 @@ page 32 (
         }
         layout {
             sequence: 40
-            region: @topic
+            region: @new-post
             slot: regionBody
         }
         appearance {
@@ -130,7 +130,7 @@ page 32 (
         }
         layout {
             sequence: 50
-            region: @topic
+            region: @new-post
             slot: regionBody
         }
         appearance {
@@ -143,7 +143,7 @@ page 32 (
         type: hidden
         layout {
             sequence: 60
-            region: @topic
+            region: @new-post
             slot: regionBody
         }
         security {
@@ -153,10 +153,10 @@ page 32 (
 
     button post (
         buttonName: POST
-        label: Post topic
+        label: Publish post
         layout {
             sequence: 10
-            region: @topic
+            region: @new-post
             slot: next
         }
         appearance {
@@ -170,16 +170,16 @@ page 32 (
     )
 
     process post (
-        name: Create topic
+        name: Create post
         type: executeCode
         source {
             plsqlCode:
                 ```plsql
-                :P32_NEW_ID := oan_forum_pkg.create_thread(
-                    p_forum_id    => :P32_FORUM_ID,
+                :P32_NEW_ID := oan_group_pkg.create_post(
+                    p_group_id    => :P32_GROUP_ID,
                     p_title       => :P32_TITLE,
                     p_body        => :P32_BODY,
-                    p_thread_type => :P32_TYPE,
+                    p_post_type   => :P32_TYPE,
                     p_mention_ids => :P32_MENTIONS);
                 ```
         }
@@ -191,15 +191,15 @@ page 32 (
         }
     )
 
-    branch to-topic (
-        name: To the new topic
+    branch to-post (
+        name: To the new post
         behavior {
             type: pageOrUrl
             target: {
-                page: 31
-                clearCache: 31
+                page: 37
+                clearCache: 37
                 items: {
-                    P31_ID: &P32_NEW_ID.
+                    P37_ID: &P32_NEW_ID.
                 }
             }
         }

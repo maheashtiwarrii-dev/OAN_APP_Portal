@@ -1,7 +1,7 @@
-page 31 (
-    name: Topic
-    alias: TOPIC
-    title: Discussion topic
+page 37 (
+    name: Post detail
+    alias: POST-DETAIL
+    title: Post
     appearance {
         pageTemplate: @/standard
         templateOptions: #DEFAULT#
@@ -15,11 +15,98 @@ page 31 (
         formAutoComplete: false
     }
     comments {
-        comments: FR-17 thread view, replies, @mentions, accepted answer (asker only), report (FR-25).
+        comments: FR-41 post detail (R29: formerly page 31 Topic). Post, comments, @mentions, accepted answer (asker only), report (FR-25). Data from OAN_POSTS_V / OAN_POST_COMMENTS_V (group access and blocks applied).
     }
 
-    region posts (
-        name: &P31_TITLE.
+    region post (
+        name: &P37_TITLE.
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select author_name,
+                       group_name,
+                       to_char(created_at, 'DD Mon YYYY HH24:MI') || case when edited_at is not null then ' (edited)' end posted,
+                       body
+                  from oan_posts_v
+                 where id = :P37_ID
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+            ]
+        }
+        reportLayout {
+            numberOfRows: 1
+        }
+        pagination {
+            type: rowRangesXToYNoPagination
+        }
+        messages {
+            whenNoDataFound: This post is not available.
+        }
+
+        column AUTHOR_NAME (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: Member
+            }
+            layout {
+                sequence: 1
+            }
+        )
+
+        column GROUP_NAME (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Group
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column POSTED (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Posted
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column BODY (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Message
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+    )
+
+    region comments (
+        name: Comments
         type: classicReport
         source {
             location: localDatabase
@@ -30,13 +117,13 @@ page 31 (
                        to_char(created_at, 'DD Mon YYYY HH24:MI') || case when edited_at is not null then ' (edited)' end posted,
                        case is_accepted when 'Y' then 'Accepted answer' end accepted,
                        body
-                  from oan_posts_v
-                 where thread_id = :P31_ID
+                  from oan_post_comments_v
+                 where post_id = :P37_ID
                  order by created_at
                 ```
         }
         layout {
-            sequence: 10
+            sequence: 20
             slot: body
         }
         appearance {
@@ -57,7 +144,7 @@ page 31 (
             type: nextAndPreviousLinks
         }
         messages {
-            whenNoDataFound: This topic is not available.
+            whenNoDataFound: No comments yet.
         }
 
         column AUTHOR_NAME (
@@ -97,7 +184,7 @@ page 31 (
             reportColumnQueryId: 4
             derivedColumn: N
             heading {
-                heading: Message
+                heading: Comment
             }
             layout {
                 sequence: 4
@@ -106,25 +193,8 @@ page 31 (
 
     )
 
-    region reply (
-        name: Reply
-        type: staticContent
-        layout {
-            sequence: 20
-            slot: body
-        }
-        appearance {
-            template: @/standard
-            templateOptions: #DEFAULT#
-        }
-        serverSideCondition {
-            type: rowsReturned
-            sqlQuery: select 1 from oan_threads_v where id = :P31_ID and status = 'OPEN'
-        }
-    )
-
-    region accept-answer (
-        name: Accept an answer
+    region add-comment (
+        name: Add a comment
         type: staticContent
         layout {
             sequence: 30
@@ -136,15 +206,32 @@ page 31 (
         }
         serverSideCondition {
             type: rowsReturned
-            sqlQuery: select 1 from oan_threads_v where id = :P31_ID and is_mine = 'Y' and thread_type = 'QUESTION'
+            sqlQuery: select 1 from oan_posts_v where id = :P37_ID and status = 'OPEN' and post_type != 'ANNOUNCEMENT'
         }
     )
 
-    pageItem P31_ID (
+    region accept-answer (
+        name: Accept an answer
+        type: staticContent
+        layout {
+            sequence: 40
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery: select 1 from oan_posts_v where id = :P37_ID and is_mine = 'Y' and post_type = 'QUESTION'
+        }
+    )
+
+    pageItem P37_ID (
         type: hidden
         layout {
             sequence: 10
-            region: @posts
+            region: @post
             slot: regionBody
         }
         security {
@@ -152,11 +239,11 @@ page 31 (
         }
     )
 
-    pageItem P31_TITLE (
+    pageItem P37_TITLE (
         type: hidden
         layout {
             sequence: 20
-            region: @posts
+            region: @post
             slot: regionBody
         }
         security {
@@ -164,14 +251,14 @@ page 31 (
         }
     )
 
-    pageItem P31_BODY (
+    pageItem P37_BODY (
         type: textarea
         label {
-            label: Your reply
+            label: Your comment
         }
         layout {
             sequence: 10
-            region: @reply
+            region: @add-comment
             slot: regionBody
         }
         appearance {
@@ -183,7 +270,7 @@ page 31 (
         }
     )
 
-    pageItem P31_MENTIONS (
+    pageItem P37_MENTIONS (
         type: selectMany
         label {
             label: Mention members (optional)
@@ -194,7 +281,7 @@ page 31 (
         }
         layout {
             sequence: 20
-            region: @reply
+            region: @add-comment
             slot: regionBody
         }
         appearance {
@@ -203,7 +290,7 @@ page 31 (
         }
     )
 
-    pageItem P31_ACCEPT_POST_ID (
+    pageItem P37_ACCEPT_COMMENT_ID (
         type: selectList
         label {
             label: Answer to accept
@@ -213,8 +300,8 @@ page 31 (
             sqlQuery:
                 ```sql
                 select author_name || ': ' || dbms_lob.substr(body, 80, 1) d, id r
-                  from oan_posts_v
-                 where thread_id = :P31_ID and is_first = 'N' and is_mine = 'N'
+                  from oan_post_comments_v
+                 where post_id = :P37_ID and is_mine = 'N'
                  order by created_at
                 ```
         }
@@ -229,12 +316,12 @@ page 31 (
         }
     )
 
-    button post-reply (
-        buttonName: POST_REPLY
-        label: Post reply
+    button add-comment (
+        buttonName: ADD_COMMENT
+        label: Post comment
         layout {
             sequence: 10
-            region: @reply
+            region: @add-comment
             slot: next
         }
         appearance {
@@ -266,10 +353,10 @@ page 31 (
 
     button report (
         buttonName: REPORT
-        label: Report topic
+        label: Report post
         layout {
             sequence: 10
-            region: @posts
+            region: @post
             slot: next
         }
         appearance {
@@ -285,8 +372,8 @@ page 31 (
                 page: 80
                 clearCache: 80
                 items: {
-                    P80_OBJECT_TYPE: THREAD
-                    P80_OBJECT_ID: &P31_ID.
+                    P80_OBJECT_TYPE: POST
+                    P80_OBJECT_ID: &P37_ID.
                 }
             }
             warnOnUnsavedChanges: doNotCheck
@@ -294,13 +381,13 @@ page 31 (
     )
 
     process load (
-        name: Load topic
+        name: Load post
         type: executeCode
         source {
             plsqlCode:
                 ```plsql
-                for r in (select title from oan_threads_v where id = :P31_ID) loop
-                    :P31_TITLE := r.title;
+                for r in (select title from oan_posts_v where id = :P37_ID) loop
+                    :P37_TITLE := r.title;
                 end loop;
                 ```
         }
@@ -310,8 +397,8 @@ page 31 (
         }
     )
 
-    process post-reply (
-        name: Post reply
+    process add-comment (
+        name: Add comment
         type: executeCode
         source {
             plsqlCode:
@@ -319,9 +406,9 @@ page 31 (
                 declare
                     l_id number;
                 begin
-                    l_id := oan_forum_pkg.reply(:P31_ID, :P31_BODY, :P31_MENTIONS);
-                    :P31_BODY := null;
-                    :P31_MENTIONS := null;
+                    l_id := oan_group_pkg.add_comment(:P37_ID, :P37_BODY, :P37_MENTIONS);
+                    :P37_BODY := null;
+                    :P37_MENTIONS := null;
                 end;
                 ```
         }
@@ -329,10 +416,10 @@ page 31 (
             sequence: 10
         }
         serverSideCondition {
-            whenButtonPressed: @post-reply
+            whenButtonPressed: @add-comment
         }
         successMessage {
-            successMessage: Reply posted.
+            successMessage: Comment posted.
         }
     )
 
@@ -340,7 +427,7 @@ page 31 (
         name: Accept answer
         type: executeCode
         source {
-            plsqlCode: oan_forum_pkg.accept_answer(:P31_ID, :P31_ACCEPT_POST_ID);
+            plsqlCode: oan_group_pkg.accept_answer(:P37_ID, :P37_ACCEPT_COMMENT_ID);
         }
         execution {
             sequence: 20

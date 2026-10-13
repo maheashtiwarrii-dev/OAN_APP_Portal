@@ -24,11 +24,10 @@ create index oan_li_text_ix on oan_library_items (title)
   parameters ('datastore OAN_LIB_DS lexer OAN_LEXER wordlist OAN_WORDLIST
                sync (every "freq=minutely;interval=2")');
 
-create index oan_post_text_ix on oan_posts (body)
-  indextype is ctxsys.context
-  parameters ('lexer OAN_LEXER wordlist OAN_WORDLIST sync (every "freq=minutely;interval=2")');
-
-create index oan_thr_text_ix on oan_threads (title)
+-- R20: only open-group posts are in the shared index. search_body is NULL for posts in REQUEST/PRIVATE
+-- groups or not OPEN/LOCKED, so they never match. Private groups are searched via oan_group_pkg.search;
+-- comments are not in the shared index.
+create index oan_post_text_ix on oan_posts (search_body)
   indextype is ctxsys.context
   parameters ('lexer OAN_LEXER wordlist OAN_WORDLIST sync (every "freq=minutely;interval=2")');
 

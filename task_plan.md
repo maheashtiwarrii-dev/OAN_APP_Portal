@@ -25,10 +25,13 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 - **Toolchain installed (12 Oct 2026):** Node 24.20, Oracle JDK 21.0.12, SQLcl 26.2.2.
 - **SQLcl 26.2.2 offline `apex validate` passes on the whole app**, after fixing the page 21 download process and two template options.
 - **M.1 is blocked by tooling:** SQLcl 26.2.2 does not yet accept APEXLang 26.2 metadata (`26.2.0+3479`), so the app keeps `26.1.0+3102`.
-- **Next (S0):**
-  1. M.1: 26.2 metadata;
-  2. M.2: groups refactor, offline, before the first shared deploy (S12);
-  3. spikes once G0 is met.
+- **13 Oct:** M.2 groups refactor done offline (`[A]`). Flow priority set in `docs/05-flow-priority.md` (P0–P4); it orders work within waves, the test order and the descope order.
+- **Next:** W0 P0 flows offline, in rank order:
+  1. page 115 onboarding conversation + `oan_chat_pkg`;
+  2. 109 Access denied;
+  3. admin 1010/1011 approvals, 1020/1021 members and roles, 1050/1051 moderation;
+  4. spikes once G0 is met.
+- **Every iteration is committed and pushed** to `github.com/maheashtiwarrii-dev/OAN_APP_Portal`.
 
 ---
 
@@ -239,7 +242,7 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 | ID | Task | Delivers | Est | Status |
 |---|---|---|---|---|
 | M.1 | **26.1 → 26.2 (R30):**<br>• set `.apex/apexlang.json` to the 26.2 metadata version used by the 26.2 skill examples (`26.2.0+3479`);<br>• when dev is live, confirm it with an `apex export -exptype APEXLANG` round-trip;<br>• author against the 26.2 inventory; SQLcl 26.2 offline validate;<br>• record 26.1-only constructs;<br>• correct `findings.md` (S18). | Q27, R30 | 1.5 | [!] **SQLcl 26.2.2 (the latest in winget) rejects `mmdVersion 26.2.0+3479`** ("not supported by this SQLcl version"). The app stays on `26.1.0+3102`, which validates. Retry when a newer SQLcl ships, or when the dev ADB runs APEX 26.2 (export round-trip) |
-| M.2 | **Groups refactor (R29, S12, S19):**<br>• renames: `OAN_FORUMS` → `OAN_GROUPS`; `OAN_THREADS` → `OAN_POSTS` (+ `search_body`, S16); `OAN_POSTS` → `OAN_POST_COMMENTS`; `oan_forum_pkg` → `oan_group_pkg`;<br>• CHECK lists; views, LOVs, Text indexes, PD registry, deletion, tests; `MATCHING_REQUIREMENT` → `MATCHING_OPPORTUNITY`;<br>• **pages: 30 Groups, 31 Group home, 32 New post, current p00031 → p00037 Post detail**; search link and navigation updated;<br>• the DDL parts of 1.30 and 1.32–1.35 folded in place. | R29, FR-41 | 3.5 | [ ] |
+| M.2 | **Groups refactor (R29, S12, S19):**<br>• renames: `OAN_FORUMS` → `OAN_GROUPS`; `OAN_THREADS` → `OAN_POSTS` (+ `search_body`, S16); `OAN_POSTS` → `OAN_POST_COMMENTS`; `oan_forum_pkg` → `oan_group_pkg`;<br>• CHECK lists; views, LOVs, Text indexes, PD registry, deletion, tests; `MATCHING_REQUIREMENT` → `MATCHING_OPPORTUNITY`;<br>• **pages: 30 Groups, 31 Group home, 32 New post, current p00031 → p00037 Post detail**; search link and navigation updated;<br>• the DDL parts of 1.30 and 1.32–1.35 folded in place. | R29, FR-41 | 3.5 | [A] 13 Oct. Done offline: DDL (`oan_groups`, `oan_group_members`, `oan_posts` + `search_body`, `oan_post_comments`), CHECK lists, PD registry, Text index on `search_body`, `oan_group_pkg` (replaces `oan_forum_pkg`), moderation, search, views, LOV, seed (+ BUSINESS_IDEAS group), pages 30/32/37 (p00031 removed), nav labels. Page 31 Group home is part of W6.1 |
 
 ### WS1 — Database foundation, schema `OAN_DATA` (S1–S2)
 | ID | Task | Delivers | Est | Status |

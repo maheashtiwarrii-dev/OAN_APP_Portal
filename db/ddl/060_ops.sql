@@ -39,7 +39,7 @@ create table oan_notif_prefs (
 create table oan_reports (
   id               number generated always as identity primary key,
   object_type      varchar2(30 char) not null
-                   constraint oan_rep_type_ck check (object_type in ('THREAD','POST','LIBRARY_ITEM','PROFILE')),
+                   constraint oan_rep_type_ck check (object_type in ('POST','COMMENT','GROUP','LIBRARY_ITEM','PROFILE')),
   object_id        number not null,
   reporter_id      number constraint oan_rep_reporter_fk references oan_users on delete set null,
   subject_user_id  number constraint oan_rep_subject_fk references oan_users on delete set null,  -- author of reported item
@@ -63,7 +63,7 @@ create table oan_moderation_actions (
   id              number generated always as identity primary key,
   object_type     varchar2(30 char) not null
                   constraint oan_ma_type_ck check (object_type in
-                    ('THREAD','POST','LIBRARY_ITEM','PROFILE','USER','REGISTRATION','IP_REPORT','REPORT')),
+                    ('POST','COMMENT','GROUP','LIBRARY_ITEM','PROFILE','USER','REGISTRATION','IP_REPORT','REPORT')),
   object_id       number not null,
   queue           varchar2(20 char) not null constraint oan_ma_queue_ck check (queue in ('PRE','POST','REPORT','APPROVAL','IP')),
   action          varchar2(30 char) not null

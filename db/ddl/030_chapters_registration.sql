@@ -56,11 +56,11 @@ create table oan_chapter_requests (
   created_at        timestamp with time zone default systimestamp not null
 );
 
--- Polymorphic chapter scoping for help requests, requirements, initiatives, library items, events
+-- Polymorphic chapter scoping for help requests, talent requests, initiatives, library items, events, groups
 create table oan_scope_chapters (
   object_type varchar2(30 char) not null
               constraint oan_sc_type_ck check (object_type in
-                ('LIBRARY_ITEM','HELP_REQUEST','REQUIREMENT','INITIATIVE','EVENT','ANNOUNCEMENT','FORUM')),
+                ('LIBRARY_ITEM','HELP_REQUEST','TALENT_REQUEST','INITIATIVE','EVENT','ANNOUNCEMENT','GROUP')),
   object_id   number not null,
   chapter_id  number not null constraint oan_sc_chap_fk references oan_chapters,
   constraint oan_sc_pk primary key (object_type, object_id, chapter_id)

@@ -36,6 +36,16 @@
 | 9PM-13 | SQLcl 26.2 offline `apex validate` | First run found 2 errors + 2 warnings (page 21 Download process must run Before Header; `location` not allowed; 2 template options). Fixed → **"Validation successful"**. CI scripts fixed for Windows PowerShell's stdin BOM |
 | 9PM-14 | M.1: `apexlang.json` set to 26.2.0+3479 | **Rejected by SQLcl 26.2.2** ("APEXlang version 26.2.0+3479 is not supported by this SQLcl version"). 26.2.2 is the newest SQLcl in winget. Reverted to 26.1.0+3102 (validates). M.1 marked `[!]` |
 
+| 9PM-15 | All project artifacts pushed to GitHub (user request) | `maheashtiwarrii-dev/OAN_APP_Portal` (public), commit `3a156a9`, 111 files; secret scan clean; README + .gitattributes added |
+
+## 2026-10-13 — Session 1 continued (iteration 2)
+| Step | Action | Result |
+|---|---|---|
+| I2-1 | User asked how many sprints and milestones are planned | 16 sprints S0–S15 (19 Oct 2026 – 28 May 2027); 11 gates + gate 8.0 go-live; 3 product-owner demos |
+| I2-2 | User asked to push to GitHub after every iteration | Saved as a standing rule (memory) |
+| I2-3 | User asked Claude to prioritise the flows | `docs/05-flow-priority.md`: 26 flows ranked into tiers P0–P4 within the approved waves |
+| I2-4 | M.2 groups refactor (R29, S12, S16, S19) | Forums/threads/posts → groups/posts/comments across DDL, packages, views, seed, LOV and pages 30/32/37; `search_body` index (R20); `oan_group_pkg` |
+
 ## Next
 - M.2 groups refactor (offline, before the first shared deploy), incl. the p00031 → p00037 renumber and `search_body`.
 - W0 completion offline: pages 109 and 115 and admin pages 1010–1080, plus W0.18–W0.20, each validated with `ci/validate-apex-app.ps1`.

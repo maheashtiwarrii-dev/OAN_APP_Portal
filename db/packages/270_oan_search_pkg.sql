@@ -58,17 +58,17 @@ create or replace package body oan_search_pkg as
       pipe row (oan_search_row('LIBRARY', r.id, r.title, r.snippet, 21, r.sc));
     end loop;
 
-    -- Discussion threads (title) and posts (body)
-    for r in (select t.id, t.title, t.forum_name snippet, max(sc) sc
-                from (select th.id, score(2) sc from oan_threads th where contains(th.title, l_expr, 2) > 0
-                      union all
-                      select p.thread_id, score(3) from oan_posts p
-                       where contains(p.body, l_expr, 3) > 0 and p.status = 'VISIBLE') hits
-                join oan_threads_v t on t.id = hits.id
-               group by t.id, t.title, t.forum_name
-               order by max(sc) desc
+    -- Group posts: only OPEN-group posts carry search_body (R20); the secure view re-checks
+    -- status, group access and blocks in case the index is behind. Private groups and messages
+    -- are never searched here.
+    for r in (select v.id, v.title, v.group_name snippet, score(2) sc
+                from oan_posts p
+                join oan_posts_v v on v.id = p.id
+               where contains(p.search_body, l_expr, 2) > 0
+                 and v.group_visibility = 'OPEN'
+               order by score(2) desc
                fetch first p_max_rows rows only) loop
-      pipe row (oan_search_row('DISCUSSION', r.id, r.title, r.snippet, 31, r.sc));
+      pipe row (oan_search_row('POST', r.id, r.title, r.snippet, 37, r.sc));
     end loop;
 
     -- Members: name + headline only (never section-level fields, P31)

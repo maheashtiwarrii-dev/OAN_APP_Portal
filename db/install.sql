@@ -34,7 +34,7 @@ whenever sqlerror continue
 @@packages/210_oan_taxonomy_pkg.sql
 @@packages/220_oan_file_pkg.sql
 @@packages/230_oan_library_pkg.sql
-@@packages/240_oan_forum_pkg.sql
+@@packages/240_oan_group_pkg.sql
 @@packages/250_oan_moderation_pkg.sql
 @@packages/260_oan_privacy_pkg.sql
 @@packages/270_oan_search_pkg.sql

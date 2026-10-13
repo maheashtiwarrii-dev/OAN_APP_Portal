@@ -47,13 +47,13 @@ using (select 'ACCOUNT_DECISION' c,     1 ph, 'INSTANT' m, 'Y' mand, 'Account ap
        select 'APPROVAL_QUEUE',         1, 'INSTANT', 'N', 'Items waiting in my approval queue (approvers)' from dual union all
        select 'MODERATION_QUEUE',       1, 'INSTANT', 'N', 'Items waiting in my moderation queue (moderators)' from dual union all
        select 'MENTION',                1, 'DIGEST',  'N', '@mention' from dual union all
-       select 'THREAD_REPLY',           1, 'DIGEST',  'N', 'Reply to my thread' from dual union all
+       select 'POST_COMMENT',           1, 'DIGEST',  'N', 'Comment on my post' from dual union all
        select 'ACCEPTED_ANSWER',        1, 'DIGEST',  'N', 'My answer was accepted' from dual union all
        select 'LIBRARY_FOLLOWED_TAG',   1, 'DIGEST',  'N', 'New Library item in a tag I follow' from dual union all
        select 'CONNECTION',             2, 'INSTANT', 'N', 'Connection request / accepted, introductions' from dual union all
        select 'NEW_MESSAGE',            2, 'DIGEST',  'N', 'New message' from dual union all
        select 'HELP_RESPONSE',          2, 'INSTANT', 'N', 'Help request response / thanks' from dual union all
-       select 'MATCHING_REQUIREMENT',   2, 'DIGEST',  'N', 'Requirement matching my profile (opt-in)' from dual union all
+       select 'MATCHING_OPPORTUNITY',   2, 'DIGEST',  'N', 'Job or talent request matching my profile (opt-in)' from dual union all
        select 'INTEREST',               2, 'INSTANT', 'N', 'Interest received / shortlisted / declined' from dual union all
        select 'EXPERT_REQUEST',         2, 'INSTANT', 'N', 'Expert requests and office hours' from dual union all
        select 'APPLICATION_DECISION',   2, 'INSTANT', 'Y', 'Expert / partner / chapter application decision' from dual union all
@@ -221,16 +221,18 @@ begin
 end;
 /
 
------------------------------------------------------------------- forums ------
-merge into oan_forums f
+------------------------------------------------------------------ groups ------
+-- Platform groups are OPEN and owned by no member (R19); member-requested groups come in W6.1
+merge into oan_groups g
 using (select 'GENERAL' c, 'General' n, 'Introductions and community conversation' d, 'TOPIC' t, 'N' a, 1 s from dual union all
        select 'TECHNICAL', 'Technical', 'Technology questions and discussions', 'TOPIC', 'N', 2 from dual union all
        select 'CAREER', 'Career', 'Careers, mentoring and job market', 'TOPIC', 'N', 3 from dual union all
+       select 'BUSINESS_IDEAS', 'Business ideas', 'Explore business ideas and find collaborators (J-07)', 'BUSINESS_IDEAS', 'N', 4 from dual union all
        select 'ANNOUNCEMENTS', 'Announcements', 'Official OAN announcements', 'ANNOUNCEMENTS', 'Y', 0 from dual union all
        select 'IMPORTED', 'Imported Knowledge', 'Curated, anonymized history from earlier OAN channels', 'IMPORTED', 'Y', 9 from dual) s
-   on (f.code = s.c)
- when not matched then insert (code, name, description, forum_type, admin_post_only, sort_order)
-                       values (s.c, s.n, s.d, s.t, s.a, s.s);
+   on (g.code = s.c)
+ when not matched then insert (code, name, description, group_type, visibility, admin_post_only, sort_order)
+                       values (s.c, s.n, s.d, s.t, 'OPEN', s.a, s.s);
 
 ------------------------------------------------- screening deny-list ----------
 insert into oan_screen_denylist (term, term_type)

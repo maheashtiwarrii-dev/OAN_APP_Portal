@@ -13,7 +13,7 @@ begin
   -- Package APIs called from pages, authentication schemes and automations
   for p in (select column_value obj from table(sys.odcivarchar2list(
               'OAN_CTX_PKG','OAN_AUTH_PKG','OAN_REGISTRATION_PKG','OAN_PROFILE_PKG','OAN_TAXONOMY_PKG',
-              'OAN_FILE_PKG','OAN_LIBRARY_PKG','OAN_FORUM_PKG','OAN_MODERATION_PKG','OAN_NOTIFY_PKG',
+              'OAN_FILE_PKG','OAN_LIBRARY_PKG','OAN_GROUP_PKG','OAN_MODERATION_PKG','OAN_NOTIFY_PKG',
               'OAN_PRIVACY_PKG','OAN_SEARCH_PKG','OAN_JOBS_PKG','OAN_SECURITY_PKG','OAN_CHAPTER_PKG','OAN_ERROR_PKG',
               'OAN_SEARCH_ROW','OAN_SEARCH_TAB'))) loop
     execute immediate 'grant execute on ' || p.obj || ' to oan_app';

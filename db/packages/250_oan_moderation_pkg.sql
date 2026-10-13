@@ -20,8 +20,9 @@ create or replace package body oan_moderation_pkg as
     l_id number;
   begin
     case p_object_type
-      when 'THREAD'       then select author_id into l_id from oan_threads       where id = p_object_id;
       when 'POST'         then select author_id into l_id from oan_posts         where id = p_object_id;
+      when 'COMMENT'      then select author_id into l_id from oan_post_comments where id = p_object_id;
+      when 'GROUP'        then select owner_id  into l_id from oan_groups        where id = p_object_id;
       when 'LIBRARY_ITEM' then select author_id into l_id from oan_library_items where id = p_object_id;
       when 'PROFILE'      then l_id := p_object_id;
       when 'USER'         then l_id := p_object_id;
@@ -89,14 +90,15 @@ create or replace package body oan_moderation_pkg as
   begin
     if p_action not in ('HIDE','REMOVE','UNHIDE','LOCK') then return; end if;
     case p_object_type
-      when 'THREAD' then
-        update oan_threads
+      when 'POST' then
+        update oan_posts
            set status = case p_action when 'LOCK' then 'LOCKED' when 'UNHIDE' then 'OPEN' else l_status end,
                row_version = row_version + 1
          where id = p_object_id;
-      when 'POST' then
-        oan_util.assert(p_action != 'LOCK', 'Posts cannot be locked.');
-        update oan_posts set status = l_status where id = p_object_id;
+        oan_group_pkg.refresh_search_body(p_object_id);   -- hidden/removed posts leave the shared index (R20)
+      when 'COMMENT' then
+        oan_util.assert(p_action != 'LOCK', 'Comments cannot be locked.');
+        update oan_post_comments set status = l_status where id = p_object_id;
       when 'LIBRARY_ITEM' then
         update oan_library_items
            set status = case p_action when 'UNHIDE' then 'PUBLISHED' else l_status end, row_version = row_version + 1

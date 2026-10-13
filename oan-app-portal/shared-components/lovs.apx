@@ -99,14 +99,14 @@ lov oan-experience-bands (
     }
 )
 
-lov oan-forums (
-    name: OAN_FORUMS
+lov oan-groups (
+    name: OAN_GROUPS
     source {
         location: localDatabase
         type: sqlQuery
         sqlQuery:
             ```sql
-            select d, r from oan_forums_lov_v
+            select d, r from oan_groups_lov_v
             ```
     }
     columnMapping {

@@ -225,38 +225,47 @@ select f.id file_id, f.content, f.filename, f.mime_type
 create or replace view oan_public_library_ref_v as
 select i.id, i.title from oan_library_items i where i.status = 'PUBLISHED';
 
-------------------------------------------------------------- discussions --------
-create or replace view oan_forums_v as
-select f.id, f.code, f.name, f.description, f.forum_type, f.admin_post_only, f.sort_order,
-       (select count(*) from oan_threads t where t.forum_id = f.id and t.status in ('OPEN','LOCKED')) thread_count,
-       (select max(t.last_post_at) from oan_threads t where t.forum_id = f.id and t.status in ('OPEN','LOCKED')) last_activity
-  from oan_forums f
- where f.status = 'ACTIVE' and f.scope_type = 'GLOBAL'
-   and sys_context('OAN_CTX','VIEWER_TYPE') = 'MEMBER';
-
-create or replace view oan_threads_v as
-select t.id, t.forum_id, f.name forum_name, t.title, t.thread_type, t.status, t.accepted_post_id,
-       t.post_count, t.last_post_at, t.created_at, t.author_id, t.row_version,
-       coalesce((select c.display_name from oan_member_card_v c where c.user_id = t.author_id), 'Former member') author_name,
-       case when t.author_id = to_number(sys_context('OAN_CTX','VIEWER_ID')) then 'Y' else 'N' end is_mine
-  from oan_threads t
-  join oan_forums_v f on f.id = t.forum_id
- where t.status in ('OPEN','LOCKED')
-   and not exists (select 1 from oan_blocks b
-                    where (b.blocker_id = t.author_id and b.blocked_id = to_number(sys_context('OAN_CTX','VIEWER_ID')))
-                       or (b.blocked_id = t.author_id and b.blocker_id = to_number(sys_context('OAN_CTX','VIEWER_ID'))));
+------------------------------------------------------------- groups (R29) -------
+-- A group is visible when ACTIVE and OPEN, or when the viewer is an ACTIVE member (R19).
+-- 1.30 replaces the membership predicate with the oan_vis.in_group macro.
+create or replace view oan_groups_v as
+select g.id, g.code, g.name, g.description, g.group_type, g.visibility, g.admin_post_only, g.sort_order,
+       (select count(*) from oan_posts p where p.group_id = g.id and p.status in ('OPEN','LOCKED')) post_count,
+       (select max(p.last_activity_at) from oan_posts p where p.group_id = g.id and p.status in ('OPEN','LOCKED')) last_activity,
+       case when exists (select 1 from oan_group_members m
+                          where m.group_id = g.id and m.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID'))
+                            and m.status = 'ACTIVE') then 'Y' else 'N' end is_member
+  from oan_groups g
+ where g.status = 'ACTIVE' and g.scope_type = 'GLOBAL'
+   and sys_context('OAN_CTX','VIEWER_TYPE') = 'MEMBER'
+   and (g.visibility = 'OPEN'
+        or exists (select 1 from oan_group_members m
+                    where m.group_id = g.id and m.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID'))
+                      and m.status = 'ACTIVE'));
 
 create or replace view oan_posts_v as
-select p.id, p.thread_id, p.body, p.is_first, p.created_at, p.edited_at, p.author_id,
+select p.id, p.group_id, g.name group_name, g.visibility group_visibility, p.title, p.body, p.post_type, p.status,
+       p.accepted_comment_id, p.comment_count, p.last_activity_at, p.created_at, p.edited_at, p.author_id, p.row_version,
        coalesce((select c.display_name from oan_member_card_v c where c.user_id = p.author_id), 'Former member') author_name,
-       case when p.author_id = to_number(sys_context('OAN_CTX','VIEWER_ID')) then 'Y' else 'N' end is_mine,
-       case when t.accepted_post_id = p.id then 'Y' else 'N' end is_accepted
+       case when p.author_id = to_number(sys_context('OAN_CTX','VIEWER_ID')) then 'Y' else 'N' end is_mine
   from oan_posts p
-  join oan_threads_v t on t.id = p.thread_id
- where p.status = 'VISIBLE'
+  join oan_groups_v g on g.id = p.group_id
+ where p.status in ('OPEN','LOCKED')
    and not exists (select 1 from oan_blocks b
                     where (b.blocker_id = p.author_id and b.blocked_id = to_number(sys_context('OAN_CTX','VIEWER_ID')))
                        or (b.blocked_id = p.author_id and b.blocker_id = to_number(sys_context('OAN_CTX','VIEWER_ID'))));
+
+create or replace view oan_post_comments_v as
+select c.id, c.post_id, c.body, c.created_at, c.edited_at, c.author_id,
+       coalesce((select m.display_name from oan_member_card_v m where m.user_id = c.author_id), 'Former member') author_name,
+       case when c.author_id = to_number(sys_context('OAN_CTX','VIEWER_ID')) then 'Y' else 'N' end is_mine,
+       case when p.accepted_comment_id = c.id then 'Y' else 'N' end is_accepted
+  from oan_post_comments c
+  join oan_posts_v p on p.id = c.post_id
+ where c.status = 'VISIBLE'
+   and not exists (select 1 from oan_blocks b
+                    where (b.blocker_id = c.author_id and b.blocked_id = to_number(sys_context('OAN_CTX','VIEWER_ID')))
+                       or (b.blocked_id = c.author_id and b.blocker_id = to_number(sys_context('OAN_CTX','VIEWER_ID'))));
 
 create or replace view oan_announcements_v as
 select a.id, a.title, a.body, a.publish_from
@@ -301,9 +310,10 @@ select t.name || case when t.status = 'MERGED' then ' (' || c.name || ')' end d,
   left join oan_taxonomy_terms c on c.id = t.canonical_id
  where t.status in ('APPROVED','MERGED');
 
-create or replace view oan_forums_lov_v as
-select f.name d, f.id r from oan_forums_v f
- where f.admin_post_only = 'N' or sys_context('OAN_CTX','IS_ADMIN') = 'Y';
+-- Groups the viewer may post in
+create or replace view oan_groups_lov_v as
+select g.name d, g.id r from oan_groups_v g
+ where g.admin_post_only = 'N' or sys_context('OAN_CTX','IS_ADMIN') = 'Y';
 
 -- Published legal texts are public (landing, register, legal pages)
 create or replace view oan_terms_v as

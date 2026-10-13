@@ -43,8 +43,10 @@ insert into oan_pd_tables values ('OAN_CONNECTIONS',        'USER_LOW',         
 insert into oan_pd_tables values ('OAN_REGISTRATION_APPS',  'USER_ID',          'DELETE',       'Y', 20);
 insert into oan_pd_tables values ('OAN_PROFILES',           'USER_ID',          'DELETE',       'Y', 30);
 insert into oan_pd_tables values ('OAN_FILES',              'OWNER_ID',         'DELETE',       'N', 40);  -- profile photo / exports; library files reassigned first
-insert into oan_pd_tables values ('OAN_THREADS',            'AUTHOR_ID',        'REASSIGN',     'Y', 50);
+insert into oan_pd_tables values ('OAN_GROUP_MEMBERS',      'USER_ID',          'DELETE',       'Y', 10);
+insert into oan_pd_tables values ('OAN_GROUPS',             'OWNER_ID',         'REASSIGN',     'Y', 50);
 insert into oan_pd_tables values ('OAN_POSTS',              'AUTHOR_ID',        'REASSIGN',     'Y', 50);
+insert into oan_pd_tables values ('OAN_POST_COMMENTS',      'AUTHOR_ID',        'REASSIGN',     'Y', 50);
 insert into oan_pd_tables values ('OAN_LIBRARY_ITEMS',      'AUTHOR_ID',        'REASSIGN',     'Y', 50);
 insert into oan_pd_tables values ('OAN_REPORTS',            'REPORTER_ID',      'ANONYMIZE',    'Y', 50);
 insert into oan_pd_tables values ('OAN_IP_REPORTS',         'REPORTER_USER_ID', 'ANONYMIZE',    'Y', 50);
@@ -95,7 +97,10 @@ select t, c, cls, exp from (
   select 'OAN_REGISTRATION_APPS','MORE_INFO_RESPONSE','PERSONAL','Y' from dual union all
   select 'OAN_FILES','CONTENT','PERSONAL','N' from dual union all
   select 'OAN_FILES','FILENAME','PERSONAL','Y' from dual union all
+  select 'OAN_POSTS','TITLE','PERSONAL','Y' from dual union all
   select 'OAN_POSTS','BODY','PERSONAL','Y' from dual union all
+  select 'OAN_POSTS','SEARCH_BODY','PERSONAL','N' from dual union all      -- derived copy of title + body
+  select 'OAN_POST_COMMENTS','BODY','PERSONAL','Y' from dual union all
   select 'OAN_CONNECTIONS','NOTE','PERSONAL','Y' from dual union all
   select 'OAN_IP_REPORTS','REPORTER_EMAIL','PERSONAL','Y' from dual union all
   select 'OAN_IP_REPORTS','REPORTER_IP_HASH','PERSONAL','N' from dual union all

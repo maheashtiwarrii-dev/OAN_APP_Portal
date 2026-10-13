@@ -176,7 +176,7 @@ list navigation-menu (
     )
 
     entry discussions (
-        label: Discussions
+        label: Groups
         icon {
             imageIconCssClasses: fa-comments-o
         }

@@ -15,14 +15,14 @@ page 1 (
         formAutoComplete: false
     }
     comments {
-        comments: FR-29 member home (P1): onboarding checklist, announcements, new/featured Library, recent discussions, notifications. Non-active users are routed to their status page.
+        comments: FR-29 member home (P1): onboarding checklist, announcements, new/featured Library, recent group posts, notifications. Non-active users are routed to their status page.
     }
 
     region welcome (
         name: Welcome, &APP_USER_DISPLAY.
         type: staticContent
         source {
-            htmlCode: <p>Your OAN community: knowledge, discussions and your chapters in one place.</p>
+            htmlCode: <p>Your OAN community: knowledge, groups and your chapters in one place.</p>
         }
         layout {
             sequence: 5
@@ -179,16 +179,17 @@ page 1 (
     )
 
     region recent-discussions (
-        name: Recent discussions
+        name: Recent posts
         type: classicReport
         source {
             location: localDatabase
             type: sqlQuery
             sqlQuery:
                 ```sql
-                select id, title, forum_name, author_name, to_char(last_post_at, 'DD Mon HH24:MI') last_activity, post_count
-                  from oan_threads_v
-                 order by last_post_at desc
+                select id, title, group_name, author_name, to_char(last_activity_at, 'DD Mon HH24:MI') last_activity, comment_count
+                  from oan_posts_v
+                 where group_visibility = 'OPEN'
+                 order by last_activity_at desc
                  fetch first 6 rows only
                 ```
         }
@@ -205,7 +206,7 @@ page 1 (
             templateOptions: #DEFAULT#
         }
         messages {
-            whenNoDataFound: No discussions yet. Start one from the Discussions page.
+            whenNoDataFound: No posts yet. Start one from the Groups page.
         }
 
         column ID (
@@ -222,27 +223,27 @@ page 1 (
             derivedColumn: N
             type: link
             heading {
-                heading: Topic
+                heading: Post
             }
             layout {
                 sequence: 2
             }
             link {
                 target: {
-                    page: 31
+                    page: 37
                     items: {
-                        P31_ID: \#ID#\
+                        P37_ID: \#ID#\
                     }
                 }
                 linkText: #TITLE#
             }
         )
 
-        column FORUM_NAME (
+        column GROUP_NAME (
             reportColumnQueryId: 3
             derivedColumn: N
             heading {
-                heading: Forum
+                heading: Group
             }
             layout {
                 sequence: 3
@@ -253,7 +254,7 @@ page 1 (
             reportColumnQueryId: 4
             derivedColumn: N
             heading {
-                heading: Started by
+                heading: Posted by
             }
             layout {
                 sequence: 4
@@ -271,11 +272,11 @@ page 1 (
             }
         )
 
-        column POST_COUNT (
+        column COMMENT_COUNT (
             reportColumnQueryId: 6
             derivedColumn: N
             heading {
-                heading: Posts
+                heading: Comments
             }
             layout {
                 sequence: 6

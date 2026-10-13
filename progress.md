@@ -155,3 +155,10 @@
 | I12-3 | Tests | `ut_oan_directory` 9 tests (AC1 hidden, connections-only, AC2 next query, config default, macro = reference, masked facets, self excluded, audit + version); 40/40 across suites |
 | I12-4 | Pages | 20 Directory (search + browse), 21 Directory results (cards + faceted search, sort), page 26 directory and messaging settings; W2_DIRECTORY build option on (rail entry visible) |
 | I12-5 | Deploy | Installed on dev; app 200 re-imported (39 pages); 33/33 queries parse as OAN_APP; validate and brand check pass |
+
+## Iteration 13 — synthetic members on dev (13 Oct 2026)
+| Step | Action | Result |
+|---|---|---|
+| I13-1 | User asked for synthetic members | `db/dev/600_oan_synth_pkg.sql` + `db/dev/install_dev.sql` (DEV ONLY, not in install.sql, not granted to OAN_APP; guard config SYNTHETIC_DATA_ALLOWED; reserved domain `@synthetic.oan.invalid`; `purge`) |
+| I13-2 | Generated on dev | 500 members (seed 42): 434 visible, 46 connections-only, 21 hidden; 1,501 connections; all with a primary chapter (45 chapters); average completeness 79%; ~15% WORK=CONNECTIONS, ~5% LOCATION=PRIVATE |
+| I13-3 | Test member | `test.member@synthetic.oan.invalid` (ACTIVE, local password, current consents, 12 connections). Password given to the user once in chat, never stored. `authenticate` OK; 445 directory-visible members, 55 correctly excluded |

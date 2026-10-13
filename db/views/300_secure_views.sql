@@ -315,6 +315,66 @@ create or replace view oan_groups_lov_v as
 select g.name d, g.id r from oan_groups_v g
  where g.admin_post_only = 'N' or sys_context('OAN_CTX','IS_ADMIN') = 'Y';
 
+------------------------------------------------------- onboarding (FR-34) ------
+-- The viewer's own onboarding conversation with the draft-profile values for the summary step
+-- (oan_my_onboarding_v is the separate Home checklist view)
+create or replace view oan_my_onboarding_chat_v as
+select s.id session_id, s.status, s.current_step, s.primary_intent, s.role_codes, s.completed_at,
+       st.label step_prompt, st.description step_help, st.sort_order step_no,
+       p.first_name, p.last_name, p.job_title, p.current_org, p.location_id,
+       (select l.name from oan_locations l where l.id = p.location_id) location_name,
+       (select listagg(t.name, ', ') within group (order by t.name)
+          from oan_profile_skills ps join oan_taxonomy_terms t on t.id = ps.term_id
+         where ps.user_id = s.user_id) skills,
+       (select listagg(ps.term_id, ':') within group (order by ps.term_id)
+          from oan_profile_skills ps where ps.user_id = s.user_id) skill_ids,
+       (select i.label from oan_lu_codes i where i.code_type = 'INTENT' and i.code = s.primary_intent) intent_label,
+       (select listagg(r.label, ', ') within group (order by r.sort_order)
+          from oan_lu_codes r
+         where r.code_type = 'ONBOARD_ROLE'
+           and r.code in (select column_value from table(apex_string.split(s.role_codes, ':')))) roles_label
+  from oan_chat_sessions s
+  join oan_profiles p on p.user_id = s.user_id
+  left join oan_lu_codes st on st.code_type = 'ONBOARD_STEP' and st.code = s.current_step
+ where s.purpose = 'ONBOARDING'
+   and s.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID'));
+
+-- Transcript in the column shape of the Universal Theme "Comments" report template (chat style).
+-- Rebuilt from codes: the bot line is the step's question, the member line names the option chosen.
+create or replace view oan_my_chat_transcript_v as
+select m.id,
+       case m.speaker when 'BOT' then 'OAN' else 'You' end user_name,
+       case m.speaker when 'BOT' then 'O' else 'Y' end user_icon,
+       case m.speaker when 'BOT' then 'u-color-1' else 'u-color-7' end icon_modifier,
+       case m.speaker when 'MEMBER' then 'is-mine' end comment_modifiers,
+       to_char(m.created_at, 'HH24:MI') comment_date,
+       case
+         when m.speaker = 'BOT' and m.option_code = 'REVISIT' then 'Let us revisit this one. ' || st.label
+         when m.speaker = 'BOT' then st.label
+         when m.option_code = 'START' then 'Let us start.'
+         when m.option_code = 'ANSWERED' then 'Saved.'
+         when m.option_code = 'SKIPPED' then 'Skipped for now.'
+         when m.option_code = 'CONFIRMED' then 'Confirmed.'
+         else coalesce((select o.label from oan_lu_codes o
+                         where o.code_type in ('INTENT','ONBOARD_ROLE') and o.code = m.option_code
+                         fetch first 1 row only), 'Saved.')
+       end comment_text,
+       null actions
+  from oan_chat_messages m
+  join oan_chat_sessions s on s.id = m.session_id
+  left join oan_lu_codes st on st.code_type = 'ONBOARD_STEP' and st.code = m.step_code
+ where s.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID'));
+
+create or replace view oan_intents_lov_v as
+select c.label d, c.code r, c.sort_order, c.journey, c.landing_page, c.live_yn
+  from oan_lu_codes c
+ where c.code_type = 'INTENT' and c.active_yn = 'Y';
+
+create or replace view oan_onboard_roles_lov_v as
+select c.label d, c.code r, c.sort_order
+  from oan_lu_codes c
+ where c.code_type = 'ONBOARD_ROLE' and c.active_yn = 'Y';
+
 -- Published legal texts are public (landing, register, legal pages)
 create or replace view oan_terms_v as
 select t.id, t.doc_type, t.version_no, t.title, t.body, t.effective_from

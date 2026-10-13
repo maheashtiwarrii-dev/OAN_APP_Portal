@@ -1,0 +1,881 @@
+page 115 (
+    name: Onboarding Conversation
+    alias: ONBOARDING-CONVERSATION
+    title: Welcome to OAN
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        authorizationScheme: @is-pending
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: FR-34 conversational onboarding (R21, S30). Between 102 (email verified, status PENDING_REGISTRATION) and 110 (membership application). Deterministic; no LLM. Answers go straight to the draft profile through OAN_CHAT_PKG; the transcript keeps step and option codes only (90 days). Resumable at the last unanswered step (AC4). Page submit per step for v1; Ajax send is a follow-up after live validation.
+    }
+
+    region conversation (
+        name: Your welcome conversation
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select user_name, user_icon, icon_modifier, comment_modifiers, comment_date, comment_text, actions
+                  from oan_my_chat_transcript_v
+                 order by id
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/comments
+            templateOptions: #DEFAULT#
+        }
+        reportLayout {
+            numberOfRows: 200
+        }
+        pagination {
+            type: rowRangesXToYNoPagination
+        }
+        messages {
+            whenNoDataFound: Starting your conversation...
+        }
+
+        column USER_NAME (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: Speaker
+            }
+            layout {
+                sequence: 1
+            }
+        )
+
+        column USER_ICON (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Icon
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column ICON_MODIFIER (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Icon style
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column COMMENT_MODIFIERS (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Style
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column COMMENT_DATE (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Time
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+        column COMMENT_TEXT (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Message
+            }
+            layout {
+                sequence: 6
+            }
+        )
+
+        column ACTIONS (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: Actions
+            }
+            layout {
+                sequence: 7
+            }
+        )
+
+    )
+
+    region step-welcome (
+        name: Ready?
+        type: staticContent
+        source {
+            htmlCode: <p>About five minutes. Every question after your name can be skipped, and you can change your answers later in My profile.</p>
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: item=value
+            item: P115_STEP
+            value: WELCOME
+        }
+    )
+
+    region step-identity (
+        name: Your name
+        type: staticContent
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: item=value
+            item: P115_STEP
+            value: IDENTITY
+        }
+    )
+
+    region step-role-org (
+        name: Your current role
+        type: staticContent
+        layout {
+            sequence: 40
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: item=value
+            item: P115_STEP
+            value: ROLE_ORG
+        }
+    )
+
+    region step-location (
+        name: Where you are based
+        type: staticContent
+        layout {
+            sequence: 50
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: item=value
+            item: P115_STEP
+            value: LOCATION
+        }
+    )
+
+    region step-skills (
+        name: Your skills
+        type: staticContent
+        layout {
+            sequence: 60
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: item=value
+            item: P115_STEP
+            value: SKILLS
+        }
+    )
+
+    region step-intent (
+        name: What brought you here
+        type: staticContent
+        layout {
+            sequence: 70
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: item=value
+            item: P115_STEP
+            value: INTENT
+        }
+    )
+
+    region step-roles (
+        name: Other ways to take part
+        type: staticContent
+        layout {
+            sequence: 80
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: item=value
+            item: P115_STEP
+            value: ROLES
+        }
+    )
+
+    region step-summary (
+        name: Check your answers
+        type: staticContent
+        source {
+            htmlCode:
+                ```html
+                <dl class="t-AVPList t-AVPList--leftAligned">
+                  <dt class="t-AVPList-label">Name</dt><dd class="t-AVPList-value">&P115_FIRST_NAME!HTML. &P115_LAST_NAME!HTML.</dd>
+                  <dt class="t-AVPList-label">Current role</dt><dd class="t-AVPList-value">&P115_JOB_TITLE!HTML. &P115_CURRENT_ORG!HTML.</dd>
+                  <dt class="t-AVPList-label">Location</dt><dd class="t-AVPList-value">&P115_LOCATION_NAME!HTML.</dd>
+                  <dt class="t-AVPList-label">Skills</dt><dd class="t-AVPList-value">&P115_SKILLS_LABEL!HTML.</dd>
+                  <dt class="t-AVPList-label">What brought you here</dt><dd class="t-AVPList-value">&P115_INTENT_LABEL!HTML.</dd>
+                  <dt class="t-AVPList-label">Other ways to take part</dt><dd class="t-AVPList-value">&P115_ROLES_LABEL!HTML.</dd>
+                </dl>
+                <p>Next you will complete a short membership application. An OAN approver reviews it, usually within three business days.</p>
+                ```
+        }
+        layout {
+            sequence: 90
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: item=value
+            item: P115_STEP
+            value: SUMMARY
+        }
+    )
+
+    pageItem P115_STEP (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @conversation
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P115_LOCATION_NAME (
+        type: hidden
+        layout {
+            sequence: 20
+            region: @conversation
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P115_SKILLS_LABEL (
+        type: hidden
+        layout {
+            sequence: 30
+            region: @conversation
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P115_INTENT_LABEL (
+        type: hidden
+        layout {
+            sequence: 40
+            region: @conversation
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P115_ROLES_LABEL (
+        type: hidden
+        layout {
+            sequence: 50
+            region: @conversation
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P115_FIRST_NAME (
+        type: textField
+        label {
+            label: First name
+        }
+        layout {
+            sequence: 10
+            region: @step-identity
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 100
+        }
+    )
+
+    pageItem P115_LAST_NAME (
+        type: textField
+        label {
+            label: Last name
+        }
+        layout {
+            sequence: 20
+            region: @step-identity
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 100
+        }
+    )
+
+    pageItem P115_JOB_TITLE (
+        type: textField
+        label {
+            label: Current role or title
+        }
+        layout {
+            sequence: 10
+            region: @step-role-org
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 200
+        }
+    )
+
+    pageItem P115_CURRENT_ORG (
+        type: textField
+        label {
+            label: Organisation
+        }
+        layout {
+            sequence: 20
+            region: @step-role-org
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 200
+        }
+    )
+
+    pageItem P115_LOCATION_ID (
+        type: popupLov
+        label {
+            label: Location
+        }
+        lov {
+            type: sharedComponent
+            lov: @oan-locations
+        }
+        layout {
+            sequence: 10
+            region: @step-location
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P115_SKILLS (
+        type: selectMany
+        label {
+            label: Skills
+        }
+        lov {
+            type: sharedComponent
+            lov: @oan-skills
+        }
+        layout {
+            sequence: 10
+            region: @step-skills
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P115_INTENT (
+        type: radioGroup
+        label {
+            label: Pick the one that fits best
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select d, r from oan_intents_lov_v order by sort_order
+                ```
+        }
+        layout {
+            sequence: 10
+            region: @step-intent
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P115_ROLES (
+        type: selectMany
+        label {
+            label: Roles (optional)
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select d, r from oan_onboard_roles_lov_v order by sort_order
+                ```
+        }
+        layout {
+            sequence: 10
+            region: @step-roles
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    button start (
+        buttonName: START
+        label: Start
+        layout {
+            sequence: 10
+            region: @step-welcome
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button save-identity (
+        buttonName: SAVE_IDENTITY
+        label: Continue
+        layout {
+            sequence: 10
+            region: @step-identity
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button save-role-org (
+        buttonName: SAVE_ROLE_ORG
+        label: Continue
+        layout {
+            sequence: 10
+            region: @step-role-org
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button skip-role-org (
+        buttonName: SKIP_ROLE_ORG
+        label: Skip
+        layout {
+            sequence: 20
+            region: @step-role-org
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button save-location (
+        buttonName: SAVE_LOCATION
+        label: Continue
+        layout {
+            sequence: 10
+            region: @step-location
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button skip-location (
+        buttonName: SKIP_LOCATION
+        label: Skip
+        layout {
+            sequence: 20
+            region: @step-location
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button save-skills (
+        buttonName: SAVE_SKILLS
+        label: Continue
+        layout {
+            sequence: 10
+            region: @step-skills
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button skip-skills (
+        buttonName: SKIP_SKILLS
+        label: Skip
+        layout {
+            sequence: 20
+            region: @step-skills
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button save-intent (
+        buttonName: SAVE_INTENT
+        label: Continue
+        layout {
+            sequence: 10
+            region: @step-intent
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button save-roles (
+        buttonName: SAVE_ROLES
+        label: Continue
+        layout {
+            sequence: 10
+            region: @step-roles
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button skip-roles (
+        buttonName: SKIP_ROLES
+        label: Skip
+        layout {
+            sequence: 20
+            region: @step-roles
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button confirm (
+        buttonName: CONFIRM
+        label: Confirm and continue to my application
+        layout {
+            sequence: 10
+            region: @step-summary
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button change (
+        buttonName: CHANGE
+        label: Change my answers
+        layout {
+            sequence: 20
+            region: @step-summary
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process load (
+        name: Start or resume the conversation
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare
+                    l_session number;
+                begin
+                    l_session := oan_chat_pkg.start_or_resume;
+                    for s in (select * from oan_my_onboarding_chat_v) loop
+                        :P115_STEP          := s.current_step;
+                        :P115_FIRST_NAME    := s.first_name;
+                        :P115_LAST_NAME     := s.last_name;
+                        :P115_JOB_TITLE     := s.job_title;
+                        :P115_CURRENT_ORG   := s.current_org;
+                        :P115_LOCATION_ID   := s.location_id;
+                        :P115_LOCATION_NAME := coalesce(s.location_name, 'Not given');
+                        :P115_SKILLS        := s.skill_ids;
+                        :P115_SKILLS_LABEL  := coalesce(s.skills, 'None yet');
+                        :P115_INTENT        := s.primary_intent;
+                        :P115_INTENT_LABEL  := s.intent_label;
+                        :P115_ROLES         := s.role_codes;
+                        :P115_ROLES_LABEL   := coalesce(s.roles_label, 'None for now');
+                    end loop;
+                end;
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+    )
+
+    process answer (
+        name: Save the answer for this step
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                case :REQUEST
+                    when 'START'         then oan_chat_pkg.answer_welcome;
+                    when 'SAVE_IDENTITY' then oan_chat_pkg.answer_identity(:P115_FIRST_NAME, :P115_LAST_NAME);
+                    when 'SAVE_ROLE_ORG' then oan_chat_pkg.answer_role_org(:P115_JOB_TITLE, :P115_CURRENT_ORG);
+                    when 'SKIP_ROLE_ORG' then oan_chat_pkg.answer_role_org(null, null, p_skip => 'Y');
+                    when 'SAVE_LOCATION' then oan_chat_pkg.answer_location(:P115_LOCATION_ID);
+                    when 'SKIP_LOCATION' then oan_chat_pkg.answer_location(null, p_skip => 'Y');
+                    when 'SAVE_SKILLS'   then oan_chat_pkg.answer_skills(:P115_SKILLS);
+                    when 'SKIP_SKILLS'   then oan_chat_pkg.answer_skills(null, p_skip => 'Y');
+                    when 'SAVE_INTENT'   then oan_chat_pkg.answer_intent(:P115_INTENT);
+                    when 'SAVE_ROLES'    then oan_chat_pkg.answer_roles(:P115_ROLES);
+                    when 'SKIP_ROLES'    then oan_chat_pkg.answer_roles(null, p_skip => 'Y');
+                    when 'CONFIRM'       then oan_chat_pkg.confirm_summary;
+                    when 'CHANGE'        then oan_chat_pkg.go_back_to('IDENTITY');
+                    else null;
+                end case;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+    )
+
+    branch not-eligible (
+        name: Already applied or not yet verified
+        behavior {
+            type: pageOrUrl
+            target: {
+                page: 2
+            }
+        }
+        execution {
+            point: beforeHeader
+            sequence: 5
+        }
+        serverSideCondition {
+            type: noRowsReturned
+            sqlQuery: select 1 from oan_my_account_v where status = 'PENDING_REGISTRATION'
+        }
+    )
+
+    branch finished-before (
+        name: Conversation already complete
+        behavior {
+            type: pageOrUrl
+            target: {
+                page: 110
+            }
+        }
+        execution {
+            point: beforeHeader
+            sequence: 6
+        }
+        serverSideCondition {
+            type: expression
+            language: plsql
+            plsqlExpression: oan_chat_pkg.current_step = 'DONE'
+        }
+    )
+
+    branch to-application (
+        name: To the membership application
+        behavior {
+            type: pageOrUrl
+            target: {
+                page: 110
+            }
+        }
+        execution {
+            point: afterProcessing
+            sequence: 10
+        }
+        serverSideCondition {
+            whenButtonPressed: @confirm
+        }
+    )
+
+    branch next-step (
+        name: Show the next question
+        behavior {
+            type: pageOrUrl
+            target: {
+                page: 115
+            }
+        }
+        execution {
+            point: afterProcessing
+            sequence: 20
+        }
+    )
+
+)

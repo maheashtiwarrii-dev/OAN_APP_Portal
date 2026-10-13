@@ -26,10 +26,11 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 - **SQLcl 26.2.2 offline `apex validate` passes on the whole app**, after fixing the page 21 download process and two template options.
 - **M.1 is blocked by tooling:** SQLcl 26.2.2 does not yet accept APEXLang 26.2 metadata (`26.2.0+3479`), so the app keeps `26.1.0+3102`.
 - **13 Oct:** M.2 groups refactor done offline (`[A]`). Flow priority set in `docs/05-flow-priority.md` (P0–P4); it orders work within waves, the test order and the descope order.
-- **Next:** W0 P0 flows offline, in rank order:
-  1. page 115 onboarding conversation + `oan_chat_pkg`;
-  2. 109 Access denied;
-  3. admin 1010/1011 approvals, 1020/1021 members and roles, 1050/1051 moderation;
+- **13 Oct (iteration 3):** onboarding conversation built offline: `oan_chat_pkg`, tables, views, page 115, Home routing, page 109, `ut_oan_chat` (9 tests). Board exported to an A4 landscape PDF.
+- **Next:** W0 P0 admin flows offline, in rank order:
+  1. 1010/1011 approvals;
+  2. 1020/1021 members and roles;
+  3. 1050/1051 moderation;
   4. spikes once G0 is met.
 - **Every iteration is committed and pushed** to `github.com/maheashtiwarrii-dev/OAN_APP_Portal`.
 
@@ -274,7 +275,7 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 | 1.29 | Traceability `docs/04-v1-traceability.md`:<br>• FR/AC → task → test, **every AC tagged M/S/C** (S22);<br>• J-01..J-21;<br>• page registry. | PRD rule | 1.5 | [ ] |
 | 1.30 | `OAN_CTX`: `viewer_type` ORG (page group) / CHANNEL; `ROLES` + `has_role`; `oan_vis.in_group`; APEX-free `set_channel` (S15) | R01/R16/R20 | 1.5 | [ ] |
 | 1.31 | `OAN_STAFF_SCOPES` + `oan_security_pkg.authz`. **One grant API for all staff roles (S10):**<br>• local accounts refused; MFA attestation required;<br>• annual re-attestation with auto-revoke; revoke kills sessions;<br>• FR-21 approvals grant through it. | R16 | 1.5 | [ ] |
-| 1.32 | `OAN_LU_CODE` (intents with `live_yn`, request types, statuses) + seed | R06, S29 | 0.5 | [ ] |
+| 1.32 | `OAN_LU_CODE` (intents with `live_yn`, request types, statuses) + seed | R06, S29 | 0.5 | [A] 13 Oct: `oan_lu_codes` (065) with ONBOARD_STEP, INTENT J01–J21 (landing pages, `live_yn` N), ONBOARD_ROLE; request types/statuses follow with W5/W6 |
 | 1.33 | PD registry retention rules + **injectable clock `oan_util.now`** (S08); purge framework | R12 | 1 | [ ] |
 | 1.34 | **Jobs (S17):**<br>• §B5 job → automation map: 10-min `CHANNELS`, 15-min, hourly (SLA, reminders, nudge, digest), daily 02:00, daily 03:00 analytics;<br>• `DBMS_LOCK` run locks (`release_on_commit => false`);<br>• send state QUEUED → SENDING → SENT/FAILED; rows stuck > 15 min become FAILED_UNKNOWN and are never auto-resent;<br>• `last_sent_on` DST guard;<br>• synchronous transactional mail. | R26 | 1.5 | [ ] |
 | 1.35 | Settings: messaging permission (R08), referral opt-in (R18), directory switch (Q28) | R08/R18 | 0.5 | [ ] |
@@ -289,9 +290,9 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 | W0.3 | 2, 106 | FR-29/01 | 1.5 | 3.3 | [A] |
 | W0.4 | 107, 108 | FR-01, NFR-01 | 1.5 | 3.13 | [A] |
 | W0.5 | 110 Membership application | FR-01, Q24 | 1 | — | [A] |
-| W0.6 | 109 Access denied | NFR-02 | 0.25 | — | [ ] |
-| W0.7 | `oan_chat_pkg`:<br>• deterministic onboarding; profile answers go to the draft profile/application;<br>• **role answers stored on the chat session as option IDs only, within the 90-day retention** (S30);<br>• purge rule + test (S08). | FR-34, R21 | 3 | — | [ ] |
-| W0.8 | 115 Onboarding conversation | FR-34, R21 | 2.5 | — | [ ] |
+| W0.6 | 109 Access denied | NFR-02 | 0.25 | — | [A] 13 Oct |
+| W0.7 | `oan_chat_pkg`:<br>• deterministic onboarding; profile answers go to the draft profile/application;<br>• **role answers stored on the chat session as option IDs only, within the 90-day retention** (S30);<br>• purge rule + test (S08). | FR-34, R21 | 3 | — | [A] 13 Oct: steps, resume, codes-only transcript, 90-day purge, routing after approval; 9 utPLSQL tests |
+| W0.8 | 115 Onboarding conversation | FR-34, R21 | 2.5 | — | [A] 13 Oct: Comments-template transcript, per-step regions, page submit (Ajax send after live validation) |
 | W0.9 | `AI_ASSISTANT`: GenAI service + Web Credential (static id) + ACE; read-only, requester-scoped; opt-in; injection set ≥ 20 | R15 | 3 | — | [G] G-AI |
 | W0.10 | 1010, 1011 Approvals | FR-01/25 | 2 | 4.2 | [ ] |
 | W0.11 | 1020, 1021 Members (staff roles via the 1.31 API, scopes) | FR-24, R16 | 3 | 4.3 | [ ] |

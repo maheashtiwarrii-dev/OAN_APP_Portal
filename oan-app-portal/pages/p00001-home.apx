@@ -402,8 +402,12 @@ page 1 (
             language: plsql
             plsqlFunctionBody:
                 ```plsql
+                -- Verified but not yet applied: the onboarding conversation (115) first, then the application (110)
                 for a in (select status from oan_my_account_v) loop
                     if a.status = 'PENDING_REGISTRATION' then
+                        if nvl(oan_chat_pkg.current_step, 'WELCOME') != 'DONE' then
+                            return apex_page.get_url(p_page => 115);
+                        end if;
                         return apex_page.get_url(p_page => 110);
                     end if;
                 end loop;
@@ -418,6 +422,28 @@ page 1 (
             type: expression
             language: plsql
             plsqlExpression: nvl(sys_context('OAN_CTX','VIEWER_TYPE'), 'NONE') = 'PENDING'
+        }
+    )
+
+    branch route-journey (
+        name: Route a newly approved member to their onboarding journey
+        behavior {
+            type: functionReturningUrl
+            language: plsql
+            plsqlFunctionBody:
+                ```plsql
+                -- First login after approval only (R21); journeys whose wave is not live stay on Home (R05)
+                return apex_page.get_url(p_page => oan_chat_pkg.landing_page_after_approval);
+                ```
+        }
+        execution {
+            point: beforeHeader
+            sequence: 20
+        }
+        serverSideCondition {
+            type: expression
+            language: plsql
+            plsqlExpression: sys_context('OAN_CTX','VIEWER_TYPE') = 'MEMBER' and oan_chat_pkg.pending_journey_page is not null
         }
     )
 

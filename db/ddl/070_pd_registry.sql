@@ -43,6 +43,8 @@ insert into oan_pd_tables values ('OAN_CONNECTIONS',        'USER_LOW',         
 insert into oan_pd_tables values ('OAN_REGISTRATION_APPS',  'USER_ID',          'DELETE',       'Y', 20);
 insert into oan_pd_tables values ('OAN_PROFILES',           'USER_ID',          'DELETE',       'Y', 30);
 insert into oan_pd_tables values ('OAN_FILES',              'OWNER_ID',         'DELETE',       'N', 40);  -- profile photo / exports; library files reassigned first
+insert into oan_pd_tables values ('OAN_CHAT_SESSIONS',      'USER_ID',          'DELETE',       'Y', 10);
+insert into oan_pd_tables values ('OAN_CHAT_MESSAGES',      null,               'CASCADE',      'N', 5);   -- codes only; deleted with the session
 insert into oan_pd_tables values ('OAN_GROUP_MEMBERS',      'USER_ID',          'DELETE',       'Y', 10);
 insert into oan_pd_tables values ('OAN_GROUPS',             'OWNER_ID',         'REASSIGN',     'Y', 50);
 insert into oan_pd_tables values ('OAN_POSTS',              'AUTHOR_ID',        'REASSIGN',     'Y', 50);

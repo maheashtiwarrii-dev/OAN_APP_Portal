@@ -45,6 +45,17 @@
 | I2-2 | User asked to push to GitHub after every iteration | Saved as a standing rule (memory) |
 | I2-3 | User asked Claude to prioritise the flows | `docs/05-flow-priority.md`: 26 flows ranked into tiers P0–P4 within the approved waves |
 | I2-4 | M.2 groups refactor (R29, S12, S16, S19) | Forums/threads/posts → groups/posts/comments across DDL, packages, views, seed, LOV and pages 30/32/37; `search_body` index (R20); `oan_group_pkg` |
+| I2-5 | Kanban board published (user request) | https://claude.ai/artifact/VuwZJ8SxzDMnGHoNp99ypH; repo copy `docs/delivery-board.html` |
+
+## 2026-10-13 — Iteration 3
+| Step | Action | Result |
+|---|---|---|
+| I3-1 | Export the Kanban board in landscape (user request) | Gate checklist and A4-landscape print rules added; `docs/OAN-Delivery-Board-landscape.pdf` (9 pages, 842×595 pt) rendered with headless Edge; board republished (v2) |
+| I3-2 | 1.32 lookup codes | `db/ddl/065_lookup_chat.sql`: `oan_lu_codes` + seed (8 onboarding steps, intents J01–J21 with landing pages, 6 roles) |
+| I3-3 | W0.7 `oan_chat_pkg` (FR-34, R21, S30) | Deterministic 8-step conversation; resumable; profile answers written to the draft profile; transcript holds codes only (90-day purge in the daily job); routing after approval falls back to Home when the journey is not live |
+| I3-4 | W0.8 page 115 + Home routing | Chat transcript in the Comments template; per-step regions; Home sends verified applicants to 115, then 110; one-time journey routing after approval |
+| I3-5 | W0.6 page 109 Access denied | Authored |
+| I3-6 | Tests and validation | `ut_oan_chat` (9 tests: AC2–AC4, R21, S30, R05); SQLcl 26.2.2 offline `apex validate`: successful |
 
 ## Next
 - M.2 groups refactor (offline, before the first shared deploy), incl. the p00031 → p00037 renumber and `search_body`.

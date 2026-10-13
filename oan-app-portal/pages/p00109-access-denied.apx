@@ -1,0 +1,44 @@
+page 109 (
+    name: Access Denied
+    alias: ACCESS-DENIED
+    title: You do not have access to this page
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    security {
+        authorizationScheme: @is-signed-in
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: W0.6 (NFR-02 deny by default). Shown when a signed-in user opens a page their role or account status does not allow. It never says which role would be needed.
+    }
+
+    region denied (
+        name: You do not have access to this page
+        type: staticContent
+        source {
+            htmlCode:
+                ```html
+                <p>Your account does not have access to the page you tried to open. This can happen when a link is meant for a different role, or when your membership application is still being reviewed.</p>
+                <ul>
+                  <li><a href="f?p=&APP_ID.:1:&APP_SESSION.">Go to your home page</a></li>
+                  <li>If you think you should have access, use the contact details on the <a href="f?p=&APP_ID.:104:&APP_SESSION.">Legal and contact page</a>.</li>
+                </ul>
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
+)

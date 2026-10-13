@@ -78,6 +78,9 @@ create or replace package body oan_jobs_pkg as
     delete from oan_email_tokens where expires_at < systimestamp - interval '1' day;
     delete from oan_reauth where reauth_at < systimestamp - interval '1' day;
     oan_privacy_pkg.purge_expired_exports;
+    -- Onboarding transcript: step/option codes only, kept 90 days (R21, §B10.10). Dynamic call because
+    -- oan_chat_pkg installs after this package.
+    execute immediate 'begin oan_chat_pkg.purge_old_messages(90); end;';
   end purges;
 
   procedure run_hourly is

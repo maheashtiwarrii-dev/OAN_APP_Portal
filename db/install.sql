@@ -15,6 +15,7 @@ prompt == DDL
 @@ddl/040_profile_network.sql
 @@ddl/050_content_community.sql
 @@ddl/060_ops.sql
+@@ddl/065_lookup_chat.sql
 @@ddl/070_pd_registry.sql
 @@ddl/080_text_indexes.sql
 
@@ -40,6 +41,7 @@ whenever sqlerror continue
 @@packages/270_oan_search_pkg.sql
 @@packages/280_oan_jobs_pkg.sql
 @@packages/290_oan_error_pkg.sql
+@@packages/295_oan_chat_pkg.sql
 
 prompt == Secure views
 @@views/300_secure_views.sql
@@ -71,5 +73,6 @@ prompt == Tests (requires utPLSQL; skipped in PROD)
 whenever sqlerror continue
 @@tests/ut_oan_vis.sql
 @@tests/ut_oan_registry_auth.sql
+@@tests/ut_oan_chat.sql
 
 prompt Install complete. Run 20_app_synonyms.sql as OAN_APP, then 30_assert_no_table_grants.sql.

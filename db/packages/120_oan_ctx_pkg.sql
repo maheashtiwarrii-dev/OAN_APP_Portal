@@ -13,7 +13,7 @@ create or replace package oan_ctx_pkg authid definer as
   procedure set_system(p_job_name in varchar2) accessible by (package oan_jobs_pkg);
   -- utPLSQL only: impersonate a viewer without an APEX session (never reachable from OAN_APP)
   procedure set_test_viewer(p_user_id in number, p_type in varchar2, p_is_admin in varchar2 default 'N')
-    accessible by (package ut_oan_vis, package ut_oan_registry, package ut_oan_auth);
+    accessible by (package ut_oan_vis, package ut_oan_registry, package ut_oan_auth, package ut_oan_chat);
   function  has_role(p_username in varchar2, p_role in varchar2) return boolean;
 end oan_ctx_pkg;
 /

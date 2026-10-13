@@ -234,6 +234,63 @@ using (select 'GENERAL' c, 'General' n, 'Introductions and community conversatio
  when not matched then insert (code, name, description, group_type, visibility, admin_post_only, sort_order)
                        values (s.c, s.n, s.d, s.t, 'OPEN', s.a, s.s);
 
+------------------------------------------------- lookup codes (1.32) ---------
+-- Onboarding steps (FR-34): label = the question shown in the chat; description = helper text
+merge into oan_lu_codes c
+using (select 'WELCOME' cd, 'Welcome to OAN. I will ask a few short questions to set up your profile and point you to the right place. It takes about five minutes.' l, null d, 1 s from dual union all
+       select 'IDENTITY', 'First, is this your name as you would like other members to see it?', null, 2 from dual union all
+       select 'ROLE_ORG', 'What is your current role, and where do you work now?', 'Optional. You can change it later in My profile.', 3 from dual union all
+       select 'LOCATION', 'Where are you based?', 'Optional. Used for chapters and local opportunities.', 4 from dual union all
+       select 'SKILLS', 'Which skills would you like to be known for?', 'Optional. Pick up to 50 from the list.', 5 from dual union all
+       select 'INTENT', 'What brought you to OAN today?', 'Pick the one that fits best. You can explore everything else later.', 6 from dual union all
+       select 'ROLES', 'Would you also like to take part in any of these ways?', 'Optional. Each one is reviewed after your membership is approved.', 7 from dual union all
+       select 'SUMMARY', 'Here is what I have. Confirm to continue to your membership application.', null, 8 from dual) s
+   on (c.code_type = 'ONBOARD_STEP' and c.code = s.cd)
+ when matched then update set c.label = s.l, c.description = s.d, c.sort_order = s.s
+ when not matched then insert (code_type, code, label, description, sort_order)
+                       values ('ONBOARD_STEP', s.cd, s.l, s.d, s.s);
+
+-- Journey intents J-01..J-21 (PRD §B10.5). live_yn is set to 'Y' when the landing page's wave closes.
+merge into oan_lu_codes c
+using (select 'J01' cd, 'Find a job that suits me' l, 'J-01' j, 27 p, 1 s from dual union all
+       select 'J02', 'Learn which skills are in demand for me', 'J-02', 36, 2 from dual union all
+       select 'J03', 'Get guidance on skills and projects in demand', 'J-03', 36, 3 from dual union all
+       select 'J04', 'Hear how others in my situation got a break', 'J-04', 30, 4 from dual union all
+       select 'J05', 'Talk to someone who can coach or mentor me', 'J-05', 41, 5 from dual union all
+       select 'J06', 'Get trained or join a mock project to be job-ready', 'J-06', 43, 6 from dual union all
+       select 'J07', 'Explore business ideas and find collaborators', 'J-07', 56, 7 from dual union all
+       select 'J08', 'Find someone who can refer me', 'J-08', 33, 8 from dual union all
+       select 'J09', 'Find people with specific skills, fast', 'J-09', 48, 9 from dual union all
+       select 'J10', 'Get feedback on a candidate', 'J-10', 46, 10 from dual union all
+       select 'J11', 'Find partners for a bid', 'J-11', 48, 11 from dual union all
+       select 'J12', 'Get help solving a problem', 'J-12', 48, 12 from dual union all
+       select 'J13', 'Find someone to train my team', 'J-13', 48, 13 from dual union all
+       select 'J14', 'Reach domain experts', 'J-14', 38, 14 from dual union all
+       select 'J15', 'Find local people for a rollout', 'J-15', 48, 15 from dual union all
+       select 'J16', 'Find partners in a new geography', 'J-16', 48, 16 from dual union all
+       select 'J17', 'Find people interested in our solution', 'J-17', 48, 17 from dual union all
+       select 'J18', 'Collaborate with non-Oracle partners', 'J-18', 27, 18 from dual union all
+       select 'J19', 'Offer funded work', 'J-19', 48, 19 from dual union all
+       select 'J20', 'Keep my CV and work profile current', 'J-20', 15, 20 from dual union all
+       select 'J21', 'Use OAN from Slack or WhatsApp', 'J-21', 53, 21 from dual) s
+   on (c.code_type = 'INTENT' and c.code = s.cd)
+ when matched then update set c.label = s.l, c.journey = s.j, c.landing_page = s.p, c.sort_order = s.s
+ when not matched then insert (code_type, code, label, journey, landing_page, sort_order, live_yn)
+                       values ('INTENT', s.cd, s.l, s.j, s.p, s.s, 'N');
+
+-- Optional role answers (FR-34 step 8, S30). Stored as codes on the chat session only;
+-- they become draft applications after approval (W5.1, W6.2).
+merge into oan_lu_codes c
+using (select 'TRAINER' cd, 'Train other members' l, 1 s from dual union all
+       select 'MENTOR', 'Mentor other members (peer mentor)', 2 from dual union all
+       select 'EXPERT', 'Share expertise as a domain expert', 3 from dual union all
+       select 'PARTNER_CONTACT', 'Represent a partner organisation', 4 from dual union all
+       select 'CUSTOMER_CONTACT', 'Represent a customer organisation', 5 from dual union all
+       select 'ENTREPRENEUR', 'Build or grow my own business', 6 from dual) s
+   on (c.code_type = 'ONBOARD_ROLE' and c.code = s.cd)
+ when matched then update set c.label = s.l, c.sort_order = s.s
+ when not matched then insert (code_type, code, label, sort_order) values ('ONBOARD_ROLE', s.cd, s.l, s.s);
+
 ------------------------------------------------- screening deny-list ----------
 insert into oan_screen_denylist (term, term_type)
 select s.column_value, 'MARKER'

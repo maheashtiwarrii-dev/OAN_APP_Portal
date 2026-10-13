@@ -85,6 +85,9 @@ list navigation-bar (
         security {
             authorizationScheme: @is-signed-in
         }
+        config {
+            buildOption: @not-yet-built
+        }
     )
 
     entry my-decisions (
@@ -366,7 +369,7 @@ list navigation-menu (
         }
         link {
             target: {
-                page: 100
+                page: 107
             }
         }
         security {
@@ -489,6 +492,9 @@ list navigation-menu (
         security {
             authorizationScheme: @administration-rights
         }
+        config {
+            buildOption: @not-yet-built
+        }
     )
 
     entry privacy-requests (
@@ -507,6 +513,9 @@ list navigation-menu (
         }
         security {
             authorizationScheme: @is-privacy-officer
+        }
+        config {
+            buildOption: @not-yet-built
         }
     )
 
@@ -545,6 +554,9 @@ list navigation-menu (
         }
         security {
             authorizationScheme: @administration-rights
+        }
+        config {
+            buildOption: @not-yet-built
         }
     )
 

@@ -1,0 +1,221 @@
+page 41 (
+    name: Notifications
+    alias: NOTIFICATIONS
+    title: Notifications
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    security {
+        authorizationScheme: @is-signed-in
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: Build Pack notification bell target (FR-23). The viewer's own notifications only (OAN_MY_NOTIFICATIONS_V). Open marks the item read and goes to its target page when that page exists in this build, otherwise stays here.
+    }
+
+    region notifications (
+        name: Your notifications
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select id,
+                       case when is_read = 'N' then 'New' end status_label,
+                       title,
+                       body,
+                       created_at,
+                       case when link_page is not null then 'Open' else 'Mark as read' end open_label
+                  from oan_my_notifications_v
+                 order by created_at desc
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: You have no notifications.
+        }
+
+        column ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column STATUS_LABEL (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Status
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column TITLE (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Notification
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column BODY (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Details
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column CREATED_AT (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Received
+            }
+            layout {
+                sequence: 5
+            }
+            appearance {
+                formatMask: DD-MON-YYYY HH24:MI
+            }
+        )
+
+        column OPEN_LABEL (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Action
+            }
+            layout {
+                sequence: 6
+            }
+            link {
+                target: {
+                    page: 41
+                    items: {
+                        P41_ID: \#ID#\
+                    }
+                    request: OPEN
+                }
+                linkText: #OPEN_LABEL#
+            }
+        )
+
+    )
+
+    pageItem P41_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @notifications
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    button mark-all-read (
+        buttonName: MARK_ALL_READ
+        label: Mark all as read
+        layout {
+            sequence: 10
+            region: @notifications
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process open-notification (
+        name: Open notification
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare
+                    l_url varchar2(4000);
+                    l_cnt number;
+                begin
+                    oan_notify_pkg.mark_read(:P41_ID);
+                    for r in (select link_page, link_params from oan_my_notifications_v where id = :P41_ID) loop
+                        select count(*) into l_cnt from apex_application_pages
+                         where application_id = :APP_ID and page_id = r.link_page;
+                        if r.link_page is not null and l_cnt = 1 then
+                            l_url := apex_page.get_url(
+                                         p_page   => r.link_page,
+                                         p_items  => case when r.link_params is not null then regexp_substr(r.link_params, '^[^:]+') end,
+                                         p_values => case when r.link_params is not null then substr(r.link_params, instr(r.link_params, ':') + 1) end);
+                        end if;
+                    end loop;
+                    -- drop the request from the URL so a reload does not repeat the action
+                    apex_util.redirect_url(coalesce(l_url, apex_page.get_url(p_page => 41)));
+                end;
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        serverSideCondition {
+            type: request=Value
+            value: OPEN
+        }
+    )
+
+    process mark-all-read (
+        name: Mark all as read
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                oan_notify_pkg.mark_all_read;
+                :AI_UNREAD_NOTIFICATIONS := null;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        serverSideCondition {
+            whenButtonPressed: @mark-all-read
+        }
+        successMessage {
+            successMessage: All notifications are marked as read.
+        }
+    )
+
+)

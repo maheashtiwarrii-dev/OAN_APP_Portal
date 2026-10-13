@@ -116,3 +116,14 @@ buildOption oan-recognition (
         comments: Build Pack §2.1. Recognition and badges, W7.
     }
 )
+
+buildOption not-yet-built (
+    name: NOT_YET_BUILT
+    status {
+        status: exclude
+        onUpgradeKeepStatus: true
+    }
+    comments {
+        comments: Hides navigation to pages that are planned but not built yet (27 Privacy centre, 120 Library import, 121 Privacy requests, 122 Config), so nobody reaches a 404. Remove from an entry when its page ships.
+    }
+)

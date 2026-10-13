@@ -57,6 +57,8 @@
 | | 13 Report a concern (IP) | 105 |
 | | 14 Accept updated terms | 106 |
 | | 15 Confirm identity | 108 |
+| Shell | 19 Global search results | new (W1) |
+| | 41 Notifications | new (W1) |
 | Profile (20–29) | 20 Directory search | new (W2.5) |
 | | 21 Directory results | new (W2.5) |
 | | 22 Member profile view | 11 |
@@ -92,7 +94,6 @@
 
 | Page | Number |
 |---|---|
-| Global search results | 19 |
 | Privacy centre | 27 |
 | Help-Me-Connect | 29 |
 | Unsubscribe | 44 |

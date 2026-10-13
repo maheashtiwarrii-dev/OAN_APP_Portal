@@ -136,3 +136,5 @@
 | I10-3 | Install as OAN_DEPLOY[OAN_DATA] | 4 runs. Fixed ORA-02329 (throttle key), PLS-00263 (accessible by in bodies), PLS-00231 (11 sites), SQLERRM in SQL, broken `partner_card_visible` macro (inlined), define/ampersand issues, APP_ID 103 → 200 |
 | I10-4 | Result | 77 tables, 58 views, 28 packages valid; seed loaded; 79 OAN_APP synonyms; no-table-grant assertion passed; smoke checks pass. Only the 5 utPLSQL suites are invalid (utPLSQL not installed) |
 | I10-5 | Google account password shared in chat | Not used or stored; user asked to change it. Google sign-in needs an OAuth client id and secret instead |
+| I10-6 | APEX import approved by the user | App 200 "OAN Portal" imported into workspace OAN_APP (37 pages) next to app 103; alias auto-renamed to `OAN-APP-PORTAL200` because 103 holds `OAN-APP-PORTAL` |
+| I10-7 | Live checks | 25 SQL regions + 7 LOVs parse as OAN_APP against the secure views (0 failures); auth schemes OAN_LOCAL (current), OAN_GOOGLE, OAN_LINKEDIN; credentials `OAN_Google_OAuth` / `OAN_LinkedIn_OAuth` exist, empty until the Google client is created |

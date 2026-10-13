@@ -31,7 +31,7 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 - **13 Oct (iteration 8, Q31):** APEX Build Pack v1.1 prioritised. Pages renumbered to Build Pack numbers, App ID 200, intent codes and API contracts per the Build Pack; see `docs/06-build-pack-alignment.md`. **Page ids in the task tables below are pre-Q31 ids; use the map in docs/06 §3.**
 - **13 Oct (iteration 9):** dev ADB `aiatp` probed (APEX 26.1.5, accepted as Q32); the bootstrap waits for an ADMIN run. Offline: W1 shell (global page 0, Home 10), W0.21 API contracts, most of W0.22.
 - **Next, in Build Pack order:**
-  1. On the real database: import app 200 into workspace OAN_APP (needs the user's go-ahead), utPLSQL (0.8), spikes 0.11–0.14;
+  1. On the real database: app 200 imported 13 Oct (?p=200 in workspace OAN_APP); next utPLSQL (0.8), spikes 0.11–0.14, Google client id/secret into credential OAN_Google_OAuth;
   2. W0.22 done; create the ACL roles TRAINER, MENTOR, EXPERT, PARTNER_CONTACT, CUSTOMER_CONTACT, SUPPORT with W0.18;
   3. W2: 20/21 directory, 22/23 profile grids, 25 work profile, 24 My CV.
   PRD-only admin extras (1071-1073 → 124-126, 70/71 → 90/91) follow later in their wave.

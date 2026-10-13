@@ -41,7 +41,7 @@ authorization is-pending (
 )
 
 authorization administration-rights (
-    name: Administration Rights
+    name: IS_ADMIN
     type: plSqlFunctionBody
     settings {
         plsqlFunctionBody: return sys_context('OAN_CTX','IS_ADMIN') = 'Y';
@@ -110,5 +110,102 @@ authorization is-privacy-officer (
     }
     error {
         errorMessage: Insufficient privileges, privacy officer only.
+    }
+)
+
+authorization is-trainer (
+    name: IS_TRAINER
+    type: plSqlFunctionBody
+    settings {
+        plsqlFunctionBody: return sys_context('OAN_CTX','VIEWER_TYPE') = 'MEMBER' and apex_acl.has_user_role(p_role_static_id => 'TRAINER');
+    }
+    advanced {
+        evaluationType: perPageView
+    }
+    error {
+        errorMessage: This page is for OAN trainers.
+    }
+    comments {
+        comments: Build Pack §2.1 / PRD B2 scheme. Reads the APEX ACL role TRAINER until OAN_CTX carries a ROLES list (task 1.30); the data layer re-checks in packages.
+    }
+)
+authorization is-mentor (
+    name: IS_MENTOR
+    type: plSqlFunctionBody
+    settings {
+        plsqlFunctionBody: return sys_context('OAN_CTX','VIEWER_TYPE') = 'MEMBER' and apex_acl.has_user_role(p_role_static_id => 'MENTOR');
+    }
+    advanced {
+        evaluationType: perPageView
+    }
+    error {
+        errorMessage: This page is for OAN mentors.
+    }
+    comments {
+        comments: Build Pack §2.1 / PRD B2 scheme. Reads the APEX ACL role MENTOR until OAN_CTX carries a ROLES list (task 1.30); the data layer re-checks in packages.
+    }
+)
+authorization is-expert (
+    name: IS_EXPERT
+    type: plSqlFunctionBody
+    settings {
+        plsqlFunctionBody: return sys_context('OAN_CTX','VIEWER_TYPE') = 'MEMBER' and apex_acl.has_user_role(p_role_static_id => 'EXPERT');
+    }
+    advanced {
+        evaluationType: perPageView
+    }
+    error {
+        errorMessage: This page is for OAN domain experts.
+    }
+    comments {
+        comments: Build Pack §2.1 / PRD B2 scheme. Reads the APEX ACL role EXPERT until OAN_CTX carries a ROLES list (task 1.30); the data layer re-checks in packages.
+    }
+)
+authorization is-partner-contact (
+    name: IS_PARTNER_CONTACT
+    type: plSqlFunctionBody
+    settings {
+        plsqlFunctionBody: return sys_context('OAN_CTX','VIEWER_ID') is not null and apex_acl.has_user_role(p_role_static_id => 'PARTNER_CONTACT');
+    }
+    advanced {
+        evaluationType: perPageView
+    }
+    error {
+        errorMessage: This page is for verified partner contacts.
+    }
+    comments {
+        comments: Build Pack §2.1 / PRD B2 scheme. Reads the APEX ACL role PARTNER_CONTACT until OAN_CTX carries a ROLES list (task 1.30); the data layer re-checks in packages.
+    }
+)
+authorization is-customer-contact (
+    name: IS_CUSTOMER_CONTACT
+    type: plSqlFunctionBody
+    settings {
+        plsqlFunctionBody: return sys_context('OAN_CTX','VIEWER_ID') is not null and apex_acl.has_user_role(p_role_static_id => 'CUSTOMER_CONTACT');
+    }
+    advanced {
+        evaluationType: perPageView
+    }
+    error {
+        errorMessage: This page is for verified customer contacts.
+    }
+    comments {
+        comments: Build Pack §2.1 / PRD B2 scheme. Reads the APEX ACL role CUSTOMER_CONTACT until OAN_CTX carries a ROLES list (task 1.30); the data layer re-checks in packages.
+    }
+)
+authorization is-support (
+    name: IS_SUPPORT
+    type: plSqlFunctionBody
+    settings {
+        plsqlFunctionBody: return sys_context('OAN_CTX','VIEWER_ID') is not null and apex_acl.has_user_role(p_role_static_id => 'SUPPORT');
+    }
+    advanced {
+        evaluationType: perPageView
+    }
+    error {
+        errorMessage: This page is for OAN support staff.
+    }
+    comments {
+        comments: Build Pack §2.1 / PRD B2 scheme. Reads the APEX ACL role SUPPORT until OAN_CTX carries a ROLES list (task 1.30); the data layer re-checks in packages.
     }
 )

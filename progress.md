@@ -126,3 +126,4 @@
 | I9-8 | W1 shell | AI_ items set after login; badge refresh (before-header process + `OAN_UNREAD_COUNT` callback, 60s timer); 7-destination rail with wave build options; Build Pack build options; global search box and profile card on page 0; `oan-shell.js` / `oan-shell.css` |
 | I9-9 | Home 10 | Greeting (member's time zone), leadership-letter carousel (Ink panel, max 6, pause on hover, dots, reduced-motion aware), What's new, onboarding checklist, recent posts |
 | I9-10 | Validation | `apex validate`: successful (page arrays must be multi-line); brand check: passed. PL/SQL is not compiled yet; that waits for the database |
+| I9-11 | W0.22 closed | The 9 schemes per PRD B2: IS_ADMIN renamed (id kept), six IS_* schemes added; board published (v6) and synced; validate: successful |

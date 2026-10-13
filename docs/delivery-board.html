@@ -125,6 +125,35 @@ button:focus-visible, input:focus-visible, .card:focus-visible { outline: 2px so
 .legend span { display: inline-flex; gap: 6px; align-items: center; }
 .sw { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
 footer { color: var(--muted); font-size: 0.82rem; max-width: 80ch; }
+.gtable-wrap { overflow-x: auto; }
+table.gtable { border-collapse: collapse; width: 100%; font-size: 0.86rem; }
+.gtable th, .gtable td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.gtable th { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 600; }
+.gtable td:first-child { font-family: var(--font-mono); font-weight: 600; white-space: nowrap; }
+.print-only { display: none; }
+
+/* Landscape export: A4 landscape, 4 sprint lanes per row, no controls */
+@page { size: A4 landscape; margin: 9mm; }
+@media print {
+  :root { color-scheme: light; }
+  body { font-size: 11px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .wrap { padding: 0; gap: 12px; }
+  .controls, #ws-chips, .count, .board-legend-live { display: none !important; }
+  .print-only { display: block; }
+  .summary { grid-template-columns: repeat(7, 1fr); }
+  .stat { padding: 6px 8px; } .stat b { font-size: 1.1rem; }
+  .tl-scroll, .board-scroll, .gtable-wrap { overflow: visible; }
+  .tl-grid { min-width: 0; }
+  .timeline, .gates-sec { break-inside: avoid; }
+  .board-sec { break-before: page; }
+  .board { grid-auto-flow: row; grid-auto-columns: auto; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+  .lane { padding: 6px; gap: 5px; }
+  .lane.current { box-shadow: none; outline: 2px solid var(--accent); }
+  .lane-head { break-after: avoid; }
+  .card { break-inside: avoid; padding: 5px 7px; gap: 3px; }
+  .card-title { font-size: 0.82rem; } .card-note { font-size: 0.72rem; }
+  footer { max-width: none; }
+}
 @media (prefers-reduced-motion: no-preference) { .card { transition: border-color .15s; } }
 @media (max-width: 520px) { h1 { font-size: 1.4rem; } input[type="search"] { width: 100%; } }
 </style>
@@ -150,7 +179,18 @@ footer { color: var(--muted); font-size: 0.82rem; max-width: 80ch; }
     <div class="tl-scroll"><div class="tl-grid" id="timeline"></div></div>
   </section>
 
-  <section aria-labelledby="board-h" style="display:grid;gap:12px">
+  <section class="gates-sec timeline" aria-labelledby="gates-h">
+    <h2 id="gates-h">Gate checklist</h2>
+    <div class="gtable-wrap">
+      <table class="gtable">
+        <thead><tr><th scope="col">Gate</th><th scope="col">Due</th><th scope="col">Status</th><th scope="col">Condition</th></tr></thead>
+        <tbody id="gate-rows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="board-sec" aria-labelledby="board-h" style="display:grid;gap:12px">
+    <p class="print-only sub">Kanban by sprint. Left border colour shows status: grey not started, amber in progress, blue authored offline, red blocked, purple gated, green done.</p>
     <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;align-items:baseline">
       <h2 id="board-h">Kanban</h2>
       <span class="count" id="count" aria-live="polite"></span>
@@ -407,6 +447,19 @@ function renderTimeline() {
   });
 }
 
+function renderGateTable() {
+  const body = document.getElementById("gate-rows");
+  const label = { p: ["In progress", "st-p"], n: ["Pending", "st-n"], b: ["Blocked", "st-b"], x: ["Met", "st-x"] };
+  GATES.forEach(([id, sprint, st, cond]) => {
+    const tr = el("tr");
+    const due = SPRINTS.find(s => s[0] === sprint);
+    const pill = el("span", "pill " + label[st][1], label[st][0]);
+    const tdS = el("td"); tdS.append(pill);
+    tr.append(el("td", null, id), el("td", "mono", (id === "8.0" ? "" : "End ") + sprint + " · " + due[1]), tdS, el("td", null, cond));
+    body.append(tr);
+  });
+}
+
 function renderChips() {
   const box = document.getElementById("ws-chips");
   const make = (key, label) => {
@@ -487,9 +540,10 @@ function setView(v) {
   renderBoard();
 }
 
-renderSummary(); renderTimeline(); renderChips();
+renderSummary(); renderTimeline(); renderGateTable(); renderChips();
 document.getElementById("view-sprint").addEventListener("click", () => setView("sprint"));
 document.getElementById("view-status").addEventListener("click", () => setView("status"));
 document.getElementById("q").addEventListener("input", e => { q = e.target.value.trim().toLowerCase(); renderBoard(); });
-setView(view === "status" ? "status" : "sprint");
+// The landscape export (#print) always shows the sprint view
+setView(location.hash === "#print" ? "sprint" : (view === "status" ? "status" : "sprint"));
 </script>

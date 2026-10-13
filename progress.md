@@ -83,6 +83,14 @@
 | I6-3 | W0.13 page 1040 Taxonomy | Search/filter; add term (new `oan_taxonomy_pkg.add_term`), approve/reject suggestions, merge into canonical term |
 | I6-4 | Validation | SQLcl offline `apex validate`: successful; brand check: passed |
 
+## 2026-10-13 — Iteration 7
+| Step | Action | Result |
+|---|---|---|
+| I7-1 | W0.15 page 80 Report a concern | Resolves the Report links on pages 11, 21 and 37; `oan_moderation_pkg.report`; reporter stays confidential |
+| I7-2 | W0.15 page 81 My decisions | Member's own decisions with appeal status; one appeal within 14 days via `oan_moderation_pkg.appeal` |
+| I7-3 | W0.15 page 1080 Audit log | Read-only, filtered by event, object and period; Admin + Moderator; no export (R14) |
+| I7-4 | Validation | SQLcl offline `apex validate`: successful; brand check: passed. Page texts checked against package behaviour (two claims corrected) |
+
 ## Next
 - M.2 groups refactor (offline, before the first shared deploy), incl. the p00031 → p00037 renumber and `search_body`.
 - W0 completion offline: pages 109 and 115 and admin pages 1010–1080, plus W0.18–W0.20, each validated with `ci/validate-apex-app.ps1`.

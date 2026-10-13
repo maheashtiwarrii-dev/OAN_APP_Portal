@@ -1,0 +1,299 @@
+page 81 (
+    name: My Decisions
+    alias: MY-DECISIONS
+    title: Moderation decisions about you
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        authorizationScheme: @is-signed-in
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: W0.15 (FR-25). The member's own moderation decisions (OAN_MY_MOD_DECISIONS_V) with one appeal per decision within 14 days (OAN_MODERATION_PKG.APPEAL). Appeals go to a Platform Admin who did not make the original decision. Notification links for MODERATION_DECISION and APPEAL_OUTCOME point here. Whether a suspended member can sign in to appeal depends on the authentication rules (checked at live validation).
+    }
+
+    region decisions (
+        name: Decisions about your content or account
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select action_id,
+                       initcap(replace(object_type, '_', ' ')) item,
+                       initcap(action) decision,
+                       reason,
+                       to_char(acted_at, 'DD Mon YYYY') decided,
+                       case when appeal_status = 'OVERTURNED' then 'Appeal accepted: ' || appeal_note
+                            when appeal_status = 'UPHELD' then 'Appeal not accepted: ' || appeal_note
+                            when appeal_status = 'OPEN' then 'Appeal under review'
+                            when can_appeal = 'Y' then 'You can appeal until ' || to_char(acted_at + interval '14' day, 'DD Mon YYYY')
+                            else 'No appeal possible' end appeal,
+                       can_appeal
+                  from oan_my_mod_decisions_v
+                 order by acted_at desc
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+            ]
+        }
+        reportLayout {
+            numberOfRows: 50
+        }
+        pagination {
+            type: nextAndPreviousLinks
+        }
+        messages {
+            whenNoDataFound: There are no moderation decisions about you.
+        }
+
+        column ACTION_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column ITEM (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: About
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column DECISION (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Decision
+            }
+            layout {
+                sequence: 3
+            }
+            link {
+                target: {
+                    page: 81
+                    items: {
+                        P81_ACTION_ID: \#ACTION_ID#\
+                    }
+                }
+                linkText: #DECISION#
+            }
+        )
+
+        column REASON (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Reason
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column DECIDED (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Date
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+        column APPEAL (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Appeal
+            }
+            layout {
+                sequence: 6
+            }
+        )
+
+        column CAN_APPEAL (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 7
+            }
+        )
+
+    )
+
+    region appeal (
+        name: Appeal this decision
+        type: staticContent
+        source {
+            htmlCode: <p>Explain why you think the decision is wrong. A Platform Admin who did not make the original decision reviews it. You can appeal each decision once, and the outcome is final.</p>
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: item=value
+            item: P81_CAN_APPEAL
+            value: Y
+        }
+    )
+
+    pageItem P81_ACTION_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @decisions
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P81_CAN_APPEAL (
+        type: hidden
+        layout {
+            sequence: 20
+            region: @decisions
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P81_STATEMENT (
+        type: textarea
+        label {
+            label: Your statement
+        }
+        layout {
+            sequence: 10
+            region: @appeal
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+            maxLength: 4000
+        }
+    )
+
+    button send-appeal (
+        buttonName: SEND_APPEAL
+        label: Send appeal
+        layout {
+            sequence: 10
+            region: @appeal
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            requiresConfirmation: true
+        }
+        confirmation {
+            message: You can appeal each decision only once. Send this appeal?
+            style: information
+        }
+    )
+
+    process load (
+        name: Check the selected decision
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                :P81_CAN_APPEAL := 'N';
+                for d in (select can_appeal from oan_my_mod_decisions_v where action_id = :P81_ACTION_ID) loop
+                    :P81_CAN_APPEAL := d.can_appeal;
+                end loop;
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+    )
+
+    process send-appeal (
+        name: File the appeal
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare
+                    l_id number;
+                begin
+                    l_id := oan_moderation_pkg.appeal(:P81_ACTION_ID, :P81_STATEMENT);
+                    :P81_ACTION_ID := null; :P81_STATEMENT := null;
+                end;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        serverSideCondition {
+            whenButtonPressed: @send-appeal
+        }
+        successMessage {
+            successMessage: Your appeal was sent. You will be notified of the outcome.
+        }
+    )
+
+    branch back (
+        name: Back to the list
+        behavior {
+            type: pageOrUrl
+            target: {
+                page: 81
+            }
+        }
+        execution {
+            point: afterProcessing
+            sequence: 10
+        }
+    )
+
+)

@@ -1,0 +1,242 @@
+page 1080 (
+    name: Audit Log
+    alias: AUDIT-LOG
+    title: Audit log
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: firstItemOnPage
+    }
+    security {
+        authorizationScheme: @is-moderator
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: W0.15 (NFR-05, PRD 4). Read-only view of the append-only audit trail for Platform Admins and Moderators (OAN_AUDIT_V). Deleted members appear only by pseudonym (FR-26). No export from this page (R14: person-level exports go through OAN_EXPORT_PKG).
+    }
+
+    region filters (
+        name: Filter
+        type: staticContent
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region events (
+        name: Events
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select to_char(event_ts, 'DD Mon YYYY HH24:MI:SS') event_time,
+                       action, actor, actor_role,
+                       object_type || case when object_id is not null then ' #' || object_id end object_ref,
+                       subject
+                  from oan_audit_v
+                 where (:P1080_ACTION is null or instr(upper(action), upper(:P1080_ACTION)) > 0)
+                   and (:P1080_OBJECT_TYPE is null or object_type = upper(:P1080_OBJECT_TYPE))
+                   and event_ts >= systimestamp - numtodsinterval(to_number(nvl(:P1080_DAYS, '30')), 'DAY')
+                 order by event_ts desc
+                ```
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--stretch
+            ]
+        }
+        reportLayout {
+            numberOfRows: 100
+        }
+        pagination {
+            type: nextAndPreviousLinks
+        }
+        messages {
+            whenNoDataFound: No events match these filters.
+        }
+
+        column EVENT_TIME (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: Time
+            }
+            layout {
+                sequence: 1
+            }
+        )
+
+        column ACTION (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Event
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column ACTOR (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: By
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column ACTOR_ROLE (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Role
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column OBJECT_REF (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Object
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+        column SUBJECT (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Affected member
+            }
+            layout {
+                sequence: 6
+            }
+        )
+
+    )
+
+    pageItem P1080_ACTION (
+        type: textField
+        label {
+            label: Event contains
+        }
+        layout {
+            sequence: 10
+            region: @filters
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 60
+        }
+    )
+
+    pageItem P1080_OBJECT_TYPE (
+        type: selectList
+        label {
+            label: Object
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:Member;USER,Registration;REGISTRATION,Post;POST,Comment;COMMENT,Group;GROUP,Library item;LIBRARY_ITEM,Chapter;CHAPTER,Term;TERM,Report;REPORT,Appeal;APPEAL
+        }
+        layout {
+            sequence: 20
+            region: @filters
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P1080_DAYS (
+        type: selectList
+        label {
+            label: Period
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:Last 24 hours;1,Last 7 days;7,Last 30 days;30,Last 90 days;90,Last 2 years;730
+        }
+        layout {
+            sequence: 30
+            region: @filters
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        default {
+            type: static
+            staticValue: 30
+        }
+    )
+
+    button apply (
+        buttonName: APPLY
+        label: Apply
+        layout {
+            sequence: 10
+            region: @filters
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    branch stay (
+        name: Show results
+        behavior {
+            type: pageOrUrl
+            target: {
+                page: 1080
+            }
+        }
+        execution {
+            point: afterProcessing
+            sequence: 10
+        }
+    )
+
+)

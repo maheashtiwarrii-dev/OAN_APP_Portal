@@ -29,9 +29,9 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 - **13 Oct (iteration 3):** onboarding conversation built offline: `oan_chat_pkg`, tables, views, page 115, Home routing, page 109, `ut_oan_chat` (9 tests). Board exported to an A4 landscape PDF.
 - **13 Oct (iteration 4):** plan v3.1 for Q29/Q30 (11 gates; same 16 sprints); CI brand check added; W0 admin approval and member pages built offline.
 - **Next:** W0 P0 admin flows offline, in rank order:
-  1. 1080 audit log, 80/81 report modal + my decisions;
-  2. 1071-1073 terms, deny-list, breached passwords; 9000/9001 health;
-  3. 70/71 suggest a term, request a chapter (W0.19);
+  1. 1071-1073 terms, deny-list, breached passwords; 9000/9001 health;
+  2. 70/71 suggest a term, request a chapter (W0.19);
+  3. W0.18 shared components + security baseline; W0.20 Build Option wiring;
   4. spikes once G0 is met.
 - **Every iteration is committed and pushed** to `github.com/maheashtiwarrii-dev/OAN_APP_Portal`. The Kanban board (`docs/delivery-board.html` + PDF) is updated **only on request** (user, 13 Oct).
 

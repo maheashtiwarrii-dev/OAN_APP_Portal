@@ -1,0 +1,817 @@
+page 28 (
+    name: Connections
+    alias: CONNECTIONS
+    title: My network
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    security {
+        authorizationScheme: @is-active
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: Build Pack page 28 Connections (FR-03, W2.8 first slice). Requests received and sent, connections (searchable), followers, following and blocked members. All rows come from viewer-scoped views; every action goes through OAN_NETWORK_PKG (members only, audited). Introductions and recommendations follow with messaging (FR-18, W4).
+    }
+
+    region incoming (
+        name: Requests for you
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select connection_id, user_id, display_name, headline, note, requested_at,
+                       'Accept' accept_label, 'Decline' decline_label
+                  from oan_my_connection_requests_v
+                 where direction = 'INCOMING'
+                 order by requested_at desc
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: No requests waiting for you.
+        }
+
+        column CONNECTION_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column USER_ID (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 2
+            }
+        )
+
+        column DISPLAY_NAME (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Name
+            }
+            layout {
+                sequence: 3
+            }
+            link {
+                target: {
+                    page: 22
+                    items: {
+                        P22_USER_ID: \#USER_ID#\
+                    }
+                }
+                linkText: #DISPLAY_NAME#
+            }
+        )
+
+        column HEADLINE (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Headline
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column NOTE (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Note
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+        column REQUESTED_AT (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Sent
+            }
+            layout {
+                sequence: 6
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+        column ACCEPT_LABEL (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Accept
+            }
+            layout {
+                sequence: 7
+            }
+            link {
+                target: {
+                    page: 28
+                    items: {
+                        P28_CONNECTION_ID: \#CONNECTION_ID#\
+                    }
+                    request: ACCEPT
+                }
+                linkText: #ACCEPT_LABEL#
+            }
+        )
+
+        column DECLINE_LABEL (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Decline
+            }
+            layout {
+                sequence: 8
+            }
+            link {
+                target: {
+                    page: 28
+                    items: {
+                        P28_CONNECTION_ID: \#CONNECTION_ID#\
+                    }
+                    request: DECLINE
+                }
+                linkText: #DECLINE_LABEL#
+            }
+        )
+
+    )
+
+    region outgoing (
+        name: Requests you sent
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select connection_id, user_id, display_name, headline, requested_at, 'Withdraw' withdraw_label
+                  from oan_my_connection_requests_v
+                 where direction = 'OUTGOING'
+                 order by requested_at desc
+                ```
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: No requests waiting for a reply.
+        }
+
+        column CONNECTION_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column USER_ID (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 2
+            }
+        )
+
+        column DISPLAY_NAME (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Name
+            }
+            layout {
+                sequence: 3
+            }
+            link {
+                target: {
+                    page: 22
+                    items: {
+                        P22_USER_ID: \#USER_ID#\
+                    }
+                }
+                linkText: #DISPLAY_NAME#
+            }
+        )
+
+        column HEADLINE (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Headline
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column REQUESTED_AT (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Sent
+            }
+            layout {
+                sequence: 5
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+        column WITHDRAW_LABEL (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Withdraw
+            }
+            layout {
+                sequence: 6
+            }
+            link {
+                target: {
+                    page: 28
+                    items: {
+                        P28_CONNECTION_ID: \#CONNECTION_ID#\
+                    }
+                    request: WITHDRAW
+                }
+                linkText: #WITHDRAW_LABEL#
+            }
+        )
+
+    )
+
+    region connections (
+        name: My connections
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select user_id, display_name, job_title, current_org, primary_chapter, connected_at
+                  from oan_my_connections_v
+                 where :P28_SEARCH is null
+                    or upper(display_name || ' ' || job_title || ' ' || current_org || ' ' || primary_chapter)
+                       like '%' || upper(:P28_SEARCH) || '%'
+                 order by display_name
+                ```
+        }
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: No connections found. Find members in the directory and choose Connect on their profile.
+        }
+
+        column USER_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column DISPLAY_NAME (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Name
+            }
+            layout {
+                sequence: 2
+            }
+            link {
+                target: {
+                    page: 22
+                    items: {
+                        P22_USER_ID: \#USER_ID#\
+                    }
+                }
+                linkText: #DISPLAY_NAME#
+            }
+        )
+
+        column JOB_TITLE (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Title
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column CURRENT_ORG (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Organisation
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column PRIMARY_CHAPTER (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Chapter
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+        column CONNECTED_AT (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Connected
+            }
+            layout {
+                sequence: 6
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+    )
+
+    region followers (
+        name: Followers
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select user_id, display_name, headline, followed_at, 'Remove' remove_label
+                  from oan_my_followers_v
+                 order by followed_at desc
+                ```
+        }
+        layout {
+            sequence: 40
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: Nobody follows you yet. You can switch followers off in Account settings.
+        }
+
+        column USER_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column DISPLAY_NAME (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Name
+            }
+            layout {
+                sequence: 2
+            }
+            link {
+                target: {
+                    page: 22
+                    items: {
+                        P22_USER_ID: \#USER_ID#\
+                    }
+                }
+                linkText: #DISPLAY_NAME#
+            }
+        )
+
+        column HEADLINE (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Headline
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column FOLLOWED_AT (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Since
+            }
+            layout {
+                sequence: 4
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+        column REMOVE_LABEL (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Remove
+            }
+            layout {
+                sequence: 5
+            }
+            link {
+                target: {
+                    page: 28
+                    items: {
+                        P28_USER_ID: \#USER_ID#\
+                    }
+                    request: REMOVE_FOLLOWER
+                }
+                linkText: #REMOVE_LABEL#
+            }
+        )
+
+    )
+
+    region following (
+        name: Following
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select user_id, display_name, headline, followed_at, 'Unfollow' unfollow_label
+                  from oan_my_following_v
+                 order by followed_at desc
+                ```
+        }
+        layout {
+            sequence: 50
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: You are not following anyone.
+        }
+
+        column USER_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column DISPLAY_NAME (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Name
+            }
+            layout {
+                sequence: 2
+            }
+            link {
+                target: {
+                    page: 22
+                    items: {
+                        P22_USER_ID: \#USER_ID#\
+                    }
+                }
+                linkText: #DISPLAY_NAME#
+            }
+        )
+
+        column HEADLINE (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Headline
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column FOLLOWED_AT (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Since
+            }
+            layout {
+                sequence: 4
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+        column UNFOLLOW_LABEL (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Unfollow
+            }
+            layout {
+                sequence: 5
+            }
+            link {
+                target: {
+                    page: 28
+                    items: {
+                        P28_USER_ID: \#USER_ID#\
+                    }
+                    request: UNFOLLOW
+                }
+                linkText: #UNFOLLOW_LABEL#
+            }
+        )
+
+    )
+
+    region blocked (
+        name: Blocked members
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select user_id, display_name, blocked_at, 'Unblock' unblock_label
+                  from oan_my_blocks_v
+                 order by blocked_at desc
+                ```
+        }
+        layout {
+            sequence: 60
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: You have not blocked anyone.
+        }
+
+        column USER_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column DISPLAY_NAME (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Name
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column BLOCKED_AT (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Blocked
+            }
+            layout {
+                sequence: 3
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+        column UNBLOCK_LABEL (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Unblock
+            }
+            layout {
+                sequence: 4
+            }
+            link {
+                target: {
+                    page: 28
+                    items: {
+                        P28_USER_ID: \#USER_ID#\
+                    }
+                    request: UNBLOCK
+                }
+                linkText: #UNBLOCK_LABEL#
+            }
+        )
+
+    )
+
+    pageItem P28_SEARCH (
+        type: textField
+        label {
+            label: Search my connections
+        }
+        layout {
+            sequence: 10
+            region: @connections
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 100
+        }
+    )
+
+    pageItem P28_CONNECTION_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @incoming
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P28_USER_ID (
+        type: hidden
+        layout {
+            sequence: 20
+            region: @incoming
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    button search (
+        buttonName: SEARCH
+        label: Search
+        layout {
+            sequence: 10
+            region: @connections
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button directory (
+        buttonName: DIRECTORY
+        label: Find members
+        layout {
+            sequence: 20
+            region: @connections
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--simple
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 20
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process network-action (
+        name: Networking action
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                case :REQUEST
+                    when 'ACCEPT'          then oan_network_pkg.accept_connection(:P28_CONNECTION_ID);
+                    when 'DECLINE'         then oan_network_pkg.reject_connection(:P28_CONNECTION_ID);
+                    when 'WITHDRAW'        then oan_network_pkg.withdraw_connection(:P28_CONNECTION_ID);
+                    when 'REMOVE_FOLLOWER' then oan_network_pkg.remove_follower(:P28_USER_ID);
+                    when 'UNFOLLOW'        then oan_network_pkg.unfollow(:P28_USER_ID);
+                    when 'UNBLOCK'         then oan_network_pkg.unblock_member(:P28_USER_ID);
+                end case;
+                -- drop the request from the URL so a reload does not repeat the action
+                apex_util.redirect_url(apex_page.get_url(p_page => 28));
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: ACCEPT,DECLINE,WITHDRAW,REMOVE_FOLLOWER,UNFOLLOW,UNBLOCK
+        }
+    )
+
+)

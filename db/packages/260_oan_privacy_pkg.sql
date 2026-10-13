@@ -212,6 +212,8 @@ create or replace package body oan_privacy_pkg as
             delete from oan_connections where user_low = p_user_id or user_high = p_user_id;
           elsif t.table_name = 'OAN_BLOCKS' then
             delete from oan_blocks where blocker_id = p_user_id or blocked_id = p_user_id;
+          elsif t.table_name = 'OAN_MEMBER_FOLLOWS' then
+            delete from oan_member_follows where follower_id = p_user_id or followee_id = p_user_id;
           else
             execute immediate 'delete from ' || t.table_name || ' where ' || t.user_key_column || ' = :u' using p_user_id;
           end if;

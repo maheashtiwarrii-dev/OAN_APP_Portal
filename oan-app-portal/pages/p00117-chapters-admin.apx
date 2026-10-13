@@ -440,20 +440,17 @@ page 117 (
                 begin
                     case :REQUEST
                         when 'CREATE_CHAPTER' then
-                            oan_util.assert(:P117_LEVEL is not null and trim(:P117_NAME) is not null and trim(:P117_SLUG) is not null,
-                                            'Enter a level, a name and a short web name.');
-                            oan_util.assert(regexp_like(:P117_SLUG, '^[a-zA-Z0-9-]+$'), 'Use only letters, numbers and hyphens in the short web name.');
-                            oan_util.assert((:P117_LEVEL = 'REGION') = (:P117_PARENT_ID is null),
-                                            'A region has no parent; countries and cities need one.');
+                            if not nvl(:P117_LEVEL is not null and trim(:P117_NAME) is not null and trim(:P117_SLUG) is not null, false) then raise_application_error(-20400, 'Enter a level, a name and a short web name.'); end if;
+                            if not nvl(regexp_like(:P117_SLUG, '^[a-zA-Z0-9-]+$'), false) then raise_application_error(-20400, 'Use only letters, numbers and hyphens in the short web name.'); end if;
+                            if not nvl((:P117_LEVEL = 'REGION') = (:P117_PARENT_ID is null), false) then raise_application_error(-20400, 'A region has no parent; countries and cities need one.'); end if;
                             l_id := oan_chapter_pkg.create_chapter(:P117_PARENT_ID, :P117_LEVEL, trim(:P117_NAME),
                                                                    trim(:P117_SLUG), :P117_LOCATION_ID, :P117_DESCRIPTION);
                         when 'ASSIGN_ADMIN' then
-                            oan_util.assert(:P117_ADMIN_CHAPTER_ID is not null and :P117_ADMIN_USER_ID is not null,
-                                            'Choose a chapter and a member.');
+                            if not nvl(:P117_ADMIN_CHAPTER_ID is not null and :P117_ADMIN_USER_ID is not null, false) then raise_application_error(-20400, 'Choose a chapter and a member.'); end if;
                             oan_security_pkg.assign_chapter_admin(:P117_ADMIN_CHAPTER_ID, :P117_ADMIN_USER_ID,
                                                                   nvl(:P117_MFA_ATTESTED, 'N'));
                         when 'REMOVE_ADMIN' then
-                            oan_util.assert(:P117_REMOVE_ASSIGNMENT is not null, 'Choose the Chapter Admin to remove.');
+                            if not nvl(:P117_REMOVE_ASSIGNMENT is not null, false) then raise_application_error(-20400, 'Choose the Chapter Admin to remove.'); end if;
                             oan_security_pkg.remove_chapter_admin(
                                 to_number(substr(:P117_REMOVE_ASSIGNMENT, 1, instr(:P117_REMOVE_ASSIGNMENT, ':') - 1)),
                                 to_number(substr(:P117_REMOVE_ASSIGNMENT, instr(:P117_REMOVE_ASSIGNMENT, ':') + 1)));

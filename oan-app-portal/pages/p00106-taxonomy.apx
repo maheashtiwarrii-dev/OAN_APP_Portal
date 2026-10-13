@@ -531,14 +531,13 @@ page 106 (
                         when 'APPROVE' then
                             oan_taxonomy_pkg.approve(:P106_TERM_ID);
                         when 'REJECT' then
-                            oan_util.assert(:P106_REJECT_REASON is not null, 'Give a reason for rejecting the suggestion.');
+                            if not nvl(:P106_REJECT_REASON is not null, false) then raise_application_error(-20400, 'Give a reason for rejecting the suggestion.'); end if;
                             oan_taxonomy_pkg.reject(:P106_TERM_ID, :P106_REJECT_REASON);
                         when 'MERGE' then
-                            oan_util.assert(:P106_MERGE_INTO is not null, 'Choose the term to merge into.');
+                            if not nvl(:P106_MERGE_INTO is not null, false) then raise_application_error(-20400, 'Choose the term to merge into.'); end if;
                             oan_taxonomy_pkg.merge_terms(:P106_TERM_ID, :P106_MERGE_INTO);
                         when 'ADD_TERM' then
-                            oan_util.assert(:P106_NEW_TYPE is not null and trim(:P106_NEW_NAME) is not null,
-                                            'Choose a type and enter a name.');
+                            if not nvl(:P106_NEW_TYPE is not null and trim(:P106_NEW_NAME) is not null, false) then raise_application_error(-20400, 'Choose a type and enter a name.'); end if;
                             l_id := oan_taxonomy_pkg.add_term(:P106_NEW_TYPE, :P106_NEW_NAME);
                     end case;
                     if :REQUEST in ('REJECT','MERGE') then

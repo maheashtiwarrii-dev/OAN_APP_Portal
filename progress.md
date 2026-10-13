@@ -176,3 +176,18 @@
 | I14-4 | Pages | 23 My profile (CV upload, 4 entry lists, languages/industries/interests, career-status visibility); dialogs 231–234; 24 My CV; 25 Current work profile; 22 masked career sections; 21 industry/language/availability facets; nav highlights 24/25 under My profile |
 | I14-5 | Checks | `apex validate` successful; brand check passed; 60/60 SQL queries parse as OAN_APP; new PL/SQL processes compile as OAN_APP; no invalid objects |
 | I14-6 | Deploy | App 200 re-imported on dev (45 pages); utPLSQL career + directory + vis: **29/29 pass** |
+
+## Iteration 15 — W2.8 connections, follow and block, deployed to dev (13 Oct 2026)
+| Step | Action | Result |
+|---|---|---|
+| I15-1 | User: continue development | W2.8 first slice: FR-03 connect, follow, block |
+| I15-2 | Data layer | `098_network.sql` (re-runnable): `oan_member_follows`, `oan_privacy_settings.followers_enabled`, configs `CONNECTION_REQUESTS_PER_DAY` (50) and `CONNECTION_RESEND_DAYS` (30), PD registry (account deletion also clears follows on the followee side) |
+| I15-3 | `oan_network_pkg` | Members only; AC1 daily limit via `oan_throttle_pkg`; AC2 30-day wait after a decline; AC3 block clears connection and follows both ways and stops new ones; notifications type CONNECTION; every change audited |
+| I15-4 | Views | `oan_my_connections_v`, `oan_my_connection_requests_v`, `oan_my_followers_v`, `oan_my_following_v`, `oan_my_blocks_v`, `oan_relationship_v`, `oan_mutual_connections_v`, followers flag in `oan_my_privacy_settings_v` |
+| I15-5 | Database bug avoided | A UNION ALL pair helper made `oan_mutual_connections_v ... where user_id = :bind` raise **ORA-00600 [qctcte1]** when parsed before binding (as APEX does). Views rewritten with CASE on `oan_connections`; helper dropped |
+| I15-6 | Pages | 28 Connections (requests in/out, searchable connections, followers, following, blocked); page 22 Connect / Accept / Decline / Withdraw / Follow / Unfollow / Remove / Block + mutual connections; page 26 followers switch; page 20 "My network"; Directory rail entry highlights 28 |
+| I15-7 | Checks | New check runs every page query (67) and PL/SQL block (81) as OAN_APP. It found 3 admin pages (106, 116, 117) calling `oan_util.assert`, which OAN_APP cannot execute; replaced with local checks. All pass; validate and brand check pass |
+| I15-8 | Deploy | utPLSQL 41/41 (network 12, career 11, directory 9, vis 9); app 200 re-imported: **46 pages** |
+| I15-9 | User could not see the pages in the workspace | App 200 "OAN Portal" is in workspace OAN_APP, Run and Develop, 46 pages. The similarly named app 103 "OAN_APP_Portal" is the old 3-page starter; command-line imports leave "last updated" blank, so app 200 can sort last |
+| I15-10 | User: HTTP 500 and blank pages in app 200 | Cause found in `APEX_DEBUG_MESSAGES`: the app's response headers were stored as one line with literal `#NEWLINE#` tokens, and APEX also rejects an app-level `Strict-Transport-Security` header. Fixed in `application.apx`: headers written as a multi-line block, HSTS dropped (ADB enforces HTTPS), CSP `frame-ancestors 'self'` and `embedInFrames: allowSameOrigin` so modal dialogs (231-234) are not blank, Oracle APEX CDN allowed in CSP. Re-imported; `f?p=200` now returns 200 and renders the sign-in page with APEX JS from `/i/26.1.5/` |
+

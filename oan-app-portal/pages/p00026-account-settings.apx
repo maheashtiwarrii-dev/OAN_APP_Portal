@@ -219,6 +219,25 @@ page 26 (
         }
     )
 
+    pageItem P26_FOLLOWERS_ENABLED (
+        type: switch
+        label {
+            label: Let members follow me
+        }
+        layout {
+            sequence: 25
+            region: @privacy-settings
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        help {
+            inlineHelpText: Followers only see what your privacy settings already show them. Turning this off removes your current followers.
+        }
+    )
+
     pageItem P26_PRIVACY_VERSION (
         type: hidden
         layout {
@@ -370,9 +389,10 @@ page 26 (
                     :P26_EMAIL := r.email;
                     :P26_PROVIDERS := r.providers;
                 end loop;
-                for s in (select directory_mode, messaging_mode, row_version from oan_my_privacy_settings_v) loop
+                for s in (select directory_mode, messaging_mode, followers_enabled, row_version from oan_my_privacy_settings_v) loop
                     :P26_DIRECTORY_MODE  := s.directory_mode;
                     :P26_MESSAGING_MODE  := s.messaging_mode;
+                    :P26_FOLLOWERS_ENABLED := s.followers_enabled;
                     :P26_PRIVACY_VERSION := s.row_version;
                 end loop;
                 ```
@@ -459,7 +479,11 @@ page 26 (
         name: Save directory and messaging settings
         type: executeCode
         source {
-            plsqlCode: oan_profile_pkg.set_privacy_settings(:P26_DIRECTORY_MODE, :P26_MESSAGING_MODE, :P26_PRIVACY_VERSION);
+            plsqlCode:
+                ```plsql
+                oan_profile_pkg.set_privacy_settings(:P26_DIRECTORY_MODE, :P26_MESSAGING_MODE, :P26_PRIVACY_VERSION);
+                oan_network_pkg.set_followers_enabled(nvl(:P26_FOLLOWERS_ENABLED, 'N'));
+                ```
         }
         execution {
             sequence: 45
@@ -468,7 +492,7 @@ page 26 (
             whenButtonPressed: @save-privacy
         }
         successMessage {
-            successMessage: Your directory and messaging settings were saved.
+            successMessage: Your directory, messaging and follower settings were saved.
         }
     )
 

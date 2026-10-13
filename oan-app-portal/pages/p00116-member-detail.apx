@@ -493,15 +493,15 @@ page 116 (
                 ```plsql
                 case :REQUEST
                     when 'GRANT' then
-                        oan_util.assert(:P116_GRANT_ROLE is not null, 'Choose a role to add.');
+                        if not nvl(:P116_GRANT_ROLE is not null, false) then raise_application_error(-20400, 'Choose a role to add.'); end if;
                         oan_security_pkg.grant_role(:P116_USER_ID, :P116_GRANT_ROLE, nvl(:P116_MFA_ATTESTED, 'N'));
                     when 'REVOKE' then
-                        oan_util.assert(:P116_REVOKE_ROLE is not null, 'Choose a role to remove.');
+                        if not nvl(:P116_REVOKE_ROLE is not null, false) then raise_application_error(-20400, 'Choose a role to remove.'); end if;
                         oan_security_pkg.revoke_role(:P116_USER_ID, :P116_REVOKE_ROLE);
                     when 'ATTEST' then
                         oan_security_pkg.attest_mfa(:P116_USER_ID);
                     when 'SUSPEND' then
-                        oan_util.assert(:P116_SUSPEND_REASON is not null, 'Give the reason the member will see.');
+                        if not nvl(:P116_SUSPEND_REASON is not null, false) then raise_application_error(-20400, 'Give the reason the member will see.'); end if;
                         oan_security_pkg.suspend_user(:P116_USER_ID,
                             case when :P116_SUSPEND_UNTIL is not null
                                  then to_timestamp_tz(:P116_SUSPEND_UNTIL || ' 23:59:59 UTC', 'DD-MON-YYYY HH24:MI:SS TZR') end,

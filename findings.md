@@ -78,6 +78,12 @@
 - APEXLang 26.1: modal pages use slot `contentBody`/`dialogFooter`; `selectMany` with static values does not accept `displayExtraValues`.
 - Before-header GET actions on page 24 (make current, delete) redirect back to the page so a reload cannot repeat them.
 
+## W2.8 networking (13 Oct 2026)
+- 23.26 bug: a column derived from a UNION ALL view, filtered by an untyped bind, raised ORA-00600 [qctcte1] at parse (`dbms_sql.parse` before binding, which is how APEX runs reports). Avoid UNION ALL helpers under bind-filtered secure views; use CASE on the pair table.
+- Views named `OAN_%_V` are granted to OAN_APP automatically (`10_app_grants.sql`), so internal helpers without a viewer filter must not use that suffix.
+- App-level HTTP response headers: write them as an APEXLang multi-line block (one header per line); `#NEWLINE#` stays literal and APEX rejects the header (HTTP 500). APEX also rejects `Strict-Transport-Security` at app level. Modal dialogs need `embedInFrames: allowSameOrigin` and CSP `frame-ancestors 'self'`.
+- Page code must not call `oan_util` (not granted to OAN_APP). The OAN_APP compile check (every page query and PL/SQL block) now catches this before import.
+
 ## Design decisions for build
 - Visibility is enforced in the data layer: `OAN_DATA` tables + `oan_vis.can_see` + secure views; `OAN_APP` has view/package grants only (NFR-03).
 - Roles live in APEX ACL only; chapter scope lives in `OAN_CHAPTER_ADMINS` (NFR-02).

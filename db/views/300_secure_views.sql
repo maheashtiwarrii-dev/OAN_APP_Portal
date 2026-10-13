@@ -522,6 +522,7 @@ select u.id user_id,
                 (select c.config_value from oan_config c where c.config_key = 'DIRECTORY_DEFAULT'),
                 'VISIBLE') directory_mode,
        coalesce(s.messaging_mode, 'ANYONE') messaging_mode,
+       coalesce(s.followers_enabled, 'Y') followers_enabled,
        coalesce(s.row_version, 0) row_version,
        s.updated_at
   from oan_users u
@@ -624,3 +625,95 @@ select c.id, c.file_id, f.filename, round(f.file_size / 1024) size_kb, c.is_curr
   from oan_member_cv c
   join oan_files f on f.id = c.file_id
  where c.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID'));
+
+------------------------------------------------------------- networking (FR-03, W2.8) --
+-- No UNION ALL pair helper here: on 23.26 a bind on a column derived from a UNION ALL view raised
+-- ORA-00600 [qctcte1] when the statement was parsed before binding (as APEX does). Pairs are
+-- resolved with CASE on OAN_CONNECTIONS instead.
+begin
+  execute immediate 'drop view oan_connection_pairs_int';
+exception
+  when others then if sqlcode != -942 then raise; end if;
+end;
+/
+
+-- The viewer's connections; WORK fields masked as on the profile (blocked or inactive members drop out)
+create or replace view oan_my_connections_v as
+select c.id connection_id, v.user_id, v.display_name, v.headline, v.job_title, v.current_org, v.primary_chapter,
+       c.responded_at connected_at
+  from oan_connections c
+  join oan_profile_v v on v.user_id = case when c.user_low = to_number(sys_context('OAN_CTX','VIEWER_ID'))
+                                           then c.user_high else c.user_low end
+ where c.status = 'ACCEPTED'
+   and to_number(sys_context('OAN_CTX','VIEWER_ID')) in (c.user_low, c.user_high);
+
+-- Pending requests the viewer received (INCOMING) or sent (OUTGOING)
+create or replace view oan_my_connection_requests_v as
+select c.id connection_id,
+       case when c.requested_by = to_number(sys_context('OAN_CTX','VIEWER_ID')) then 'OUTGOING' else 'INCOMING' end direction,
+       m.user_id, m.display_name, m.headline, m.primary_chapter, c.note, c.requested_at
+  from oan_connections c
+  join oan_member_card_v m on m.user_id = case when c.user_low = to_number(sys_context('OAN_CTX','VIEWER_ID'))
+                                               then c.user_high else c.user_low end
+ where c.status = 'PENDING'
+   and to_number(sys_context('OAN_CTX','VIEWER_ID')) in (c.user_low, c.user_high);
+
+create or replace view oan_my_followers_v as
+select m.user_id, m.display_name, m.headline, m.primary_chapter, f.created_at followed_at
+  from oan_member_follows f
+  join oan_member_card_v m on m.user_id = f.follower_id
+ where f.followee_id = to_number(sys_context('OAN_CTX','VIEWER_ID'));
+
+create or replace view oan_my_following_v as
+select m.user_id, m.display_name, m.headline, m.primary_chapter, f.created_at followed_at
+  from oan_member_follows f
+  join oan_member_card_v m on m.user_id = f.followee_id
+ where f.follower_id = to_number(sys_context('OAN_CTX','VIEWER_ID'));
+
+-- Members the viewer blocked (the card view hides them, so the name comes from the profile)
+create or replace view oan_my_blocks_v as
+select b.blocked_id user_id, p.first_name || ' ' || p.last_name display_name, b.created_at blocked_at
+  from oan_blocks b
+  join oan_profiles p on p.user_id = b.blocked_id
+ where b.blocker_id = to_number(sys_context('OAN_CTX','VIEWER_ID'));
+
+-- Mutual connections between the viewer and each member (FR-03); filter by USER_ID on page 22.
+-- mm.m = one of the viewer's connections; b = an accepted pair of m with another member (user_id).
+create or replace view oan_mutual_connections_v as
+select case when b.user_low = mm.m then b.user_high else b.user_low end user_id,
+       mc.user_id mutual_user_id, mc.display_name, mc.headline
+  from (select case when a.user_low = to_number(sys_context('OAN_CTX','VIEWER_ID')) then a.user_high else a.user_low end m
+          from oan_connections a
+         where a.status = 'ACCEPTED'
+           and to_number(sys_context('OAN_CTX','VIEWER_ID')) in (a.user_low, a.user_high)) mm
+  join oan_connections b on b.status = 'ACCEPTED' and mm.m in (b.user_low, b.user_high)
+  join oan_member_card_v mc on mc.user_id = mm.m
+ where to_number(sys_context('OAN_CTX','VIEWER_ID')) not in (b.user_low, b.user_high)
+   and sys_context('OAN_CTX','VIEWER_TYPE') = 'MEMBER';
+
+-- The viewer's relationship with each visible member (page 22 buttons)
+create or replace view oan_relationship_v as
+select m.user_id,
+       coalesce(case when c.status = 'ACCEPTED' then 'CONNECTED'
+                     when c.status = 'PENDING' and c.requested_by = to_number(sys_context('OAN_CTX','VIEWER_ID')) then 'PENDING_OUT'
+                     when c.status = 'PENDING' then 'PENDING_IN' end, 'NONE') connection_status,
+       c.id connection_id,
+       case when exists (select 1 from oan_member_follows f
+                          where f.follower_id = to_number(sys_context('OAN_CTX','VIEWER_ID')) and f.followee_id = m.user_id)
+            then 'Y' else 'N' end i_follow,
+       (select nvl(max(s.followers_enabled), 'Y') from oan_privacy_settings s where s.user_id = m.user_id) accepts_followers,
+       (select count(*)
+          from oan_connections a
+          join oan_connections b on b.status = 'ACCEPTED'
+                                and m.user_id in (b.user_low, b.user_high)
+                                and case when a.user_low = to_number(sys_context('OAN_CTX','VIEWER_ID')) then a.user_high else a.user_low end
+                                    in (b.user_low, b.user_high)
+          join oan_member_card_v mc on mc.user_id = case when a.user_low = to_number(sys_context('OAN_CTX','VIEWER_ID'))
+                                                         then a.user_high else a.user_low end
+         where a.status = 'ACCEPTED'
+           and to_number(sys_context('OAN_CTX','VIEWER_ID')) in (a.user_low, a.user_high)) mutual_count
+  from oan_member_card_v m
+  left join oan_connections c on c.user_low = least(m.user_id, to_number(sys_context('OAN_CTX','VIEWER_ID')))
+                             and c.user_high = greatest(m.user_id, to_number(sys_context('OAN_CTX','VIEWER_ID')))
+ where m.user_id != to_number(sys_context('OAN_CTX','VIEWER_ID'))
+   and sys_context('OAN_CTX','VIEWER_TYPE') = 'MEMBER';

@@ -15,7 +15,7 @@ page 22 (
         formAutoComplete: false
     }
     comments {
-        comments: FR-01 view: only OAN_PROFILE_V (section-masked, NFR-03). Hidden sections arrive as NULL and show "Not shared with you". W2.1/W2.2 sections read the masked OAN_PROFILE_*_V views (WORK, EDUCATION, SKILLS, CAREER_STATUS; R13 never partners).
+        comments: FR-01 view: only OAN_PROFILE_V (section-masked, NFR-03). FR-03 connect/follow/block via OAN_NETWORK_PKG; relationship from OAN_RELATIONSHIP_V. Hidden sections arrive as NULL and show "Not shared with you". W2.1/W2.2 sections read the masked OAN_PROFILE_*_V views (WORK, EDUCATION, SKILLS, CAREER_STATUS; R13 never partners).
     }
 
     region profile (
@@ -641,6 +641,103 @@ page 22 (
 
     )
 
+    region network (
+        name: Connect
+        type: staticContent
+        source {
+            htmlCode: <p>&P22_NETWORK_TEXT.</p>
+        }
+        layout {
+            sequence: 15
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P22_CONN_STATUS
+        }
+    )
+
+    region mutual (
+        name: Mutual connections
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select mutual_user_id, display_name, headline
+                  from oan_mutual_connections_v
+                 where user_id = :P22_USER_ID
+                 order by display_name
+                ```
+        }
+        layout {
+            sequence: 16
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: No mutual connections yet.
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P22_CONN_STATUS
+        }
+
+        column MUTUAL_USER_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column DISPLAY_NAME (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Name
+            }
+            layout {
+                sequence: 2
+            }
+            link {
+                target: {
+                    page: 22
+                    items: {
+                        P22_USER_ID: \#MUTUAL_USER_ID#\
+                    }
+                }
+                linkText: #DISPLAY_NAME#
+            }
+        )
+
+        column HEADLINE (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Headline
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+    )
+
     pageItem P22_USER_ID (
         type: hidden
         layout {
@@ -650,6 +747,269 @@ page 22 (
         }
         security {
             sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P22_CONN_STATUS (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @network
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P22_CONNECTION_ID (
+        type: hidden
+        layout {
+            sequence: 20
+            region: @network
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P22_I_FOLLOW (
+        type: hidden
+        layout {
+            sequence: 30
+            region: @network
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P22_NETWORK_TEXT (
+        type: hidden
+        layout {
+            sequence: 50
+            region: @network
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P22_NOTE (
+        type: textarea
+        label {
+            label: Add a note (optional)
+        }
+        layout {
+            sequence: 60
+            region: @network
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 300
+        }
+        serverSideCondition {
+            type: item=value
+            item: P22_CONN_STATUS
+            value: NONE
+        }
+    )
+
+    button connect (
+        buttonName: CONNECT
+        label: Connect
+        layout {
+            sequence: 10
+            region: @network
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: item=value
+            item: P22_CONN_STATUS
+            value: NONE
+        }
+    )
+
+    button accept (
+        buttonName: ACCEPT
+        label: Accept request
+        layout {
+            sequence: 20
+            region: @network
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: item=value
+            item: P22_CONN_STATUS
+            value: PENDING_IN
+        }
+    )
+
+    button decline (
+        buttonName: DECLINE
+        label: Decline
+        layout {
+            sequence: 30
+            region: @network
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: item=value
+            item: P22_CONN_STATUS
+            value: PENDING_IN
+        }
+    )
+
+    button withdraw (
+        buttonName: WITHDRAW
+        label: Withdraw request
+        layout {
+            sequence: 40
+            region: @network
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: item=value
+            item: P22_CONN_STATUS
+            value: PENDING_OUT
+        }
+    )
+
+    button follow (
+        buttonName: FOLLOW
+        label: Follow
+        layout {
+            sequence: 50
+            region: @network
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: item=value
+            item: P22_I_FOLLOW
+            value: N
+        }
+    )
+
+    button unfollow (
+        buttonName: UNFOLLOW
+        label: Unfollow
+        layout {
+            sequence: 60
+            region: @network
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: item=value
+            item: P22_I_FOLLOW
+            value: Y
+        }
+    )
+
+    button remove-connection (
+        buttonName: REMOVE_CONNECTION
+        label: Remove connection
+        layout {
+            sequence: 70
+            region: @network
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            requiresConfirmation: true
+        }
+        confirmation {
+            message: Remove this member from your connections?
+            style: danger
+        }
+        serverSideCondition {
+            type: item=value
+            item: P22_CONN_STATUS
+            value: CONNECTED
+        }
+    )
+
+    button block (
+        buttonName: BLOCK
+        label: Block
+        layout {
+            sequence: 80
+            region: @network
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--danger
+                t-Button--simple
+            ]
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            requiresConfirmation: true
+        }
+        confirmation {
+            message: Block this member? You will no longer see each other, and any connection or follow between you is removed.
+            style: danger
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P22_CONN_STATUS
         }
     )
 
@@ -679,6 +1039,101 @@ page 22 (
                 }
             }
             warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process load-relationship (
+        name: Load relationship
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                :P22_CONN_STATUS := null;
+                :P22_I_FOLLOW    := null;
+                for r in (select connection_status, connection_id, i_follow, accepts_followers, mutual_count
+                            from oan_relationship_v where user_id = :P22_USER_ID) loop
+                    :P22_CONN_STATUS   := r.connection_status;
+                    :P22_CONNECTION_ID := r.connection_id;
+                    -- no Follow button when the member does not accept followers
+                    :P22_I_FOLLOW      := case when r.i_follow = 'N' and r.accepts_followers = 'N' then null else r.i_follow end;
+                    :P22_NETWORK_TEXT  := case r.connection_status
+                                              when 'CONNECTED'   then 'You are connected.'
+                                              when 'PENDING_OUT' then 'Your connection request is waiting for a reply.'
+                                              when 'PENDING_IN'  then 'This member asked to connect with you.'
+                                              else 'You are not connected yet.'
+                                          end
+                                          || case when r.mutual_count > 0 then ' Mutual connections: ' || r.mutual_count || '.' end;
+                end loop;
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+    )
+
+    process network-action (
+        name: Networking action
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                case :REQUEST
+                    when 'CONNECT'           then oan_network_pkg.request_connection(:P22_USER_ID, :P22_NOTE);
+                    when 'ACCEPT'            then oan_network_pkg.accept_connection(:P22_CONNECTION_ID);
+                    when 'DECLINE'           then oan_network_pkg.reject_connection(:P22_CONNECTION_ID);
+                    when 'WITHDRAW'          then oan_network_pkg.withdraw_connection(:P22_CONNECTION_ID);
+                    when 'FOLLOW'            then oan_network_pkg.follow(:P22_USER_ID);
+                    when 'UNFOLLOW'          then oan_network_pkg.unfollow(:P22_USER_ID);
+                    when 'REMOVE_CONNECTION' then oan_network_pkg.remove_connection(:P22_USER_ID);
+                    when 'BLOCK'             then oan_network_pkg.block_member(:P22_USER_ID);
+                end case;
+                :P22_NOTE := null;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: CONNECT,ACCEPT,DECLINE,WITHDRAW,FOLLOW,UNFOLLOW,REMOVE_CONNECTION,BLOCK
+        }
+        successMessage {
+            successMessage: Done.
+        }
+    )
+
+    branch after-block (
+        name: To connections after a block
+        behavior {
+            type: pageOrUrl
+            target: {
+                page: 28
+            }
+        }
+        execution {
+            point: afterProcessing
+            sequence: 10
+        }
+        serverSideCondition {
+            whenButtonPressed: @block
+        }
+    )
+
+    branch back-to-profile (
+        name: Back to this profile
+        behavior {
+            type: pageOrUrl
+            target: {
+                page: 22
+                items: {
+                    P22_USER_ID: &P22_USER_ID.
+                }
+            }
+        }
+        execution {
+            point: afterProcessing
+            sequence: 20
         }
     )
 

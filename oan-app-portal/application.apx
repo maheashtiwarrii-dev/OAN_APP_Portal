@@ -12,9 +12,13 @@ app OAN-APP-PORTAL (
     }
     security {
         referrerPolicy: strictOriginWhenCrossOrigin
-        httpResponseHeaders: Strict-Transport-Security: max-age=31536000; includeSubDomains#NEWLINE#X-Content-Type-Options: nosniff#NEWLINE#Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; frame-ancestors 'none'; form-action 'self' https://accounts.google.com https://www.linkedin.com
+        httpResponseHeaders:
+            ```
+            X-Content-Type-Options: nosniff
+            Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://static.oracle.com; style-src 'self' 'unsafe-inline' https://static.oracle.com; img-src 'self' data: blob: https://static.oracle.com; font-src 'self' data: https://static.oracle.com; frame-ancestors 'self'; form-action 'self' https://accounts.google.com https://www.linkedin.com
+            ```
         deepLinking: false
-        embedInFrames: deny
+        embedInFrames: allowSameOrigin
         browserCache: false
     }
     navigation {

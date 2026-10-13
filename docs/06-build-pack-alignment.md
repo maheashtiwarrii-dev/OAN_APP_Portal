@@ -64,6 +64,7 @@
 | | 24 My CV | 15 |
 | | 25 Current work profile | 16 |
 | | 26 Account settings | 12 |
+| | 28 Connections (my network) | 17 |
 | | 231 Oracle tenure (dialog from 23) | new (W2.1) |
 | | 232 Work experience (dialog from 23) | new (W2.1) |
 | | 233 Education (dialog from 23) | new (W2.1) |
@@ -93,7 +94,6 @@
 |---|---|
 | Global search results | 19 |
 | Privacy centre | 27 |
-| Connections | 28 |
 | Help-Me-Connect | 29 |
 | Unsubscribe | 44 |
 | Group thread | 61 |

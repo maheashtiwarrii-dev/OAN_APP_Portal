@@ -144,6 +144,30 @@ page 20 (
         }
     )
 
+    button my-network (
+        buttonName: MY_NETWORK
+        label: My network
+        layout {
+            sequence: 30
+            region: @search
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--simple
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 28
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
     branch to-results (
         name: To the results
         behavior {

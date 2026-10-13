@@ -138,3 +138,11 @@
 | I10-5 | Google account password shared in chat | Not used or stored; user asked to change it. Google sign-in needs an OAuth client id and secret instead |
 | I10-6 | APEX import approved by the user | App 200 "OAN Portal" imported into workspace OAN_APP (37 pages) next to app 103; alias auto-renamed to `OAN-APP-PORTAL200` because 103 holds `OAN-APP-PORTAL` |
 | I10-7 | Live checks | 25 SQL regions + 7 LOVs parse as OAN_APP against the secure views (0 failures); auth schemes OAN_LOCAL (current), OAN_GOOGLE, OAN_LINKEDIN; credentials `OAN_Google_OAuth` / `OAN_LinkedIn_OAuth` exist, empty until the Google client is created |
+
+## Iteration 11 — tests and spikes on the dev database (13 Oct 2026)
+| Step | Action | Result |
+|---|---|---|
+| I11-1 | User: ignore Google sign-in; use only the existing free DB and credentials | Decisions Q33, Q34; 0.6/0.12 deferred; G2 and 5.3b rescoped to the free ADB |
+| I11-2 | utPLSQL 3.2.3 installed (UT3) | Checksum verified; public synonyms |
+| I11-3 | Test run | 31/34, then fixed the mutating-table bug (profile completeness) and one test expectation: **34/34 pass** |
+| I11-4 | Spikes | 0.13 PBKDF2 ≈ 1.9 s/hash (change request raised); 0.14 Oracle Text OK; 0.11 two-schema boundary OK |

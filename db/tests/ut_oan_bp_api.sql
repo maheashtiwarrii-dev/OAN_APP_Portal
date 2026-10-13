@@ -81,8 +81,11 @@ create or replace package body ut_oan_bp_api as
      where session_id = l_session and option_code not in ('ANSWERED','SKIPPED','JOB_SEARCH');
     ut.expect(l_typed).to_equal(0);
     l_tab := oan_chat_api.get_transcript(l_session);
-    ut.expect(l_tab.count).to_equal(2);
-    ut.expect(instr(l_tab(1).message_text, '555')).to_equal(0);
+    -- start_session already wrote the welcome turn, then the member turn and the routing reply
+    ut.expect(l_tab.count).to_equal(3);
+    for i in 1 .. l_tab.count loop
+      ut.expect(instr(l_tab(i).message_text, '555')).to_equal(0);
+    end loop;
   end transcript_keeps_codes_only;
 
   procedure session_is_viewer_only is

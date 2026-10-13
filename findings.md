@@ -61,6 +61,17 @@
   - Config `APP_ID` was still 103; now 200 (Q31).
 - **Tooling notes:** SQLcl `@` and `set cloudconfig` cannot take paths with spaces, and drive D has no 8.3 names, so scripts run from a copy under `%USERPROFILE%\.oan`. DDL is not re-runnable; a schema reset script was not used (a mass drop is outside what the agent may run), so DDL fixes after this point go in as forward-only ALTER scripts (task 0.16a).
 - **Dev config:** PUBLIC_URL = the dev ORDS base; MAIL_FROM is a placeholder until OCI Email Delivery is set up (task 0.7).
+## Tests and spikes on dev (13 Oct 2026)
+- **utPLSQL 3.2.3** installed in schema UT3 by ADMIN (zip SHA-256 checked against the release file; UT3 password generated, not recorded).
+- **34/34 tests pass** (visibility 9, PD registry 3, auth 6, chat 9, Build Pack API 7) after two fixes:
+  - ORA-04091: `completeness()` was called inside `UPDATE oan_profiles`; now `refresh_completeness` scores first, and `oan_chat_pkg` calls it.
+  - The Build Pack transcript test expected 2 turns; `start_session` already writes the welcome turn, so 3.
+  - The PD-registry test once took 590 s (dictionary queries right after a schema recompile; < 1 s otherwise). Watch it in CI.
+- **Spike 0.13 (PBKDF2, NFR-01):** 210,000 iterations cost about **1.9 s per hash** on the Always Free ADB. Login P95 cannot meet 1 s on this tier.
+  - **Change request (needs the user):** either (a) accept ~2 s logins on dev and re-measure on the PROD shape before gate 8.0, or (b) amend NFR-01 (for example fewer iterations with a pepper, or a native KDF). Iterations stay at 210,000 until decided.
+- **Spike 0.14 (Oracle Text):** three CONTEXT indexes INDEXED with automatic sync every 2 minutes; CONTAINS works under OAN_DATA.
+- **Spike 0.11 (two schemas):** OAN_APP gets ORA-00942 on base tables and ORA-01031 on setting OAN_CTX; secure views and package APIs work through synonyms.
+- **Q33 consequence:** without Google sign-in, NFR-01 blocks privileged roles on dev (they must sign in through an IdP), so admin pages cannot be exercised until Google is set up or a dev-only exception is approved.
 ## Design decisions for build
 - Visibility is enforced in the data layer: `OAN_DATA` tables + `oan_vis.can_see` + secure views; `OAN_APP` has view/package grants only (NFR-03).
 - Roles live in APEX ACL only; chapter scope lives in `OAN_CHAPTER_ADMINS` (NFR-02).

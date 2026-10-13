@@ -177,13 +177,13 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 ## Milestones and gates (critical path)
 | Gate | Condition | Due | If missed |
 |---|---|---|---|
-| **G0** | Dev ADB (APEX 26.1.5 accepted, Q32); workspace + SQLcl connection; Google OAuth client; **staffing decision: 3 devs + 0.5 FTE QA** (S27). Toolchain ✔ done 12 Oct. **13 Oct:** dev ADB `aiatp` (Mumbai) ✔ on APEX **26.1.5**, accepted by the user (Q32); workspace `OAN_APP` ✔; SQLcl `oan_app_dev` ✔; ADMIN bootstrap ✔ and first install ✔ (13 Oct); open: Google OAuth client, staffing decision | End S0 | Offline `[A]` work continues; nothing reaches `[x]` |
+| **G0** | Dev ADB (APEX 26.1.5 accepted, Q32); workspace + SQLcl connection; ~~Google OAuth client~~ (deferred, Q33); **staffing decision: 3 devs + 0.5 FTE QA** (S27). Toolchain ✔ done 12 Oct. **13 Oct:** dev ADB `aiatp` (Mumbai) ✔ on APEX **26.1.5**, accepted by the user (Q32); workspace `OAN_APP` ✔; SQLcl `oan_app_dev` ✔; ADMIN bootstrap ✔ and first install ✔ (13 Oct); open: Google OAuth client, staffing decision | End S0 | Offline `[A]` work continues; nothing reaches `[x]` |
 | **G1** | OI-4 content inventory + owner; **product owner signs off the Must/Should/Could AC list** (S22) | End S2 | Library import at risk; go-live criterion undefined, so escalate |
 | **G-RB** | Re-baseline: S1–S2 velocity and `[A]` rework vs plan (S28). If velocity < 20 pd/sprint, invoke the descope lane and re-issue the sprint map | End S2 | — |
 | **G-AI** | `AI_ASSISTANT` DPIA annex + GenAI DPA signed (S04) | End S3 | Onboarding stays deterministic; W0.9 moves to the descope lane / v1.x |
 | **G-CH** | Slack app approved; WhatsApp Business verified with templates; Slack and Meta DPAs; **`CHANNELS` DPIA annex signed** (S04) | End S6 | W4.4 stays `[G]` (built but off, or moved to v1.x); W5.2 starts in S7 |
 | **G-CF** | `CAREERS_FEED` DPIA annex + feed terms (S04) | End S7 | Careers stays as deep-links only |
-| **G2** | OI-2 region decided; temporary 100k load-test ADB booked (S20) | End S8 | 5.3b slips; PROD provisioning at risk |
+| **G2** | OI-2 region decided; ~~temporary 100k load-test ADB~~ load test on the free ADB at reduced volume (Q34) | End S8 | NFR-06/07 at full volume unproven until a PROD-sized database exists |
 | **G3** | All staff-role holders named, each on IdP + 2-step verification (R16, S10); ≥ 3 partner/customer orgs verified for the pilot (6.8) | End S10 | Queues unstaffed; pilot cannot run J-09..J-19 |
 | **G4** | OI-3 legal texts (incl. Partner/Customer, channel and HR notices), OI-6 privacy contact, WS7 complete | End S12 | Go-live blocked |
 | **G5** | Final UAT (J-01..J-21 regression) signed by the product owner | End S12 | Pilot does not start |
@@ -223,15 +223,15 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 | 0.3 | ADMIN bootstrap:<br>• **explicit ACE hosts** (Google, LinkedIn, `slack.com`, `graph.facebook.com`, GenAI), replacing the wildcard (S18);<br>• `grant execute on dbms_lock` (S17);<br>• proxy `OAN_DEPLOY[OAN_APP]` (S14);<br>• `OAN_API` schema (S15). | NFR-03, R02 | 1 | Dev | [~]  — 13 Oct: run on dev with Google/LinkedIn hosts only; DBMS_LOCK, OAN_API proxy and channel hosts follow with 1.34 / 0.20 / G-CH |
 | 0.4 | Workspace probe; deployment files; SQLcl connections | skill | 0.5 | Dev | [!] workspace name |
 | 0.5 | `git init`, layout, `.gitignore` | NFR-14 | 0.25 | Dev | [x] |
-| 0.6 | Google OIDC client | NFR-01 | 0.5 | OAN/Dev | [!] G0 |
+| 0.6 | Google OIDC client | NFR-01 | 0.5 | OAN/Dev | [-] deferred (Q33) |
 | 0.7 | OCI Email Delivery + APEX SMTP | FR-23 | 0.5 | OAN/Dev | [ ] |
-| 0.8 | utPLSQL on dev | DoD | 0.25 | Dev | [ ] |
+| 0.8 | utPLSQL on dev | DoD | 0.25 | Dev | [x] 13 Oct: utPLSQL 3.2.3 (checksum verified) in schema UT3 |
 | 0.9 | CI:<br>• base-table scan;<br>• authz on every component (with a negative test);<br>• utPLSQL;<br>• gitleaks;<br>• Advisor;<br>• offline `apex validate`;<br>• **page-registry check (S19)**;<br>• **brand check: no Oracle logos or marks in pages, static files or email templates (Q30, `ci/check-brand.ps1`)**;<br>• **org-page group/actions check (S09)**. | NFR-02/03/04 | 2.5 | Dev | [~] validate/deploy scripts working |
 | 0.10 | **Spike:** `apex_release` = 26.2 on dev and planned PROD; ADB upgrade policy (R30) | Q27 | 0.25 | Dev | [~] dev = 26.1.5 (13 Oct); PROD and upgrade policy open |
-| 0.11 | **Spike (two-schema):** definer-rights package from a page, an Automation, post-auth and an ORDS handler | NFR-02/03 | 1 | Dev | [!] G0 |
-| 0.12 | **Spike (auth):** Social Sign-In post-auth, Switch in Session, re-auth | NFR-01 | 1 | Dev | [!] G0 |
-| 0.13 | **Spike (crypto):** PBKDF2 at 210k, 1 and 20 parallel logins | NFR-01 | 0.5 | Dev | [!] G0 |
-| 0.14 | **Spike (Oracle Text):** filters; CONTAINS via a view; SYNC under `OAN_DATA` | FR-02 | 0.5 | Dev | [!] G0 |
+| 0.11 | **Spike (two-schema):** definer-rights package from a page, an Automation, post-auth and an ORDS handler | NFR-02/03 | 1 | Dev | [~] 13 Oct: OAN_APP blocked from base tables (ORA-00942) and from setting OAN_CTX (ORA-01031); views and package APIs work through synonyms; `set_viewer` outside APEX gives NONE. Automation and ORDS parts wait for those components |
+| 0.12 | **Spike (auth):** Social Sign-In post-auth, Switch in Session, re-auth | NFR-01 | 1 | Dev | [-] deferred with Google sign-in (Q33) |
+| 0.13 | **Spike (crypto):** PBKDF2 at 210k, 1 and 20 parallel logins | NFR-01 | 0.5 | Dev | [x] 13 Oct: **~1.9 s per hash** on the free ADB (3 runs: 1888/1895/1909 ms), so login P95 > 1 s; change request raised (findings), iterations NOT lowered. Parallel run not done (free tier) |
+| 0.14 | **Spike (Oracle Text):** filters; CONTAINS via a view; SYNC under `OAN_DATA` | FR-02 | 0.5 | Dev | [x] 13 Oct: 3 CONTEXT indexes INDEXED, automatic sync every 2 min, CONTAINS runs under OAN_DATA |
 | 0.15 | **Secrets register (S05):** owner, store, environment and rotation for:<br>• audit/unsubscribe HMAC keys;<br>• invite/CV-share token keys;<br>• Google/LinkedIn secrets;<br>• SMTP;<br>• Slack signing secret + bot token;<br>• WhatsApp app secret, access token and verify token;<br>• GenAI credential.<br>Signing secrets live in `OAN_SECRETS` (`ACCESSIBLE BY` extended per consumer); tokens live in Web Credentials (S02). | NFR-04, R02 | 1 | Dev/OAN | [~] `OAN_SECRETS` authored |
 | 0.16a | Liquibase changelog:<br>• forward-only DDL; runOnChange code; runAlways asserts;<br>• ctx preconditions;<br>• `dev`-only test/synthetic contexts;<br>• OAN_APP synonym changelog. | NFR-14, R29 | 1.5 | Dev | [ ] |
 | 0.16b | Deploy wrapper:<br>• `set_workspace`, `set_application_id(103)`;<br>• live `runtime validate` gate;<br>• DEV-only Build Option script. | NFR-14 | 0.75 | Dev | [~] `ci/deploy-apex-app.ps1` |
@@ -271,7 +271,7 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 | 1.23 | `oan_jobs_pkg` (fix the failure link 1090 → **1075**, S18) | §8.1 | 1.5 | [~] |
 | 1.24 | **Text/search split (S16):**<br>• post index on `search_body`;<br>• people search moves to a Text index on `OAN_DIRECTORY_IDX` (built in W2.3), and the profile-name index is dropped;<br>• OPTIMIZE list updated. | FR-02, R20 | 2 | [~] (reopened) |
 | 1.25 | Grants **from a manifest** (S18), synonyms, no-table-grant assertion | NFR-03 | 0.5 | [~] |
-| 1.26 | utPLSQL suites. Extended for:<br>• R01: `set_viewer` ignores request params; dual-role never carries MEMBER onto org pages;<br>• R16, R19/R20, R26;<br>• secrets never in config, logs or exports (S05). | DoD, 5.7 | 4 | [~] 2 suites |
+| 1.26 | utPLSQL suites. Extended for:<br>• R01: `set_viewer` ignores request params; dual-role never carries MEMBER onto org pages;<br>• R16, R19/R20, R26;<br>• secrets never in config, logs or exports (S05). | DoD, 5.7 | 4 | [~] 5 suites, **34/34 pass on dev** (13 Oct) |
 | 1.27 | `oan_throttle_pkg` | NFR-01 | 1 | [A] |
 | 1.28 | Synthetic generator: 10k/100k profiles, 1M posts, **20k jobs, 20k talent requests** (S20) | NFR-06/07 | 2.5 | [ ] |
 | 1.29 | Traceability `docs/04-v1-traceability.md`:<br>• FR/AC → task → test, **every AC tagged M/S/C** (S22);<br>• J-01..J-21;<br>• page registry. | PRD rule | 1.5 | [ ] |
@@ -389,7 +389,7 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 | 5.1 | Full AC regression + evidence pack (each AC tested in its delivering sprint) | PRD AC | 4 | QA | S12 | [ ] |
 | 5.2 | Security test: ZAP, per-role bypass, visibility leaks (search, download, directory, ORG context, webhooks) | NFR-02..04 | 3 | QA | **S11** | [ ] |
 | 5.3a | **100k directory smoke** on dev (`OAN_DIRECTORY_V` / page 14 P95) | R28 | 1 | Dev | S5 | [ ] |
-| 5.3b | **Full load test** on a temporary ADB covering directory, jobs (FR-36 AC1: 20k jobs), polling (≤ 10 req/s), standard pages (P95 < 1s), search (< 2s) and LCP (≤ 2.5s P75) | NFR-06/07 | 3 | QA/Dev | S9 | [ ] |
+| 5.3b | **Load test** on the free dev ADB at reduced volume (Q34) covering directory, jobs (FR-36 AC1: 20k jobs), polling (≤ 10 req/s), standard pages (P95 < 1s), search (< 2s) and LCP (≤ 2.5s P75) | NFR-06/07 | 3 | QA/Dev | S9 | [ ] |
 | 5.3c | Load-test re-run after fixes | NFR-06 | 1 | QA | S12 | [ ] |
 | 5.4a | First WCAG 2.2 pass on the W0–W2 templates | NFR-12 | 0.5 | QA | S5 | [ ] |
 | 5.4 | Full WCAG 2.2 AA audit at 4 breakpoints | NFR-12 | 2 | QA | S12 | [ ] |

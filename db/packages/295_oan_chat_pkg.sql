@@ -167,8 +167,7 @@ create or replace package body oan_chat_pkg as
        set job_title = coalesce(trim(p_job_title), job_title), current_org = coalesce(trim(p_current_org), current_org),
            row_version = row_version + 1, updated_at = systimestamp
      where user_id = oan_util.viewer_id;
-    update oan_profiles set completeness = oan_profile_pkg.completeness(oan_util.viewer_id)
-     where user_id = oan_util.viewer_id;
+    oan_profile_pkg.refresh_completeness(oan_util.viewer_id);
   end answer_role_org;
 
   procedure answer_location(p_location_id in number, p_skip in varchar2 default 'N') is
@@ -184,8 +183,7 @@ create or replace package body oan_chat_pkg as
     update oan_profiles
        set location_id = p_location_id, row_version = row_version + 1, updated_at = systimestamp
      where user_id = oan_util.viewer_id;
-    update oan_profiles set completeness = oan_profile_pkg.completeness(oan_util.viewer_id)
-     where user_id = oan_util.viewer_id;
+    oan_profile_pkg.refresh_completeness(oan_util.viewer_id);
   end answer_location;
 
   procedure answer_skills(p_term_ids in varchar2, p_skip in varchar2 default 'N') is

@@ -13,6 +13,7 @@ create or replace package oan_profile_pkg authid definer as
   procedure set_photo(p_file_id in number);
   procedure set_additional_chapters(p_chapter_ids in varchar2); -- colon-delimited
   function  completeness(p_user_id in number) return number;
+  procedure refresh_completeness(p_user_id in number);      -- recomputes the stored score only
   procedure mark_step(p_step in varchar2);
   procedure dismiss_onboarding;
 end oan_profile_pkg;
@@ -48,8 +49,10 @@ create or replace package body oan_profile_pkg as
   end completeness;
 
   procedure refresh_completeness(p_user_id in number) is
+    -- Score first: calling completeness() inside the UPDATE reads the mutating table (ORA-04091)
+    l_score number := completeness(p_user_id);
   begin
-    update oan_profiles set completeness = completeness(p_user_id) where user_id = p_user_id;
+    update oan_profiles set completeness = l_score where user_id = p_user_id;
   end refresh_completeness;
 
   procedure mark_step(p_step in varchar2) is

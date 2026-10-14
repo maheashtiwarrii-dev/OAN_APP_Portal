@@ -51,7 +51,7 @@ page 23 (
         name: Skills, chapters and interests
         type: staticContent
         source {
-            htmlCode: <p>Choose your skills, chapters, languages, industries and interests. Suggesting a new skill or requesting a new chapter arrives in a later release.</p>
+            htmlCode: <p>Missing a skill? <a href="f?p=&APP_ID.:90:&APP_SESSION.">Suggest a new term</a>. Missing a chapter? <a href="f?p=&APP_ID.:91:&APP_SESSION.">Request a chapter</a>.</p>
         }
         layout {
             sequence: 20

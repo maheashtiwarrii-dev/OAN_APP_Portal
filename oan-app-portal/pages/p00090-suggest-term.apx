@@ -1,0 +1,246 @@
+page 90 (
+    name: Suggest Term
+    alias: SUGGEST-TERM
+    title: Suggest a term
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    security {
+        authorizationScheme: @is-active
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: PRD-only page 90 Suggest a term (FR-28). Members suggest a skill, industry, topic or language; it is used only after review (page 106). Throttled to 20 a day in OAN_TAXONOMY_PKG.SUGGEST.
+    }
+
+    region suggest (
+        name: Suggest a new term
+        type: staticContent
+        source {
+            htmlCode: <p>Missing a skill, industry, topic or language? Suggest it here. A moderator reviews each suggestion; once approved, everyone can pick it on their profile.</p>
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region my-suggestions (
+        name: Your suggestions
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select type_label, name, status_label, created_at, decided_at
+                  from oan_my_term_suggestions_v
+                 order by created_at desc
+                ```
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: You have not suggested any terms yet.
+        }
+
+        column TYPE_LABEL (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: Type
+            }
+            layout {
+                sequence: 1
+            }
+        )
+
+        column NAME (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Term
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column STATUS_LABEL (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Status
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column CREATED_AT (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Suggested
+            }
+            layout {
+                sequence: 4
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+        column DECIDED_AT (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Decided
+            }
+            layout {
+                sequence: 5
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+    )
+
+    pageItem P90_TYPE (
+        type: radioGroup
+        label {
+            label: Type
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:Skill;SKILL,Industry;INDUSTRY,Topic;TOPIC,Language;LANGUAGE
+            displayExtraValues: false
+            displayNullValue: false
+        }
+        layout {
+            sequence: 10
+            region: @suggest
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+        }
+        default {
+            type: static
+            staticValue: SKILL
+        }
+    )
+
+    pageItem P90_NAME (
+        type: textField
+        label {
+            label: Term
+        }
+        layout {
+            sequence: 20
+            region: @suggest
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+            maxLength: 200
+        }
+    )
+
+    button suggest (
+        buttonName: SUGGEST
+        label: Suggest
+        layout {
+            sequence: 10
+            region: @suggest
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button back (
+        buttonName: BACK
+        label: Back to my profile
+        layout {
+            sequence: 20
+            region: @suggest
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--simple
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 23
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process suggest (
+        name: Suggest term
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare
+                    l_id number;
+                begin
+                    l_id := oan_taxonomy_pkg.suggest(:P90_TYPE, :P90_NAME);
+                    :P90_NAME := null;
+                end;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        serverSideCondition {
+            whenButtonPressed: @suggest
+        }
+        successMessage {
+            successMessage: Thanks. Your suggestion is waiting for review.
+        }
+    )
+
+)

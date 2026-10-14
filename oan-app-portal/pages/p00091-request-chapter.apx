@@ -1,0 +1,259 @@
+page 91 (
+    name: Request Chapter
+    alias: REQUEST-CHAPTER
+    title: Request a chapter
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    security {
+        authorizationScheme: @is-active
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: PRD-only page 91 Request a chapter (FR-16, Q11). Members propose a new chapter under an existing one; only Platform Admins create chapters, after review on page 118.
+    }
+
+    region request (
+        name: Request a new chapter
+        type: staticContent
+        source {
+            htmlCode: <p>No chapter for your city or region yet? Propose one. Tell us where it belongs and why there is enough interest. An administrator reviews every request.</p>
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region my-requests (
+        name: Your chapter requests
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select proposed_name, parent_name, status_label, decision_note, created_at
+                  from oan_my_chapter_requests_v
+                 order by created_at desc
+                ```
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: You have not requested a chapter yet.
+        }
+
+        column PROPOSED_NAME (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: Proposed chapter
+            }
+            layout {
+                sequence: 1
+            }
+        )
+
+        column PARENT_NAME (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Under
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column STATUS_LABEL (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Status
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column DECISION_NOTE (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Note from the reviewer
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column CREATED_AT (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Requested
+            }
+            layout {
+                sequence: 5
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+    )
+
+    pageItem P91_NAME (
+        type: textField
+        label {
+            label: Proposed chapter name
+        }
+        layout {
+            sequence: 10
+            region: @request
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+            maxLength: 200
+        }
+    )
+
+    pageItem P91_PARENT_ID (
+        type: popupLov
+        label {
+            label: Belongs under
+        }
+        lov {
+            type: sharedComponent
+            lov: @oan-chapters
+        }
+        layout {
+            sequence: 20
+            region: @request
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+        }
+    )
+
+    pageItem P91_JUSTIFICATION (
+        type: textarea
+        label {
+            label: Why this chapter (how many alumni, what you would organise)
+        }
+        layout {
+            sequence: 30
+            region: @request
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+            maxLength: 4000
+        }
+    )
+
+    button send (
+        buttonName: SEND
+        label: Send request
+        layout {
+            sequence: 10
+            region: @request
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button back (
+        buttonName: BACK
+        label: Back to my profile
+        layout {
+            sequence: 20
+            region: @request
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--simple
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 23
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process send (
+        name: Request chapter
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare
+                    l_id number;
+                begin
+                    l_id := oan_chapter_pkg.request_chapter(trim(:P91_NAME), :P91_PARENT_ID, :P91_JUSTIFICATION);
+                    :P91_NAME := null;
+                    :P91_PARENT_ID := null;
+                    :P91_JUSTIFICATION := null;
+                end;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        serverSideCondition {
+            whenButtonPressed: @send
+        }
+        successMessage {
+            successMessage: Thanks. Your request was sent to the administrators.
+        }
+    )
+
+)

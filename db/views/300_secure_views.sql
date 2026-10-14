@@ -717,3 +717,21 @@ select m.user_id,
                              and c.user_high = greatest(m.user_id, to_number(sys_context('OAN_CTX','VIEWER_ID')))
  where m.user_id != to_number(sys_context('OAN_CTX','VIEWER_ID'))
    and sys_context('OAN_CTX','VIEWER_TYPE') = 'MEMBER';
+
+------------------------------------------- suggestions and requests (pages 90/91) --
+-- The viewer's own term suggestions (FR-28) and chapter requests (FR-16), newest first
+create or replace view oan_my_term_suggestions_v as
+select t.id, initcap(t.term_type) type_label, t.name,
+       case t.status when 'SUGGESTED' then 'Waiting for review' when 'APPROVED' then 'Approved'
+                     when 'MERGED' then 'Added as a synonym' else 'Not accepted' end status_label,
+       t.created_at, t.decided_at
+  from oan_taxonomy_terms t
+ where t.suggested_by = to_number(sys_context('OAN_CTX','VIEWER_ID'));
+
+create or replace view oan_my_chapter_requests_v as
+select r.id, r.proposed_name, p.name parent_name,
+       case r.status when 'OPEN' then 'Waiting for review' when 'APPROVED' then 'Approved' else 'Not approved' end status_label,
+       r.justification, r.decision_note, r.created_at, r.decided_at
+  from oan_chapter_requests r
+  left join oan_chapters p on p.id = r.parent_chapter_id
+ where r.requested_by = to_number(sys_context('OAN_CTX','VIEWER_ID'));

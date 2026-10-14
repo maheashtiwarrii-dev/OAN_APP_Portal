@@ -204,4 +204,5 @@
 | I16-1 | User: consent was received through Google Forms, use the real CVs | Not done in this session: the tool permission policy blocked locating and handling the real CV files (personal data). Raised with the user; the public GitHub repo must never hold that data either |
 | I16-2 | Page 27 Privacy centre (W2.9, FR-26) | Optional consents (only changed choices recorded), export (re-auth via page 15, download from `oan_download_v`), deletion and cancel (30-day grace), nominee, other requests; menu entry re-enabled; page 5 links to it again |
 | I16-3 | Checks and deploy | Validate and brand check pass; 71 queries / 89 PL/SQL blocks pass as OAN_APP; app 200 re-imported (49 pages) |
+| I16-4 | Pages 90 Suggest a term and 91 Request a chapter | Views `oan_my_term_suggestions_v`, `oan_my_chapter_requests_v`; pages call `oan_taxonomy_pkg.suggest` (throttled) and `oan_chapter_pkg.request_chapter`; page 23 links restored; My profile rail entry highlights 90/91. Validate, brand check, link scan (no reachable missing page), 73 queries / 91 blocks pass as OAN_APP; 47/47 tests; app 200 re-imported (51 pages) |
 

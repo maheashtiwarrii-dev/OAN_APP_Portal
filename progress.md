@@ -206,3 +206,11 @@
 | I16-3 | Checks and deploy | Validate and brand check pass; 71 queries / 89 PL/SQL blocks pass as OAN_APP; app 200 re-imported (49 pages) |
 | I16-4 | Pages 90 Suggest a term and 91 Request a chapter | Views `oan_my_term_suggestions_v`, `oan_my_chapter_requests_v`; pages call `oan_taxonomy_pkg.suggest` (throttled) and `oan_chapter_pkg.request_chapter`; page 23 links restored; My profile rail entry highlights 90/91. Validate, brand check, link scan (no reachable missing page), 73 queries / 91 blocks pass as OAN_APP; 47/47 tests; app 200 re-imported (51 pages) |
 
+## Iteration 17 — CI/CD pipeline and Kanban board on GitHub (14 Oct 2026)
+| Step | Action | Result |
+|---|---|---|
+| I17-1 | User: publish all artifacts, CI/CD pipeline and Kanban dashboard on GitHub | Board updated on request (50 cards to iteration 16 status, G0 text, date) and the A4 PDF regenerated |
+| I17-2 | CI checks | New portable checks `ci/check-links.py` (no reachable link to a missing page) and `ci/check-base-tables.py` (NFR-03: no base table or internal package in app code); both pass |
+| I17-3 | GitHub Actions | `ci.yml` (push/PR: brand, links, base tables, dev-script guard, gitleaks, offline APEXLang validate with SQLcl), `deploy-dev.yml` (manual: validate, import app 200, utPLSQL, smoke test; secrets in environment `dev`), `board.yml` (board to GitHub Pages) |
+| I17-4 | Artifacts | Repo already holds BRD/PRD/plan/reviews, DB scripts, APEX source, board and project plan. The OAN source documents (FSD, Build Pack, data dictionary) stay out: publishing them to the public repo was refused twice by the tool policy (14 Oct) |
+

@@ -15,30 +15,14 @@ page 55 (
         formAutoComplete: false
     }
     comments {
-        comments: Build Pack W5 page 55 Helpdesk (FR-44, Q29). Members raise expert-connection, RFP, feedback or general support requests (reference OAN-SR-YYYY-NNNNNN, consent, no ID/bank/salary numbers) and follow them; support agents see the queue, take requests, add internal or member notes and change status. HR documents are not handled by OAN: the page signposts Oracle's public alumni HR contact and records nothing. Notifications link here, so P55_ID is unrestricted; OAN_SERVICE_REQUESTS_V and OAN_HELPDESK_PKG decide access.
+        comments: Build Pack W5 page 55 Helpdesk (FR-44, Q29). Members raise expert-connection, RFP, feedback or general support requests (reference OAN-SR-YYYY-NNNNNN, consent, no ID/bank/salary numbers) and follow them; support agents see the queue, take requests, add internal or member notes and change status. HR documents are out of scope: OAN neither requests, signposts nor stores them (Q29; user, 15 Oct 2026). Notifications link here, so P55_ID is unrestricted; OAN_SERVICE_REQUESTS_V and OAN_HELPDESK_PKG decide access.
     }
-
-    region r55_hr (
-        name: Looking for HR documents?
-        type: staticContent
-        source {
-            htmlCode: <p>OAN does not handle payslips, tax forms, experience letters or other HR documents, and never stores them. Please contact Oracle's alumni HR channel directly: <a href="&P55_HR_URL." target="_blank" rel="noopener noreferrer">Oracle alumni HR contact</a>.</p>
-        }
-        layout {
-            sequence: 5
-            slot: body
-        }
-        appearance {
-            template: @/alert
-            templateOptions: #DEFAULT#
-        }
-    )
 
     region r55_new (
         name: New request
         type: staticContent
         source {
-            htmlCode: <p>Tell us what you need. Please do not include ID, bank, salary or employee numbers.</p>
+            htmlCode: <p>Tell us what you need. Please do not include ID, bank, salary or employee numbers. OAN does not handle HR documents.</p>
         }
         layout {
             sequence: 10
@@ -407,18 +391,6 @@ page 55 (
         }
     )
 
-    pageItem P55_HR_URL (
-        type: hidden
-        layout {
-            sequence: 1
-            region: @r55_hr
-            slot: regionBody
-        }
-        security {
-            sessionStateProtection: checksumRequiredSessionLevel
-        }
-    )
-
     pageItem P55_NOTE (
         type: textarea
         label {
@@ -586,8 +558,7 @@ page 55 (
         source {
             plsqlCode:
                 ```plsql
-                :P55_HR_URL := oan_helpdesk_pkg.hr_alumni_url;
-                if :P55_SHOW is null then
+                                if :P55_SHOW is null then
                     :P55_SHOW := case when oan_helpdesk_pkg.is_agent = 'Y' then 'QUEUE' else 'MINE' end;
                 end if;
                 ```

@@ -3,7 +3,7 @@
 --   * submit: expert connection, RFP, feedback or general support; consent required; every free-text field
 --     refuses tax IDs, national IDs, bank/card numbers, salary and employee-ID patterns; reference
 --     OAN-SR-YYYY-NNNNNN; SLA = SERVICE_SLA_HOURS.
---   * HR documents are NOT a request type (Q29): page 55 only shows Oracle's public alumni HR contact.
+--   * HR documents are out of scope (Q29; user, 15 Oct 2026): not a request type, no signpost, nothing stored.
 --   * Support agents (SUPPORT role) and Platform Admins work the queue: take, add notes (internal or for the
 --     member), change status. The member sees status and non-internal notes, can add a note and reopen.
 --   * sla_check (hourly): flags breaches and alerts support. Aggregate "resolved with no reopen" is derived.
@@ -15,7 +15,6 @@ create or replace package oan_helpdesk_pkg authid definer as
   procedure take(p_request_id in number);
   procedure reopen(p_request_id in number);
   function is_agent return varchar2;                 -- Y for SUPPORT role or Platform Admin
-  function hr_alumni_url return varchar2;            -- Q29 signpost (config ORACLE_HR_ALUMNI_URL)
   function has_sensitive(p_text in varchar2) return varchar2;
   procedure sla_check;                               -- hourly
 end oan_helpdesk_pkg;
@@ -34,11 +33,6 @@ create or replace package body oan_helpdesk_pkg as
     return case when oan_security_pkg.authz('SUPPORT') = 'Y' then 'Y' else 'N' end;
   end is_agent;
 
-  function hr_alumni_url return varchar2 is
-  begin
-    return oan_util.get_config('ORACLE_HR_ALUMNI_URL', 'https://www.oracle.com/corporate/careers/');
-  end hr_alumni_url;
-
   -- FR-44: PAN, Aadhaar, card/bank numbers, IFSC, salary figures, employee IDs
   function has_sensitive(p_text in varchar2) return varchar2 is
   begin
@@ -54,7 +48,7 @@ create or replace package body oan_helpdesk_pkg as
   procedure assert_clean(p_text in varchar2) is
   begin
     oan_util.assert(has_sensitive(p_text) = 'N',
-      'Please remove ID, bank, salary or employee numbers. OAN never collects them; for HR documents use Oracle''s alumni HR contact.');
+      'Please remove ID, bank, salary or employee numbers. OAN never collects them and does not handle HR documents.');
   end assert_clean;
 
   function submit(p_type in varchar2, p_subject in varchar2, p_details in varchar2, p_consent in varchar2) return varchar2 is

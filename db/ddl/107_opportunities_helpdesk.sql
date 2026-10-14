@@ -10,7 +10,7 @@
 --   Referrals: a member asks a member at the hiring company (directory-visible, messaging allowed); 5 per
 --     7 days and 1 per target per job (FSD BR-09); expire after 14 days; purged after 12 months.
 --   Helpdesk: expert connection, RFP, feedback, general support; reference OAN-SR-YYYY-NNNNNN; SLA job; the
---     HR-documents topic only signposts Oracle's public alumni HR channel and stores nothing (Q29).
+--     HR documents are out of scope: OAN neither requests, signposts nor stores them (Q29; user, 15 Oct 2026).
 --   Skill demand: nightly aggregate of required skills from open jobs (counts and trend, no personal data).
 --------------------------------------------------------------------------------
 create table if not exists oan_jobs (
@@ -153,9 +153,7 @@ using (select 'JOB_APPLICATION' c, 2 ph, 'INSTANT' m, 'N' mand, 'An application 
 merge into oan_config c
 using (select 'REFERRALS_PER_WEEK' k, '5' v, 'NUMBER' t, 'Referral requests a member can send per 7 days (FSD BR-09)' d from dual union all
        select 'REFERRAL_EXPIRY_DAYS', '14', 'NUMBER', 'Days before an unanswered referral request expires (FR-37)' from dual union all
-       select 'SERVICE_SLA_HOURS', '72', 'NUMBER', 'Hours to fulfil a helpdesk request before the SLA is breached (FR-44)' from dual union all
-       select 'ORACLE_HR_ALUMNI_URL', 'https://www.oracle.com/corporate/careers/', 'STRING',
-              'Oracle''s public alumni HR contact shown for the HR documents topic (Q29); OAN records nothing' from dual) s
+       select 'SERVICE_SLA_HOURS', '72', 'NUMBER', 'Hours to fulfil a helpdesk request before the SLA is breached (FR-44)' from dual) s
    on (c.config_key = s.k)
  when not matched then insert (config_key, config_value, value_type, description) values (s.k, s.v, s.t, s.d);
 
@@ -191,6 +189,8 @@ using (select c.table_name, c.column_name,
  when not matched then insert (table_name, column_name, classification, export_flag)
                        values (s.table_name, s.column_name, s.cls,
                                case when s.table_name in ('OAN_JOB_APPLICATIONS','OAN_REFERRALS','OAN_SERVICE_REQUESTS') then 'Y' else 'N' end);
+
+delete from oan_config where config_key = 'ORACLE_HR_ALUMNI_URL';   -- no Oracle HR signpost (user, 15 Oct 2026)
 
 -- W5.7: job search and referral journeys go live with this wave
 update oan_lu_codes set live_yn = 'Y'

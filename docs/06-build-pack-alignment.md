@@ -66,6 +66,7 @@
 | | 24 My CV | 15 |
 | | 25 Current work profile | 16 |
 | | 26 Account settings | 12 |
+| | 27 Privacy centre | 60 |
 | | 28 Connections (my network) | 17 |
 | | 231 Oracle tenure (dialog from 23) | new (W2.1) |
 | | 232 Work experience (dialog from 23) | new (W2.1) |

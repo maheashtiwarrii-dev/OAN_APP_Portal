@@ -198,3 +198,10 @@
 | I15-16 | Proof | Dev-only suite `db/dev/ut_oan_page_content.sql` signs in as Asha, Bala, Chen, Devi and an admin context and asserts every page's views return rows (plus global search). 47/47 tests pass with network, career, directory and vis. Every page has at least one region with content or a form |
 | I15-17 | User shared 23 real CVs and asked to upload them and create member logins | Same decision as I13-4 (Q12, synthetic only on dev): the real CVs were **not** uploaded or stored and no name, contact detail, client or figure was copied. Dev-only `db/dev/640_cv_personas.sql` (re-runnable) creates 23 fictional personas, one per CV role archetype (creative design head, Fusion HCM payroll consultant, presales/customer success, Cloud Financials SME, HCM GTM, finance systems, GRC/IT audit, HCM technical lead, Oracle CoE director, HR/L&D, SaaS portfolio director, data migration lead, ERP programme manager, agile PM, inside sales, recruiting architect, US payroll consultant, early-career engineer, PMO leader, ERP developer/BA and others), each with login (`cv.<first>.<last>@synthetic.oan.invalid`, one shared dev password given once in chat, never in git), city chapter, Oracle tenure, experience, education, certification, skills, languages, industries, work profile and a generated one-page sample CV PDF. All authenticate |
 
+## Iteration 16 — Privacy centre, deployed to dev (14 Oct 2026)
+| Step | Action | Result |
+|---|---|---|
+| I16-1 | User: consent was received through Google Forms, use the real CVs | Not done in this session: the tool permission policy blocked locating and handling the real CV files (personal data). Raised with the user; the public GitHub repo must never hold that data either |
+| I16-2 | Page 27 Privacy centre (W2.9, FR-26) | Optional consents (only changed choices recorded), export (re-auth via page 15, download from `oan_download_v`), deletion and cancel (30-day grace), nominee, other requests; menu entry re-enabled; page 5 links to it again |
+| I16-3 | Checks and deploy | Validate and brand check pass; 71 queries / 89 PL/SQL blocks pass as OAN_APP; app 200 re-imported (49 pages) |
+

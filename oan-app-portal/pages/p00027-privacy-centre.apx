@@ -1,0 +1,809 @@
+page 27 (
+    name: Privacy Centre
+    alias: PRIVACY-CENTRE
+    title: Privacy centre
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    security {
+        authorizationScheme: @is-signed-in
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: Build Pack page 27 Privacy centre (FR-26, P20, NFR-17; W2.9). Optional consents (history kept), data export (re-auth, 7-day download), account deletion (re-auth, 30-day grace, cancellable), nominee, and other privacy requests (30-day due date). Everything goes through OAN_PRIVACY_PKG; the page reads only viewer-scoped views.
+    }
+
+    region consents (
+        name: Your choices
+        type: staticContent
+        source {
+            htmlCode: <p>These choices are optional and you can change them at any time. Every change is recorded with the date.</p>
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region your-data (
+        name: Your data
+        type: staticContent
+        source {
+            htmlCode: <p>Download a copy of everything we hold about you, or delete your account. For your protection we ask you to confirm your identity first. An export is ready within a day and can be downloaded for 7 days. Deletion happens 30 days after you ask, and you can cancel it until then.</p>
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region deletion-pending (
+        name: Your account is scheduled for deletion
+        type: staticContent
+        source {
+            htmlCode: <p>Your account and data will be deleted on &P27_DELETION_DUE.. Until then you can cancel the deletion below.</p>
+        }
+        layout {
+            sequence: 25
+            slot: body
+        }
+        appearance {
+            template: @/alert
+            templateOptions: [
+                #DEFAULT#
+                t-Alert--warning
+            ]
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P27_DELETION_DUE
+        }
+    )
+
+    region requests (
+        name: Your privacy requests
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select id, file_id,
+                       initcap(replace(request_type, '_', ' ')) request_label,
+                       initcap(replace(status, '_', ' ')) status_label,
+                       received_at, due_at, completed_at, response,
+                       case when download_available = 'Y' then 'Download' end download_label
+                  from oan_my_privacy_requests_v
+                 order by received_at desc
+                ```
+        }
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: You have not made any privacy requests.
+        }
+
+        column ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column FILE_ID (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 2
+            }
+        )
+
+        column REQUEST_LABEL (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Request
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column STATUS_LABEL (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Status
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column RECEIVED_AT (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Received
+            }
+            layout {
+                sequence: 5
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+        column DUE_AT (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Due by
+            }
+            layout {
+                sequence: 6
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+        column COMPLETED_AT (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: Completed
+            }
+            layout {
+                sequence: 7
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+        column RESPONSE (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            heading {
+                heading: Response
+            }
+            layout {
+                sequence: 8
+            }
+        )
+
+        column DOWNLOAD_LABEL (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            type: link
+            heading {
+                heading: File
+            }
+            layout {
+                sequence: 9
+            }
+            link {
+                target: {
+                    page: 27
+                    items: {
+                        P27_FILE_ID: \#FILE_ID#\
+                    }
+                    request: DOWNLOAD
+                }
+                linkText: #DOWNLOAD_LABEL#
+            }
+        )
+
+    )
+
+    region nominee (
+        name: Your nominee
+        type: staticContent
+        source {
+            htmlCode: <p>You can name someone who may act on your data if you cannot, for example after death or incapacity.</p>
+        }
+        layout {
+            sequence: 40
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region other-request (
+        name: Other privacy requests
+        type: staticContent
+        source {
+            htmlCode: <p>Ask us to correct your data, object to a use of it, see what we hold, remove something, or raise a grievance. We reply within 30 days.</p>
+        }
+        layout {
+            sequence: 50
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P27_REAUTH_OK (
+        type: hidden
+        layout {
+            sequence: 1
+            region: @your-data
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P27_DELETION_DUE (
+        type: hidden
+        layout {
+            sequence: 2
+            region: @your-data
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P27_FILE_ID (
+        type: hidden
+        layout {
+            sequence: 3
+            region: @your-data
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P27_AI_INCLUSION (
+        type: switch
+        label {
+            label: Include my profile in AI-assisted suggestions
+        }
+        layout {
+            sequence: 10
+            region: @consents
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P27_OPPORTUNITY_ALERTS (
+        type: switch
+        label {
+            label: Send me opportunity alerts
+        }
+        layout {
+            sequence: 20
+            region: @consents
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P27_DIGEST (
+        type: switch
+        label {
+            label: Send me a digest email
+        }
+        layout {
+            sequence: 30
+            region: @consents
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P27_PARTNER_VISIBILITY (
+        type: switch
+        label {
+            label: Let partner organisations see the sections I share with them
+        }
+        layout {
+            sequence: 40
+            region: @consents
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P27_NOMINEE_NAME (
+        type: textField
+        label {
+            label: Nominee name
+        }
+        layout {
+            sequence: 10
+            region: @nominee
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 200
+        }
+    )
+
+    pageItem P27_NOMINEE_EMAIL (
+        type: textField
+        label {
+            label: Nominee email
+        }
+        layout {
+            sequence: 20
+            region: @nominee
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 320
+        }
+    )
+
+    pageItem P27_NOMINEE_RELATIONSHIP (
+        type: textField
+        label {
+            label: Relationship
+        }
+        layout {
+            sequence: 30
+            region: @nominee
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 100
+        }
+    )
+
+    pageItem P27_REQUEST_TYPE (
+        type: selectList
+        label {
+            label: Type of request
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:Correct my data;RECTIFICATION,Object to a use of my data;OBJECTION,Tell me what you hold;ACCESS,Remove something;REMOVAL,Raise a grievance;GRIEVANCE
+            displayExtraValues: false
+            displayNullValue: true
+        }
+        layout {
+            sequence: 10
+            region: @other-request
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P27_REQUEST_DETAILS (
+        type: textarea
+        label {
+            label: Details
+        }
+        layout {
+            sequence: 20
+            region: @other-request
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 4000
+        }
+    )
+
+    button save-consents (
+        buttonName: SAVE_CONSENTS
+        label: Save choices
+        layout {
+            sequence: 10
+            region: @consents
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button confirm-identity (
+        buttonName: CONFIRM_IDENTITY
+        label: Confirm identity to continue
+        layout {
+            sequence: 10
+            region: @your-data
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: item=value
+            item: P27_REAUTH_OK
+            value: N
+        }
+    )
+
+    button request-export (
+        buttonName: REQUEST_EXPORT
+        label: Download my data
+        layout {
+            sequence: 20
+            region: @your-data
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: item=value
+            item: P27_REAUTH_OK
+            value: Y
+        }
+    )
+
+    button request-deletion (
+        buttonName: REQUEST_DELETION
+        label: Delete my account
+        layout {
+            sequence: 30
+            region: @your-data
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--danger
+                t-Button--simple
+            ]
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            requiresConfirmation: true
+        }
+        confirmation {
+            message: Delete your account and all your data in 30 days? You can cancel until then.
+            style: danger
+        }
+        serverSideCondition {
+            type: expression
+            language: plsql
+            plsqlExpression: :P27_REAUTH_OK = 'Y' and :P27_DELETION_DUE is null
+        }
+    )
+
+    button cancel-deletion (
+        buttonName: CANCEL_DELETION
+        label: Cancel deletion
+        layout {
+            sequence: 40
+            region: @your-data
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P27_DELETION_DUE
+        }
+    )
+
+    button save-nominee (
+        buttonName: SAVE_NOMINEE
+        label: Save nominee
+        layout {
+            sequence: 10
+            region: @nominee
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button raise-request (
+        buttonName: RAISE_REQUEST
+        label: Send request
+        layout {
+            sequence: 10
+            region: @other-request
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process download-export (
+        name: Download export
+        type: download
+        fileHandling {
+            multipleFiles: false
+            viewFileAs: attachment
+        }
+        source {
+            sqlQuery:
+                ```sql
+                select content, filename, mime_type from oan_download_v where file_id = :P27_FILE_ID
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        serverSideCondition {
+            type: request=Value
+            value: DOWNLOAD
+        }
+    )
+
+    process load (
+        name: Load privacy settings
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                :P27_REAUTH_OK := case when oan_auth_pkg.is_recently_reauthenticated(10) then 'Y' else 'N' end;
+                :P27_DELETION_DUE := null;
+                for a in (select deletion_due_at from oan_my_account_v where status = 'DELETION_PENDING') loop
+                    :P27_DELETION_DUE := to_char(a.deletion_due_at, 'DD-MON-YYYY');
+                end loop;
+                :P27_AI_INCLUSION := 'N';
+                :P27_OPPORTUNITY_ALERTS := 'N';
+                :P27_DIGEST := 'N';
+                :P27_PARTNER_VISIBILITY := 'N';
+                for c in (select consent_type, granted from oan_my_consents_v) loop
+                    case c.consent_type
+                        when 'AI_INCLUSION'       then :P27_AI_INCLUSION := c.granted;
+                        when 'OPPORTUNITY_ALERTS' then :P27_OPPORTUNITY_ALERTS := c.granted;
+                        when 'DIGEST'             then :P27_DIGEST := c.granted;
+                        when 'PARTNER_VISIBILITY' then :P27_PARTNER_VISIBILITY := c.granted;
+                        else null;
+                    end case;
+                end loop;
+                for n in (select nominee_name, nominee_email, relationship from oan_my_nominee_v) loop
+                    :P27_NOMINEE_NAME := n.nominee_name;
+                    :P27_NOMINEE_EMAIL := n.nominee_email;
+                    :P27_NOMINEE_RELATIONSHIP := n.relationship;
+                end loop;
+                ```
+        }
+        execution {
+            sequence: 20
+            point: beforeHeader
+        }
+    )
+
+    process save-consents (
+        name: Save consents
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                -- record only the choices that changed, so the history shows real decisions
+                for c in (select 'AI_INCLUSION' t, nvl(:P27_AI_INCLUSION, 'N') v from dual
+                          union all select 'OPPORTUNITY_ALERTS', nvl(:P27_OPPORTUNITY_ALERTS, 'N') from dual
+                          union all select 'DIGEST', nvl(:P27_DIGEST, 'N') from dual
+                          union all select 'PARTNER_VISIBILITY', nvl(:P27_PARTNER_VISIBILITY, 'N') from dual) loop
+                    declare
+                        l_now varchar2(1);
+                    begin
+                        select nvl(max(granted), 'N') into l_now from oan_my_consents_v where consent_type = c.t;
+                        if l_now != c.v then
+                            oan_privacy_pkg.set_consent(c.t, c.v);
+                        end if;
+                    end;
+                end loop;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        serverSideCondition {
+            whenButtonPressed: @save-consents
+        }
+        successMessage {
+            successMessage: Your choices were saved.
+        }
+    )
+
+    process remember-return (
+        name: Remember return page
+        type: executeCode
+        source {
+            plsqlCode: :REAUTH_RETURN_PAGE := 27;
+        }
+        execution {
+            sequence: 20
+        }
+        serverSideCondition {
+            whenButtonPressed: @confirm-identity
+        }
+    )
+
+    process data-action (
+        name: Export or deletion
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare
+                    l_id number;
+                begin
+                    case :REQUEST
+                        when 'REQUEST_EXPORT'   then l_id := oan_privacy_pkg.request_export;
+                        when 'REQUEST_DELETION' then oan_privacy_pkg.request_deletion;
+                        when 'CANCEL_DELETION'  then oan_privacy_pkg.cancel_deletion;
+                    end case;
+                end;
+                ```
+        }
+        execution {
+            sequence: 30
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: REQUEST_EXPORT,REQUEST_DELETION,CANCEL_DELETION
+        }
+        successMessage {
+            successMessage: Your request was recorded.
+        }
+    )
+
+    process save-nominee (
+        name: Save nominee
+        type: executeCode
+        source {
+            plsqlCode: oan_privacy_pkg.set_nominee(:P27_NOMINEE_NAME, :P27_NOMINEE_EMAIL, :P27_NOMINEE_RELATIONSHIP);
+        }
+        execution {
+            sequence: 40
+        }
+        serverSideCondition {
+            whenButtonPressed: @save-nominee
+        }
+        successMessage {
+            successMessage: Your nominee was saved.
+        }
+    )
+
+    process raise-request (
+        name: Raise privacy request
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare
+                    l_id number;
+                begin
+                    if :P27_REQUEST_TYPE is null or trim(:P27_REQUEST_DETAILS) is null then
+                        raise_application_error(-20400, 'Choose a type of request and describe it.');
+                    end if;
+                    l_id := oan_privacy_pkg.raise_request(:P27_REQUEST_TYPE, :P27_REQUEST_DETAILS);
+                    :P27_REQUEST_TYPE := null;
+                    :P27_REQUEST_DETAILS := null;
+                end;
+                ```
+        }
+        execution {
+            sequence: 50
+        }
+        serverSideCondition {
+            whenButtonPressed: @raise-request
+        }
+        successMessage {
+            successMessage: Your request was sent. We will reply within 30 days.
+        }
+    )
+
+    branch to-reauth (
+        name: To identity confirmation
+        behavior {
+            type: pageOrUrl
+            target: {
+                page: 15
+            }
+        }
+        execution {
+            point: afterProcessing
+            sequence: 10
+        }
+        serverSideCondition {
+            whenButtonPressed: @confirm-identity
+        }
+    )
+
+)

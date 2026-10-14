@@ -85,9 +85,6 @@ list navigation-bar (
         security {
             authorizationScheme: @is-signed-in
         }
-        config {
-            buildOption: @not-yet-built
-        }
     )
 
     entry my-decisions (

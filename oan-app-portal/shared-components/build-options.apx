@@ -124,6 +124,6 @@ buildOption not-yet-built (
         onUpgradeKeepStatus: true
     }
     comments {
-        comments: Hides navigation to pages that are planned but not built yet (27 Privacy centre, 120 Library import, 121 Privacy requests, 122 Config), so nobody reaches a 404. Remove from an entry when its page ships.
+        comments: Hides navigation to pages that are planned but not built yet (120 Library import, 121 Privacy requests, 122 Config), so nobody reaches a 404. Remove from an entry when its page ships.
     }
 )

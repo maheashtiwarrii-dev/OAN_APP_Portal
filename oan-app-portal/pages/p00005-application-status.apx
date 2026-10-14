@@ -162,7 +162,7 @@ page 5 (
                 ```html
                 <ul>
                   <li><a href="f?p=&APP_ID.:23:&APP_SESSION.">Prepare your profile</a> - it becomes visible to members once you are approved.</li>
-                  <li><a href="f?p=&APP_ID.:26:&APP_SESSION.">Account settings</a> - manage your sign-in and privacy settings.</li>
+                  <li><a href="f?p=&APP_ID.:27:&APP_SESSION.">Privacy centre</a> - download or delete your data at any time.</li>
                 </ul>
                 ```
         }

@@ -72,8 +72,9 @@ create or replace package body ut_oan_bp_api as
     l_intent  oan_chat_sessions.primary_intent%type;
     l_tab     oan_chat_api.t_message_tab;
   begin
+    update oan_lu_codes set live_yn = 'N' where code_type = 'INTENT' and code = 'JOB_SEARCH';   -- live since W5; rolled back
     l_route := oan_chat_api.respond_and_route(l_session, 'Looking for a job, my phone is 555-0100');
-    ut.expect(l_route).to_equal('home');                          -- JOB_SEARCH not live in seed
+    ut.expect(l_route).to_equal('home');                          -- JOB_SEARCH switched off for this test
     select primary_intent into l_intent from oan_chat_sessions where id = l_session;
     ut.expect(l_intent).to_equal('JOB_SEARCH');
     -- the transcript table has no free-text column at all; the codes are what was stored

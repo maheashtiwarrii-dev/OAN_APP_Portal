@@ -63,76 +63,83 @@ ul.tight li { margin: 2px 0; }
 </head>
 <body>
 <main>
-  <div class="eyebrow">Project status report · 14 October 2026</div>
+  <div class="eyebrow">Project status report · 15 October 2026 · iteration 23</div>
   <h1>OAN Portal (Oracle Alumni Network)</h1>
   <p class="sub">Oracle APEX application 200 on Autonomous Database · Plan v3.2 · APEX Build Pack v1.1 · development environment only</p>
 
   <h2>Summary</h2>
-  <p>The portal is ahead of plan. Sprint S0 formally starts on 19 October, yet the database, the sign-in and onboarding pages, the app shell and most of wave W2 (profiles, directory, CV, connections, privacy) already run on the dev environment. Every change is validated, tested on the database and pushed to GitHub.</p>
+  <p>The portal is well ahead of plan. Sprint S0 formally starts on 19 October, yet the database platform and waves W0 to W5 already run on the dev environment: sign-in and onboarding, the member shell and Home, profiles, directory and CV, insights and events, conversations and notifications, opportunities, referrals, helpdesk and skills in demand, plus company registration for partners and other employers. Every change is validated, tested on the database and pushed to GitHub, where CI runs on each push.</p>
   <div class="kpis">
-    <div class="kpi"><b>51</b><span>APEX pages live on dev</span></div>
-    <div class="kpi"><b>47 / 47</b><span>database tests passing</span></div>
-    <div class="kpi"><b>61 / 320</b><span>person-days of plan done (19%)</span></div>
-    <div class="kpi"><b>3</b><span>blocked items, all waiting on OAN decisions</span></div>
+    <div class="kpi"><b>73</b><span>APEX pages live on dev</span></div>
+    <div class="kpi"><b>147 / 147</b><span>database tests passing (16 suites)</span></div>
+    <div class="kpi"><b>140 / 320</b><span>person-days of plan done (44%)</span></div>
+    <div class="kpi"><b>6</b><span>blocked or gated items, all waiting on OAN decisions or external approvals</span></div>
   </div>
-  <p><strong>Main risk:</strong> admin pages cannot be tested because staff roles need Google or LinkedIn sign-in (NFR-01) and Google sign-in is set aside (Q33). Email delivery (task 0.7) is also not set up, so sign-up email confirmation cannot complete on dev.</p>
+  <p><strong>Main risk:</strong> admin pages cannot be tested end to end because staff roles need Google or LinkedIn sign-in (NFR-01) and Google sign-in is set aside (Q33). Email delivery (task 0.7) is not set up, so emails are queued but not delivered on dev. Slack and WhatsApp are built but stay off until gate G-CH.</p>
 
   <h2>Kanban dashboard</h2>
-  <p>Live board: <a href="https://maheashtiwarrii-dev.github.io/OAN_APP_Portal/">maheashtiwarrii-dev.github.io/OAN_APP_Portal</a> · printable copy: <code>docs/OAN-Delivery-Board-landscape.pdf</code>. 154 tasks across 16 sprints (S0–S15) and 11 gates.</p>
-  <div class="bar" role="img" aria-label="Tasks by status: 30 done, 20 in progress, 9 authored, 6 blocked or gated, 89 not started">
-    <i style="width:19.5%;background:var(--ok)"></i>
-    <i style="width:13%;background:var(--info)"></i>
+  <p>Live board: <a href="https://maheashtiwarrii-dev.github.io/OAN_APP_Portal/">maheashtiwarrii-dev.github.io/OAN_APP_Portal</a> · printable copy: <code>docs/OAN-Delivery-Board-landscape.pdf</code> · GitHub Project: <a href="https://github.com/users/maheashtiwarrii-dev/projects/1">projects/1</a> (168 items). 154 tasks across 16 sprints (S0–S15) and 11 gates.</p>
+  <div class="bar" role="img" aria-label="Tasks by status: 61 done, 13 in progress, 9 authored, 6 blocked or gated, 65 not started">
+    <i style="width:39.6%;background:var(--ok)"></i>
+    <i style="width:8.4%;background:var(--info)"></i>
     <i style="width:5.8%;background:var(--warn)"></i>
     <i style="width:3.9%;background:var(--bad)"></i>
-    <i style="width:57.8%;background:var(--line)"></i>
+    <i style="width:42.3%;background:var(--line)"></i>
   </div>
   <div class="legend">
-    <span><i style="background:var(--ok)"></i>Done 30</span>
-    <span><i style="background:var(--info)"></i>In progress 20</span>
+    <span><i style="background:var(--ok)"></i>Done 61</span>
+    <span><i style="background:var(--info)"></i>In progress 13</span>
     <span><i style="background:var(--warn)"></i>Authored, untested 9</span>
     <span><i style="background:var(--bad)"></i>Blocked 3 · gated 3</span>
-    <span><i style="background:var(--line)"></i>Not started 89</span>
+    <span><i style="background:var(--line)"></i>Not started 65</span>
   </div>
 
   <h3>Progress by workstream</h3>
   <table>
     <thead><tr><th>Workstream</th><th>Status</th><th>What is in place</th></tr></thead>
     <tbody>
-      <tr><td>Environment (WS0)</td><td><span class="pill prog">11 of 23 done</span></td><td>Dev ADB on APEX 26.1.5, ADMIN bootstrap, utPLSQL, spikes (two-schema, PBKDF2, Oracle Text). Blocked: Google client, social sign-in spike.</td></tr>
-      <tr><td>Database (WS1)</td><td><span class="pill prog">8 of 20 done</span></td><td>65 tables, 84 views, 27 packages, personal-data registry, seed data, grants with no table access for the app.</td></tr>
+      <tr><td>Environment (WS0)</td><td><span class="pill prog">11 of 23 done</span></td><td>Dev ADB on APEX 26.1.5, ADMIN bootstrap, utPLSQL, spikes. Blocked: Google client, social sign-in spike, email delivery.</td></tr>
+      <tr><td>Database (WS1)</td><td><span class="pill prog">15 of 20 done</span></td><td>100 tables, 126 secure views, 39 packages; personal-data registry with retention rules; staff scopes; job run locks; synthetic data.</td></tr>
       <tr><td>W0 Auth &amp; admin</td><td><span class="pill prog">9 of 22 done</span></td><td>Sign-in, registration, onboarding chat, legal, identity confirmation; admin pages built but untested (no admin login).</td></tr>
-      <tr><td>W1 Shell</td><td><span class="pill prog">2 of 3 done</span></td><td>Global page, search results (19), notifications (41); Home with letters and What's new.</td></tr>
-      <tr><td>W2 Profile &amp; directory</td><td><span class="pill prog">8 of 11 in progress</span></td><td>Directory and faceted results, member profile, my profile with entry dialogs, My CV, work profile, connections, account settings, privacy centre.</td></tr>
-      <tr><td>W3–W7, quality, release</td><td><span class="pill idle">not started</span></td><td>Library and discussions pages exist from earlier waves; events, messaging, jobs, partners and reporting follow the plan.</td></tr>
+      <tr><td>W1 Shell &amp; Home</td><td><span class="pill done">3 of 3 done</span></td><td>Rail, profile card, search, notifications badge; Home with letters, upcoming events and What's new, styled to the member mockups.</td></tr>
+      <tr><td>W2 Profile &amp; directory</td><td><span class="pill done">9 of 11 done</span></td><td>Directory index, cards with Follow and Message, profiles, CV sections, sharing and printing, work profile, introductions, recommendations, reminders.</td></tr>
+      <tr><td>W3 Insights &amp; events</td><td><span class="pill done">5 of 6 done</span></td><td>Insights and perspectives with saves; events with registration, waitlist, calendar file, reminders and check-in.</td></tr>
+      <tr><td>W4 Conversations</td><td><span class="pill done">4 of 6 done</span></td><td>Conversations with search and polling, notification settings, unsubscribe, Help Me Connect. Slack/WhatsApp built, gated (G-CH).</td></tr>
+      <tr><td>W5 Opportunities</td><td><span class="pill done">5 of 7 done</span></td><td>Opportunities, applications with optional CV, referrals, helpdesk, skills in demand; company registration and workspace.</td></tr>
+      <tr><td>W6–W7, quality, release</td><td><span class="pill idle">next</span></td><td>Community groups, experts, mentoring, training, partner talent requests; then administration and hardening.</td></tr>
     </tbody>
   </table>
 
-  <h2 class="avoid">Delivered on dev (app 200)</h2>
+  <h2 class="avoid">Delivered on dev (app 200, 73 pages)</h2>
   <table>
     <thead><tr><th>Area</th><th>Pages</th></tr></thead>
     <tbody>
-      <tr><td>Sign-in and onboarding</td><td>1 Login · 2 Onboarding conversation · 3 Create account · 4 Access denied · 5 Application status · 6 Membership application · 7 Confirm email · 8 Reset password · 9 Link account · 11 Welcome · 12 Legal · 13 Report a concern · 14 Accept terms · 15 Confirm identity</td></tr>
-      <tr><td>Shell</td><td>0 Global page · 10 Home · 19 Search · 41 Notifications</td></tr>
-      <tr><td>Profile and directory</td><td>20 Directory · 21 Results · 22 Member profile · 23 My profile · 24 My CV · 25 Work profile · 26 Account settings · 27 Privacy centre · 28 My network · 90 Suggest a term · 91 Request a chapter · 231–234 entry dialogs</td></tr>
-      <tr><td>Content and community</td><td>34 Knowledge library · 35 Item · 36 Submit · 60 Discussions · 62 Post · 73 New post · 80 Report · 81 My decisions</td></tr>
-      <tr><td>Administration (untested)</td><td>101 Members · 106 Taxonomy · 107 Moderation · 110 Audit log · 114 Approvals · 115 Review · 116 Member detail · 117 Chapters · 118 Chapter requests · 119 Appeals</td></tr>
+      <tr><td>Sign-in and onboarding</td><td>1 Login · 2 Onboarding · 3 Create account · 4 Access denied · 5 Status · 6 Application · 7 Confirm email · 8 Reset password · 9 Link account · 11 Welcome · 12 Legal · 13 Report a concern · 14 Accept terms · 15 Confirm identity · 44 Unsubscribe</td></tr>
+      <tr><td>Shell and Home</td><td>0 Global page · 10 Home · 19 Search · 41 Notifications · 42 Notification settings · 43 Slack and WhatsApp</td></tr>
+      <tr><td>Profile and directory</td><td>20 Directory · 21 Results · 22 Member profile · 23 My profile · 24 My CV · 25 Work profile · 26 Settings · 27 Privacy centre · 28 My network · 29 Help Me Connect · 90 · 91 · 231–234</td></tr>
+      <tr><td>Insights and events</td><td>30 Insights · 31 Article · 301 Write · 32 Events · 33 Event detail · 331 Event editor · 34–36 Library</td></tr>
+      <tr><td>Conversations and community</td><td>40 Conversations · 60 Discussions · 62 Post · 73 New post · 80 Report · 81 My decisions</td></tr>
+      <tr><td>Careers and helpdesk</td><td>50 Opportunities · 51 Opportunity · 52 My applications · 53 Post · 54 Referrals · 55 Helpdesk · 56 Skills in demand</td></tr>
+      <tr><td>Companies</td><td>76 Register your company (public) · 70 Company workspace · 71 Company opportunities · 112 Company registrations (admin)</td></tr>
+      <tr><td>Administration (untested)</td><td>101 Members · 106 Taxonomy · 107 Moderation (incl. job review) · 110 Audit · 114 Approvals · 115 Review · 116 Member detail · 117 Chapters · 118 Requests · 119 Appeals</td></tr>
     </tbody>
   </table>
-  <p>Test data on dev is synthetic only (decision Q12): 265 alumni, 6 test accounts, 23 CV-based personas with logins and sample CVs, plus sample insights, posts, announcements and moderation cases.</p>
+  <p>Test data on dev is synthetic only (decision Q12): 265 alumni, test accounts, 23 CV-based personas, sample insights, events, conversations, opportunities, companies and helpdesk requests. OAN does not handle Oracle HR documents (Q29, Q35).</p>
 
   <h2 class="avoid">CI/CD pipeline</h2>
   <div class="pipeline avoid">
     <div class="stage"><b>1 · Every push and pull request</b><ul><li>Brand check (no Oracle logos)</li><li>Link check (no 404 pages)</li><li>Base-table check (NFR-03)</li><li>Dev-script guard</li><li>Secret scan (gitleaks)</li></ul></div>
-    <div class="stage"><b>2 · Build</b><ul><li>Offline APEXLang validation with SQLcl</li><li>No database or secrets needed</li></ul></div>
+    <div class="stage"><b>2 · Build</b><ul><li>Offline APEXLang validation with SQLcl (all 73 pages)</li><li>No database or secrets needed</li></ul></div>
     <div class="stage"><b>3 · Deploy to dev (manual)</b><ul><li>Validate again</li><li>Import app 200</li><li>Run utPLSQL suites</li><li>Smoke-test sign-in page</li></ul></div>
-    <div class="stage"><b>4 · Publish board</b><ul><li>Kanban board and PDF to GitHub Pages</li></ul></div>
+    <div class="stage"><b>4 · Publish</b><ul><li>Kanban board, status report and both PDFs to GitHub Pages</li><li>GitHub Project kept in step</li></ul></div>
   </div>
   <table>
     <thead><tr><th>Item</th><th>Status</th></tr></thead>
     <tbody>
-      <tr><td>Check scripts (<code>ci/</code>)</td><td><span class="pill done">Live in repo</span> all pass on the current code</td></tr>
-      <tr><td>Board on GitHub Pages</td><td><span class="pill done">Live</span> updates on every push</td></tr>
-      <tr><td>Workflows <code>ci.yml</code>, <code>deploy-dev.yml</code>, <code>board.yml</code></td><td><span class="pill wait">Ready, not pushed</span> needs the GitHub <code>workflow</code> permission</td></tr>
+      <tr><td>Workflows <code>ci.yml</code>, <code>deploy-dev.yml</code>, <code>board.yml</code></td><td><span class="pill done">Live</span> CI green on every push this week</td></tr>
+      <tr><td>Check scripts (<code>ci/</code>)</td><td><span class="pill done">Live</span> links, base tables, brand and validation pass on 73 pages</td></tr>
+      <tr><td>Board, report and PDFs on GitHub Pages</td><td><span class="pill done">Live</span> republished on every push to <code>docs/</code></td></tr>
+      <tr><td>Local release checks per iteration</td><td><span class="pill done">Running</span> page SQL/PL/SQL compiled as the app schema (115 queries, 153 blocks), utPLSQL, import to dev</td></tr>
       <tr><td>Dev deploy secrets</td><td><span class="pill wait">Waiting</span> wallet and passwords to be added by the owner in environment <code>dev</code></td></tr>
       <tr><td>Production deployment</td><td><span class="pill idle">Not automated</span> requires go-live gate 8.0</td></tr>
     </tbody>
@@ -142,10 +149,10 @@ ul.tight li { margin: 2px 0; }
   <table class="avoid">
     <thead><tr><th>Item</th><th>Impact</th><th>Owner</th></tr></thead>
     <tbody>
-      <tr><td>Google OAuth client, or a dev-only admin login</td><td><span class="pill block">Blocks</span> testing of all admin pages (NFR-01)</td><td>OAN / product owner</td></tr>
-      <tr><td>OCI Email Delivery for dev (task 0.7)</td><td><span class="pill wait">Limits</span> sign-up confirmation and password reset</td><td>OAN</td></tr>
-      <tr><td>Real member CVs (consent via Google Forms)</td><td><span class="pill wait">Open</span> self-service upload, or an explicit permission plus a private location; never the public repo</td><td>Product owner</td></tr>
-      <tr><td>GitHub permissions: <code>workflow</code> and <code>project</code></td><td><span class="pill wait">Open</span> push the pipeline and maintain the GitHub Project</td><td>Repo owner</td></tr>
+      <tr><td>Google OAuth client, or a dev-only admin login</td><td><span class="pill block">Blocks</span> testing of admin pages, company verification and moderation (NFR-01)</td><td>OAN / product owner</td></tr>
+      <tr><td>OCI Email Delivery for dev (task 0.7)</td><td><span class="pill wait">Limits</span> sign-up confirmation, password links, company approval emails</td><td>OAN</td></tr>
+      <tr><td>Gate G-CH: Slack app, WhatsApp Business number, DPAs, DPIA annex</td><td><span class="pill wait">Gated</span> channels are built but switched off</td><td>OAN</td></tr>
+      <tr><td>Gate G-CF: Oracle Careers feed</td><td><span class="pill wait">Gated</span> Oracle roles are entered as Careers links until then</td><td>OAN</td></tr>
       <tr><td>PBKDF2 cost (≈1.9 s per sign-in at 210k iterations)</td><td><span class="pill wait">Change request</span> NFR-01 vs login performance</td><td>Product owner</td></tr>
       <tr><td>Staffing decision (G0)</td><td><span class="pill wait">Open</span> one vs two developers sets the end date</td><td>Sponsor</td></tr>
     </tbody>
@@ -153,10 +160,9 @@ ul.tight li { margin: 2px 0; }
 
   <h2>Next steps</h2>
   <ul class="tight">
-    <li>Finish W2: CV sharing per application (W2.7), profile-update reminder job (W2.11), directory index for 100k members (W2.3).</li>
-    <li>Turn on the CI/CD workflows once permissions are granted; add the authorisation negative test and page-registry check.</li>
-    <li>Prepare the product-owner demo of W0–W2 (task 9.2a).</li>
-    <li>Start W3: events and the knowledge library rules.</li>
+    <li>W6: community groups, experts and Ask-the-Expert, mentoring with capacity, training and certificates, partner talent requests and candidate feedback (pages 60–72).</li>
+    <li>W7: administration and hardening (pages 100–113), including profile-update and privacy-request admin, library import and channel administration.</li>
+    <li>Product-owner demo of W0–W5 once an admin sign-in path is agreed.</li>
   </ul>
 
   <p class="foot">Source: <code>task_plan.md</code>, <code>progress.md</code> and the delivery board in github.com/maheashtiwarrii-dev/OAN_APP_Portal. OAN is an independent alumni community; this report uses no Oracle logos.</p>

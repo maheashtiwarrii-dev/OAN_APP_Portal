@@ -158,8 +158,10 @@ create or replace package body ut_oan_chat as
     l_id     number := oan_chat_pkg.start_or_resume;
     l_routed timestamp with time zone;
   begin
+    -- the journey is switched off for this test (JOB_SEARCH is live since W5); rolled back afterwards
+    update oan_lu_codes set live_yn = 'N' where code_type = 'INTENT' and code = 'JOB_SEARCH';
     run_to_intent;
-    oan_chat_pkg.answer_intent('JOB_SEARCH');         -- landing page 50, not live in W0
+    oan_chat_pkg.answer_intent('JOB_SEARCH');         -- landing page 50, treated as not live here
     oan_chat_pkg.answer_roles(null, p_skip => 'Y');
     oan_chat_pkg.confirm_summary;
     update oan_users set status = 'ACTIVE' where id = g_user;

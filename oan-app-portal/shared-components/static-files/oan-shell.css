@@ -1,16 +1,38 @@
 /*
- * OAN Portal shell styles (Build Pack §3.2, wave W1). OAN tokens only:
- * no Oracle Red, no Oracle fonts, no logos (Q23, Q30; ci/check-brand.ps1).
+ * OAN Portal shell styles (Build Pack §3.2; restyled 14 Oct 2026 to the member mockups).
+ * OAN tokens only (Q23): warm red accent that is NOT Oracle Red, ink #201E1C, charcoal #312D2A.
+ * No Oracle fonts, no logos: the header shows a text wordmark (Q30; ci/check-brand.ps1).
  */
 :root {
-    --oan-ink: #1f2a37;          /* Ink panel (carousel) */
-    --oan-ink-contrast: #f5f7fa;
-    --oan-accent: #2f6f8f;       /* OAN teal: links, active dot */
-    --oan-muted: #5b6876;
+    --oan-ink: #201e1c;          /* header, Ink panel (carousel) */
+    --oan-charcoal: #312d2a;     /* left rail */
+    --oan-charcoal-2: #3d3833;   /* rail hover / current */
+    --oan-ink-contrast: #f5f3f0;
+    --oan-accent: #b84a2e;       /* OAN warm red (Q23, differs from Oracle Red) */
+    --oan-accent-dark: #9a3c24;
+    --oan-link: #2f6f8f;         /* organisation names and inline links */
+    --oan-muted: #6b625b;
     --oan-surface: #ffffff;
-    --oan-border: #d9dee4;
+    --oan-canvas: #f4f2ef;
+    --oan-border: #e2ddd7;
     --oan-radius: 8px;
+
+    /* Universal Theme hooks */
+    --ut-header-background-color: var(--oan-ink);
+    --ut-header-text-color: #ffffff;
+    --ut-body-background-color: var(--oan-canvas);
+    --a-button-hot-background-color: var(--oan-accent);
+    --a-button-hot-border-color: var(--oan-accent);
+    --a-button-hot-hover-background-color: var(--oan-accent-dark);
 }
+
+/* ------------------------------------------------------------ header -- */
+.t-Header { background-color: var(--oan-ink); color: #fff; }
+.t-Header-logo-link, .t-Header-logo-link:hover { color: #fff; font-weight: 600; letter-spacing: .02em; }
+.t-Header-controls .t-Button--header, .t-Header-controls .t-Button--header .t-Icon { color: #fff; }
+.t-Button--hot, .t-Button--hot:not(.t-Button--simple) { background-color: var(--oan-accent); border-color: var(--oan-accent); color: #fff; }
+.t-Button--hot:hover, .t-Button--hot:focus { background-color: var(--oan-accent-dark); border-color: var(--oan-accent-dark); }
+.t-Body { background-color: var(--oan-canvas); }
 
 /* Notification badge: hidden when empty */
 .oan-notif .t-Button-badge:empty { display: none; }
@@ -19,26 +41,45 @@
 .oan-search { display: flex; align-items: center; margin: 0 12px; }
 .oan-search input[type=search] {
     width: 260px; max-width: 40vw; padding: 6px 10px;
-    border: 1px solid var(--oan-border); border-radius: var(--oan-radius);
-    background: var(--oan-surface); color: var(--oan-ink);
+    border: 1px solid #4a443f; border-radius: var(--oan-radius);
+    background: #2c2825; color: #fff;
 }
+.oan-search input[type=search]::placeholder { color: #b9b1aa; }
 @media (max-width: 640px) { .oan-search { display: none; } }
 
-/* Profile card at the top of the left rail */
-.oan-profile-card { display: flex; gap: 10px; align-items: center; padding: 12px; border-bottom: 1px solid var(--oan-border); }
+/* ------------------------------------------------------- left rail -- */
+.t-Body-nav, .t-TreeNav, .t-Body-nav .a-TreeView { background-color: var(--oan-charcoal); }
+.t-TreeNav .a-TreeView-content, .t-TreeNav .a-TreeView-label, .t-TreeNav .a-TreeView-node .fa,
+.t-TreeNav .a-TreeView-toggle { color: #e9e4de; }
+.t-TreeNav .a-TreeView-row { border-left: 3px solid transparent; }
+.t-TreeNav .a-TreeView-content:hover, .t-TreeNav .a-TreeView-row.is-hover { background-color: var(--oan-charcoal-2); }
+.t-TreeNav .a-TreeView-node--topLevel > .a-TreeView-row.is-current--top,
+.t-TreeNav .a-TreeView-node--topLevel > .a-TreeView-row.is-current,
+.t-TreeNav .a-TreeView-row.is-selected { background-color: var(--oan-charcoal-2); border-left-color: var(--oan-accent); }
+
+/* Profile card at the top of the left rail (dark card, completion bar in the accent) */
+.oan-profile-card {
+    display: flex; gap: 10px; align-items: center; margin: 12px; padding: 12px;
+    background: #2a2623; border: 1px solid #47413b; border-radius: var(--oan-radius);
+    color: #fff; text-decoration: none;
+}
+.oan-profile-card:hover { background: #34302c; }
 .oan-profile-card .oan-avatar {
     flex: 0 0 40px; width: 40px; height: 40px; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
-    background: var(--oan-accent); color: #fff; font-weight: 600;
+    background: #8a5a44; color: #fff; font-weight: 600;
 }
-.oan-profile-card .oan-pc-name { font-weight: 600; }
-.oan-profile-card .oan-pc-meta { font-size: 12px; color: var(--oan-muted); }
-.oan-profile-card .oan-pc-meter { height: 4px; margin-top: 4px; background: var(--oan-border); border-radius: 2px; }
+.oan-profile-card .oan-pc-text { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.oan-profile-card .oan-pc-name { font-weight: 600; color: #fff; }
+.oan-profile-card .oan-pc-meta { font-size: 12px; color: #c9c1b9; }
+.oan-profile-card .oan-pc-meter { height: 4px; margin-top: 6px; background: #5a534c; border-radius: 2px; }
 .oan-profile-card .oan-pc-meter span { display: block; height: 4px; background: var(--oan-accent); border-radius: 2px; }
 .js-navCollapsed .oan-profile-card .oan-pc-text { display: none; }
+.js-navCollapsed .oan-profile-card { margin: 8px 4px; padding: 6px; justify-content: center; }
 
+/* ------------------------------------------------------------- home -- */
 /* Leadership-letter carousel (Ink panel, max 6 slides) */
-.oan-carousel { position: relative; background: var(--oan-ink); color: var(--oan-ink-contrast); border-radius: var(--oan-radius); padding: 24px 28px 40px; min-height: 180px; }
+.oan-carousel { position: relative; background: var(--oan-ink); color: var(--oan-ink-contrast); border-radius: var(--oan-radius); padding: 24px 28px 40px; min-height: 180px; border-top: 4px solid var(--oan-accent); }
 .oan-carousel:focus-within { outline: 2px solid var(--oan-accent); outline-offset: 2px; }
 .oan-slide { display: none; }
 .oan-slide.is-active, .oan-carousel.is-static .oan-slide { display: block; }
@@ -52,3 +93,83 @@
 
 /* What's new feed */
 .oan-feed-kind { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--oan-muted); }
+
+/* Upcoming events strip */
+.oan-events-strip { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.oan-event { display: flex; gap: 12px; padding: 12px; background: var(--oan-surface); border: 1px solid var(--oan-border); border-radius: var(--oan-radius); }
+.oan-event-date { flex: 0 0 52px; text-align: center; border-radius: 6px; background: var(--oan-ink); color: #fff; padding: 6px 0; }
+.oan-event-date b { display: block; font-size: 20px; line-height: 1.1; }
+.oan-event-date span { font-size: 11px; letter-spacing: .06em; }
+.oan-event-title { font-weight: 600; }
+.oan-event-meta { font-size: 12px; color: var(--oan-muted); }
+
+/* -------------------------------------------------- alumni directory -- */
+.oan-filterbar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.oan-dcard { display: flex; flex-direction: column; gap: 12px; height: 100%; }
+.oan-dcard-top { display: flex; gap: 14px; align-items: flex-start; }
+.oan-dcard-avatar {
+    flex: 0 0 64px; width: 64px; height: 64px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 20px; font-weight: 600; letter-spacing: .02em;
+}
+.oan-av-0 { background: #8a5a44; } .oan-av-1 { background: #5b6b78; } .oan-av-2 { background: #6f6a4f; }
+.oan-av-3 { background: #7a4f5e; } .oan-av-4 { background: #4f6e5b; } .oan-av-5 { background: #5e557a; }
+.oan-dcard-name { font-weight: 600; font-size: 15px; color: var(--oan-ink); }
+.oan-dcard-line { font-size: 13px; color: var(--oan-muted); }
+.oan-dcard-org { font-size: 13px; color: var(--oan-link); font-weight: 600; }
+.oan-dcard-loc { font-size: 12px; color: var(--oan-muted); }
+.oan-dcard-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; border-top: 1px solid var(--oan-border); padding-top: 10px; }
+.oan-dcard-stats span { display: block; font-size: 11px; color: var(--oan-muted); }
+.oan-dcard-stats b { font-size: 14px; color: var(--oan-ink); }
+.a-CardView-item { border-radius: var(--oan-radius); }
+.a-CardView-actions .t-Button--hot { flex: 1; }
+
+/* ------------------------------------------------------ conversations -- */
+.oan-chat { display: grid; grid-template-columns: minmax(260px, 340px) 1fr; min-height: 560px;
+            background: var(--oan-surface); border: 1px solid var(--oan-border); border-radius: var(--oan-radius); overflow: hidden; }
+.oan-chat-list { border-right: 1px solid var(--oan-border); display: flex; flex-direction: column; min-width: 0; }
+.oan-chat-list h2 { margin: 16px 16px 10px; font-size: 22px; }
+.oan-tabs { display: flex; margin: 0 16px 10px; border: 1px solid var(--oan-ink); border-radius: 6px; overflow: hidden; }
+.oan-tabs a { flex: 1; text-align: center; padding: 6px 4px; color: var(--oan-ink); text-decoration: none; font-size: 13px; }
+.oan-tabs a[aria-current=page] { background: var(--oan-ink); color: #fff; }
+.oan-chat-search { margin: 0 16px 8px; }
+.oan-chat-search input { width: 100%; padding: 6px 10px; border: 1px solid var(--oan-border); border-radius: 6px; }
+.oan-chat-group { margin: 12px 16px 4px; font-size: 11px; letter-spacing: .08em; color: var(--oan-muted); text-transform: uppercase; }
+.oan-thread { display: flex; gap: 10px; align-items: center; padding: 10px 16px; color: inherit; text-decoration: none; border-left: 3px solid transparent; }
+.oan-thread:hover { background: #f7f5f2; }
+.oan-thread[aria-current=true] { background: #efebe6; border-left-color: var(--oan-accent); }
+.oan-thread-av { flex: 0 0 36px; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 600; }
+.oan-thread-av.is-team { background: var(--oan-accent); }
+.oan-thread-main { flex: 1; min-width: 0; }
+.oan-thread-title { font-weight: 600; font-size: 13px; }
+.oan-thread-last { font-size: 12px; color: var(--oan-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.oan-unread-dot { flex: 0 0 8px; width: 8px; height: 8px; border-radius: 50%; background: var(--oan-accent); }
+.oan-chat-pane { display: flex; flex-direction: column; min-width: 0; }
+.oan-chat-head { display: flex; gap: 10px; align-items: center; padding: 12px 18px; border-bottom: 1px solid var(--oan-border); }
+.oan-chat-head .oan-chat-sub { font-size: 12px; color: var(--oan-muted); }
+.oan-chat-head a { color: inherit; }
+.oan-chat-body { flex: 1; padding: 18px; display: flex; flex-direction: column; gap: 10px; background: #faf9f7; overflow-y: auto; max-height: 520px; }
+.oan-day { align-self: center; font-size: 11px; color: var(--oan-muted); }
+.oan-bubble { max-width: 70%; padding: 10px 14px; border-radius: 10px; background: var(--oan-surface); border: 1px solid var(--oan-border); font-size: 13px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.oan-bubble.is-mine { align-self: flex-end; background: var(--oan-charcoal); color: #fff; border-color: var(--oan-charcoal); }
+.oan-bubble-meta { display: block; font-size: 11px; opacity: .7; margin-bottom: 2px; }
+.oan-chat-empty { margin: auto; color: var(--oan-muted); text-align: center; padding: 24px; }
+@media (max-width: 760px) {
+    .oan-chat { grid-template-columns: 1fr; }
+    .oan-chat.has-thread .oan-chat-list { display: none; }
+    .oan-bubble { max-width: 88%; }
+}
+
+/* ------------------------------------------------- printable CV (page 24) -- */
+.oan-cv { max-width: 780px; background: #fff; padding: 24px 28px; border: 1px solid var(--oan-border); border-radius: var(--oan-radius); }
+.oan-cv-head h1 { margin: 0; font-size: 24px; }
+.oan-cv-headline { font-size: 15px; color: var(--oan-muted); margin: 4px 0; }
+.oan-cv-h { font-size: 15px; text-transform: uppercase; letter-spacing: .05em; border-bottom: 2px solid var(--oan-accent); padding-bottom: 4px; margin: 20px 0 8px; }
+.oan-cv-list { margin: 0; padding-left: 18px; }
+.oan-cv-list li { margin-bottom: 6px; }
+.oan-cv-years { color: var(--oan-muted); font-size: 12px; }
+@media print {
+    body * { visibility: hidden; }
+    .oan-cv, .oan-cv * { visibility: visible; }
+    .oan-cv { position: absolute; left: 0; top: 0; border: 0; max-width: none; width: 100%; }
+}

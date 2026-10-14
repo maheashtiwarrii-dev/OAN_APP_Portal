@@ -269,6 +269,7 @@ create or replace package body oan_career_pkg as
     l_me    number := me;
     l_ver   number;
     l_open  varchar2(200);
+    l_months number := oan_util.get_config_num('WORK_PROFILE_REVIEW_CADENCE_MONTHS', 6);
   begin
     oan_util.assert(p_employment_status is null or p_employment_status in
                     ('EMPLOYED','SELF_EMPLOYED','CONSULTING','BETWEEN_ROLES','RETIRED','STUDYING'), 'Invalid employment status.');
@@ -294,15 +295,18 @@ create or replace package body oan_career_pkg as
      when matched then update set w.employment_status = p_employment_status, w.work_mode = p_work_mode,
                                   w.availability = nvl(p_availability, 'NOT_LOOKING'),
                                   w.notice_period_days = p_notice_period_days, w.open_to = l_open,
+                                  w.last_confirmed_on = systimestamp, w.next_review_on = add_months(systimestamp, l_months),
                                   w.row_version = w.row_version + 1, w.updated_at = systimestamp
-     when not matched then insert (user_id, employment_status, work_mode, availability, notice_period_days, open_to)
+     when not matched then insert (user_id, employment_status, work_mode, availability, notice_period_days, open_to,
+                                   last_confirmed_on, next_review_on)
                            values (x.u, p_employment_status, p_work_mode, nvl(p_availability, 'NOT_LOOKING'),
-                                   p_notice_period_days, l_open);
+                                   p_notice_period_days, l_open, systimestamp, add_months(systimestamp, l_months));
     update oan_profiles
        set current_org = trim(p_current_employer), job_title = trim(p_designation),
            row_version = row_version + 1, updated_at = systimestamp
      where user_id = l_me;
     changed('WORK_PROFILE_SAVED', 'WORK_PROFILE', l_me, l_me);
+    oan_nudge_pkg.close_request(l_me, 'WORK_PROFILE', 'UPDATED');      -- an update also confirms (FR-47 AC3)
   end save_work_profile;
 
   procedure confirm_work_profile is
@@ -316,6 +320,7 @@ create or replace package body oan_career_pkg as
      when not matched then insert (user_id, last_confirmed_on, next_review_on)
                            values (x.u, systimestamp, add_months(systimestamp, l_months));
     oan_audit_pkg.log('WORK_PROFILE_CONFIRMED', 'WORK_PROFILE', l_me, l_me);
+    oan_nudge_pkg.close_request(l_me, 'WORK_PROFILE', 'CONFIRMED');
   end confirm_work_profile;
 
 end oan_career_pkg;

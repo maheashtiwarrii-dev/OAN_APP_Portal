@@ -71,11 +71,12 @@ create or replace package body oan_search_pkg as
       pipe row (oan_search_row('POST', r.id, r.title, r.snippet, 62, r.sc));
     end loop;
 
-    -- Members: name + headline only (never section-level fields, P31)
-    for r in (select c.user_id, c.display_name, c.headline, score(4) sc
-                from oan_profiles p
-                join oan_member_card_v c on c.user_id = p.user_id
-               where contains(p.first_name, l_expr, 4) > 0
+    -- Members: OAN_DIRECTORY_IDX holds name, headline and primary chapter only (never section-level
+    -- fields, P31). The directory view re-applies the switch, connections-only mode, blocks and status.
+    for r in (select d.user_id, d.display_name, d.headline, score(4) sc
+                from oan_directory_idx i
+                join oan_directory_v d on d.user_id = i.user_id
+               where contains(i.search_text, l_expr, 4) > 0
                order by score(4) desc
                fetch first p_max_rows rows only) loop
       pipe row (oan_search_row('MEMBER', r.user_id, r.display_name, r.headline, 22, r.sc));

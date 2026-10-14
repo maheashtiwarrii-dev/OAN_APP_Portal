@@ -19,6 +19,8 @@ create or replace package ut_oan_page_content as
   procedure devi_pages;
   --%test(Admin context: approval queue, moderation queue, appeals, chapter requests, members, audit)
   procedure admin_pages;
+  --%test(14 Oct: conversations, upcoming events, CV sections, introductions and recommendations (650 script))
+  procedure conversations_events_w2;
 end ut_oan_page_content;
 /
 
@@ -96,6 +98,17 @@ create or replace package body ut_oan_page_content as
                                      'oan_admin_chapter_requests_v', 'oan_admin_users_v', 'oan_admin_taxonomy_v',
                                      'oan_admin_chapters_v', 'oan_audit_v'));
   end admin_pages;
+
+  procedure conversations_events_w2 is
+  begin
+    oan_ctx_pkg.set_test_viewer(uid('tester.asha@synthetic.oan.invalid'), 'MEMBER');
+    expect_rows(sys.odcivarchar2list('oan_my_threads_v', 'oan_thread_messages_v', 'oan_upcoming_events_v',
+                                     'oan_my_cv_sections_v', 'oan_my_intro_requests_v', 'oan_message_contacts_v'));
+    oan_ctx_pkg.set_test_viewer(uid('tester.chen@synthetic.oan.invalid'), 'MEMBER');
+    expect_rows(sys.odcivarchar2list('oan_intro_inbox_v', 'oan_my_threads_v'));
+    oan_ctx_pkg.set_test_viewer(uid('test.member@synthetic.oan.invalid'), 'MEMBER');
+    expect_rows(sys.odcivarchar2list('oan_my_recommendations_v', 'oan_my_threads_v'));
+  end conversations_events_w2;
 
 end ut_oan_page_content;
 /

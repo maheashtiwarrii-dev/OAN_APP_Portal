@@ -23,6 +23,9 @@ prompt == DDL
 @@ddl/097_member_cv.sql
 @@ddl/098_network.sql
 @@ddl/099_platform.sql
+@@ddl/100_w2_completion.sql
+@@ddl/101_messaging.sql
+@@ddl/102_events.sql
 
 prompt == Packages (bodies with forward references compile at the end)
 whenever sqlerror continue
@@ -37,19 +40,23 @@ whenever sqlerror continue
 @@packages/180_oan_auth_pkg.sql
 @@packages/190_oan_registration_pkg.sql
 @@packages/200_oan_profile_pkg.sql
+@@packages/202_oan_nudge_pkg.sql
 @@packages/205_oan_career_pkg.sql
 @@packages/210_oan_taxonomy_pkg.sql
 @@packages/220_oan_file_pkg.sql
 @@packages/215_oan_cv_pkg.sql
 @@packages/225_oan_network_pkg.sql
 @@packages/230_oan_library_pkg.sql
+@@packages/235_oan_directory_pkg.sql
 @@packages/240_oan_group_pkg.sql
+@@packages/245_oan_message_pkg.sql
 @@packages/250_oan_moderation_pkg.sql
 @@packages/260_oan_privacy_pkg.sql
 @@packages/265_oan_export_pkg.sql
 @@packages/270_oan_search_pkg.sql
 @@packages/275_oan_retention_pkg.sql
 @@packages/280_oan_jobs_pkg.sql
+@@packages/285_oan_kpi_pkg.sql
 @@packages/290_oan_error_pkg.sql
 @@packages/295_oan_chat_pkg.sql
 @@packages/296_oan_chat_api.sql
@@ -91,5 +98,7 @@ whenever sqlerror continue
 @@tests/ut_oan_career.sql
 @@tests/ut_oan_network.sql
 @@tests/ut_oan_platform.sql
+@@tests/ut_oan_w2.sql
+@@tests/ut_oan_messaging.sql
 
 prompt Install complete. Run 20_app_synonyms.sql as OAN_APP, then 30_assert_no_table_grants.sql.

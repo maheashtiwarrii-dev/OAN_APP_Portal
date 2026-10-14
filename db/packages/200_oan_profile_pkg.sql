@@ -30,22 +30,38 @@ create or replace package body oan_profile_pkg as
     return oan_util.viewer_id;
   end me;
 
+  -- Weights (W2 completion): card and work 60, skills 16, career depth 14, CV 10. Sums to 100.
   function completeness(p_user_id in number) return number is
     l_p      oan_profiles%rowtype;
     l_skills number;
+    l_tenure number;
+    l_work   number;
+    l_edu    number;
+    l_cv     number;
+    l_sect   number;
     l_score  number := 0;
   begin
     select * into l_p from oan_profiles where user_id = p_user_id;
     select count(*) into l_skills from oan_profile_skills where user_id = p_user_id;
-    l_score := l_score + case when l_p.headline     is not null then 15 else 0 end
-                       + case when l_p.summary      is not null then 15 else 0 end
-                       + case when l_p.current_org  is not null then 10 else 0 end
-                       + case when l_p.job_title    is not null then 10 else 0 end
+    select count(*) into l_tenure from oan_oracle_tenure where user_id = p_user_id;
+    select count(*) into l_work from oan_work_experience where user_id = p_user_id;
+    select count(*) into l_edu from oan_education where user_id = p_user_id;
+    select count(*) into l_cv from oan_member_cv where user_id = p_user_id and is_current = 'Y';
+    select count(*) into l_sect from oan_cv_sections where user_id = p_user_id;
+    l_score := l_score + case when l_p.headline     is not null then 10 else 0 end
+                       + case when l_p.summary      is not null then 10 else 0 end
+                       + case when l_p.current_org  is not null then 5 else 0 end
+                       + case when l_p.job_title    is not null then 5 else 0 end
                        + case when l_p.location_id  is not null then 10 else 0 end
                        + case when l_p.photo_file_id is not null then 10 else 0 end
                        + case when l_p.linkedin_url is not null then 5 else 0 end
                        + case when l_p.experience_band_id is not null then 5 else 0 end
-                       + least(l_skills, 4) * 5;
+                       + least(l_skills, 4) * 4
+                       + case when l_tenure > 0 then 6 else 0 end
+                       + case when l_work   > 0 then 4 else 0 end
+                       + case when l_edu    > 0 then 4 else 0 end
+                       + case when l_cv     > 0 then 6 else 0 end
+                       + case when l_sect   > 0 then 4 else 0 end;
     return least(l_score, 100);
   exception
     when no_data_found then return 0;

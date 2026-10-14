@@ -1,0 +1,483 @@
+page 40 (
+    name: Conversations
+    alias: CONVERSATIONS
+    title: Conversations
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    security {
+        authorizationScheme: @is-active
+        pageAccessProtection: unrestricted
+        formAutoComplete: false
+    }
+    comments {
+        comments: Build Pack Messages / Conversations (FR-18, R08, R27; W4.1/W4.2 first slice, 14 Oct 2026). Two panes: All / Unread / Groups with Announcements, Pinned and Conversations; the open thread with its messages and a reply box. Everything is read through OAN_MY_THREADS_V and OAN_THREAD_MESSAGES_V (participants only) and changed through OAN_MESSAGE_PKG, which checks messaging permission, blocks and the daily limit. The URL items are unprotected because notifications link here; the views and the package decide access. Bodies are escaped. Polling, attachments and message search follow in W4.
+    }
+
+    region r40_chat (
+        name: Conversations
+        type: dynamicContent
+        source {
+            plsqlFunctionBody:
+                ```plsql
+                declare
+                    l_tab    varchar2(10) := nvl(:P40_TAB, 'ALL');
+                    l_thread number := to_number(:P40_THREAD_ID);
+                    l_html   clob;
+                    l_unread number;
+                    l_group  varchar2(20);
+                    l_day    varchar2(30);
+                    l_found  boolean := false;
+
+                    function url(p_thread in number, p_tab in varchar2 default l_tab, p_request in varchar2 default null) return varchar2 is
+                    begin
+                        return apex_page.get_url(p_page => 40, p_items => 'P40_THREAD_ID,P40_TAB',
+                                                 p_values => p_thread || ',' || p_tab, p_request => p_request);
+                    end url;
+
+                    function tab(p_code in varchar2, p_label in varchar2) return varchar2 is
+                    begin
+                        return '<a href="' || url(null, p_code) || '"'
+                            || case when l_tab = p_code then ' aria-current="page"' end || '>' || p_label || '</a>';
+                    end tab;
+
+                    function avatar(p_initials in varchar2, p_seed in number, p_team in boolean) return varchar2 is
+                    begin
+                        return '<span class="oan-thread-av ' || case when p_team then 'is-team' else 'oan-av-' || mod(nvl(p_seed, 0), 6) end
+                            || '" aria-hidden="true">' || apex_escape.html(nvl(p_initials, '?')) || '</span>';
+                    end avatar;
+                begin
+                    select count(*) into l_unread from oan_my_threads_v where unread_count > 0;
+                    l_html := '<div class="oan-chat' || case when l_thread is not null then ' has-thread' end || '">'
+                        || '<nav class="oan-chat-list" aria-label="Conversations"><h2>Conversations</h2>'
+                        || '<div class="oan-tabs" role="tablist">' || tab('ALL', 'All')
+                        || tab('UNREAD', 'Unread' || case when l_unread > 0 then ' (' || l_unread || ')' end)
+                        || tab('GROUPS', 'Groups') || '</div>'
+                        || '<div class="oan-chat-search"><label class="u-VisuallyHidden" for="oan-chat-filter">Search conversations</label>'
+                        || '<input id="oan-chat-filter" type="search" placeholder="Search conversations" autocomplete="off"></div>';
+
+                    for t in (select v.*,
+                                     case when v.thread_type = 'ANNOUNCEMENT' then 'ANNOUNCEMENTS'
+                                          when v.is_pinned = 'Y' then 'PINNED' else 'CONVERSATIONS' end grp,
+                                     case when v.thread_type = 'ANNOUNCEMENT' then 1 when v.is_pinned = 'Y' then 2 else 3 end grp_order
+                                from oan_my_threads_v v
+                               where (l_tab = 'ALL')
+                                  or (l_tab = 'UNREAD' and v.unread_count > 0)
+                                  or (l_tab = 'GROUPS' and v.thread_type = 'GROUP')
+                               order by grp_order, v.last_message_at desc nulls last) loop
+                        if l_group is null or l_group != t.grp then
+                            l_group := t.grp;
+                            l_html := l_html || '<div class="oan-chat-group">' || initcap(t.grp) || '</div>';
+                        end if;
+                        l_html := l_html || '<a class="oan-thread" data-title="' || apex_escape.html_attribute(lower(t.title)) || '" href="' || url(t.thread_id) || '"'
+                            || case when t.thread_id = l_thread then ' aria-current="true"' end || '>'
+                            || avatar(t.initials, nvl(t.other_user_id, t.thread_id), t.thread_type = 'ANNOUNCEMENT')
+                            || '<span class="oan-thread-main"><span class="oan-thread-title">' || apex_escape.html(t.title) || '</span>'
+                            || '<span class="oan-thread-last" style="display:block">' || apex_escape.html(nvl(t.last_body, 'No messages yet')) || '</span></span>'
+                            || case when t.unread_count > 0
+                                    then '<span class="oan-unread-dot" title="' || t.unread_count || ' unread"></span><span class="u-VisuallyHidden">'
+                                      || t.unread_count || ' unread</span>' end
+                            || '</a>';
+                    end loop;
+                    if l_group is null then
+                        l_html := l_html || '<p class="oan-chat-empty">'
+                            || case l_tab when 'UNREAD' then 'You are all caught up.'
+                                          when 'GROUPS' then 'No group conversations yet. Start one below.'
+                                          else 'No conversations yet. Use Message on a member''s card or profile.' end || '</p>';
+                    end if;
+                    l_html := l_html || '</nav><section class="oan-chat-pane" aria-label="Messages">';
+
+                    for t in (select * from oan_my_threads_v where thread_id = l_thread) loop
+                        l_found := true;
+                        l_html := l_html || '<header class="oan-chat-head">'
+                            || avatar(t.initials, nvl(t.other_user_id, t.thread_id), t.thread_type = 'ANNOUNCEMENT')
+                            || '<div style="flex:1;min-width:0"><div class="oan-thread-title">'
+                            || case when t.other_user_id is not null
+                                    then '<a href="' || apex_page.get_url(p_page => 22, p_items => 'P22_USER_ID', p_values => t.other_user_id)
+                                      || '">' || apex_escape.html(t.title) || '</a>'
+                                    else apex_escape.html(t.title) end
+                            || '</div><div class="oan-chat-sub">'
+                            || case t.thread_type when 'DIRECT' then apex_escape.html(t.headline)
+                                                  when 'GROUP' then t.member_count || ' members'
+                                                  else 'News from the OAN team' end
+                            || '</div></div>'
+                            || '<a class="t-Button t-Button--small t-Button--noUI" href="' || url(t.thread_id, l_tab, case t.is_pinned when 'Y' then 'UNPIN' else 'PIN' end)
+                            || '">' || case t.is_pinned when 'Y' then 'Unpin' else 'Pin' end || '</a>'
+                            || case when t.thread_type = 'GROUP'
+                                    then '<a class="t-Button t-Button--small t-Button--noUI" href="' || url(t.thread_id, l_tab, 'LEAVE') || '">Leave</a>' end
+                            || '</header><div class="oan-chat-body" id="oan-chat-body">';
+                        for m in (select * from oan_thread_messages_v where thread_id = l_thread order by created_at, id) loop
+                            if l_day is null or l_day != to_char(m.created_at, 'YYYYMMDD') then
+                                l_day := to_char(m.created_at, 'YYYYMMDD');
+                                l_html := l_html || '<div class="oan-day">'
+                                    || case when trunc(cast(m.created_at as date)) = trunc(sysdate) then 'Today'
+                                            when trunc(cast(m.created_at as date)) = trunc(sysdate) - 1 then 'Yesterday'
+                                            else to_char(m.created_at, 'DD Mon YYYY') end || '</div>';
+                            end if;
+                            l_html := l_html || '<div class="oan-bubble' || case when m.is_mine = 'Y' then ' is-mine' end || '">'
+                                || case when m.is_mine = 'N' and t.thread_type != 'DIRECT'
+                                        then '<span class="oan-bubble-meta">' || apex_escape.html(m.sender_name) || '</span>' end
+                                || apex_escape.html(m.body)
+                                || '<span class="oan-bubble-meta" style="margin:4px 0 0">' || to_char(m.created_at, 'HH24:MI') || '</span></div>';
+                        end loop;
+                        if l_day is null then
+                            l_html := l_html || '<p class="oan-chat-empty">Say hello. Messages are private to the people in this conversation.</p>';
+                        end if;
+                        if t.status = 'CLOSED' then
+                            l_html := l_html || '<p class="oan-chat-empty">This conversation is closed.</p>';
+                        end if;
+                        l_html := l_html || '</div>';
+                    end loop;
+                    if not l_found then
+                        l_html := l_html || '<p class="oan-chat-empty">Choose a conversation on the left.</p>';
+                    end if;
+                    return l_html || '</section></div>';
+                end;
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region r40_compose (
+        name: Reply
+        type: staticContent
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--hideHeader js-addHiddenHeadingRoleDesc
+            ]
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery: select 1 from oan_my_threads_v where thread_id = :P40_THREAD_ID and status = 'OPEN' and thread_type != 'ANNOUNCEMENT'
+        }
+    )
+
+    region r40_new_group (
+        name: Start a group conversation
+        type: staticContent
+        source {
+            htmlCode: <p>Add up to 49 of your connections. Only connections who accept messages from you are listed.</p>
+        }
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            template: @/collapsible
+            templateOptions: [
+                #DEFAULT#
+                is-collapsed
+            ]
+        }
+    )
+
+    pageItem P40_THREAD_ID (
+        type: hidden
+        comments {
+            comments: Unrestricted on purpose - set from notification links, thread links and the Message buttons on pages 21/22. OAN_MY_THREADS_V and OAN_MESSAGE_PKG check that the viewer may use the thread or member.
+        }
+        layout {
+            sequence: 10
+            region: @r40_chat
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: unrestricted
+        }
+    )
+
+    pageItem P40_TAB (
+        type: hidden
+        comments {
+            comments: Unrestricted on purpose - set from notification links, thread links and the Message buttons on pages 21/22. OAN_MY_THREADS_V and OAN_MESSAGE_PKG check that the viewer may use the thread or member.
+        }
+        layout {
+            sequence: 20
+            region: @r40_chat
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: unrestricted
+        }
+    )
+
+    pageItem P40_TO_USER (
+        type: hidden
+        comments {
+            comments: Unrestricted on purpose - set from notification links, thread links and the Message buttons on pages 21/22. OAN_MY_THREADS_V and OAN_MESSAGE_PKG check that the viewer may use the thread or member.
+        }
+        layout {
+            sequence: 30
+            region: @r40_chat
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: unrestricted
+        }
+    )
+
+    pageItem P40_BODY (
+        type: textarea
+        label {
+            label: Write a message
+        }
+        layout {
+            sequence: 10
+            region: @r40_compose
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 4000
+        }
+    )
+
+    pageItem P40_GROUP_TITLE (
+        type: textField
+        label {
+            label: Group name
+        }
+        layout {
+            sequence: 10
+            region: @r40_new_group
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 200
+        }
+    )
+
+    pageItem P40_GROUP_MEMBERS (
+        type: selectMany
+        label {
+            label: Connections
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select display_name d, user_id r from oan_message_contacts_v order by display_name
+                ```
+        }
+        layout {
+            sequence: 20
+            region: @r40_new_group
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    button send (
+        buttonName: SEND
+        label: Send
+        layout {
+            sequence: 10
+            region: @r40_compose
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button new-group (
+        buttonName: NEW_GROUP
+        label: Start group
+        layout {
+            sequence: 10
+            region: @r40_new_group
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process join-announcements (
+        name: Join announcements
+        type: executeCode
+        source {
+            plsqlCode: oan_message_pkg.join_announcements;
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+    )
+
+    process start-direct (
+        name: Start a direct conversation
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare
+                    l_id number;
+                begin
+                    l_id := oan_message_pkg.start_direct(to_number(:P40_TO_USER));
+                    apex_util.redirect_url(apex_page.get_url(p_page => 40, p_items => 'P40_THREAD_ID', p_values => l_id));
+                end;
+                ```
+        }
+        execution {
+            sequence: 20
+            point: beforeHeader
+        }
+        serverSideCondition {
+            type: request=Value
+            value: START
+        }
+    )
+
+    process thread-action (
+        name: Pin, unpin or leave
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                case :REQUEST
+                    when 'PIN'   then oan_message_pkg.set_pinned(to_number(:P40_THREAD_ID), 'Y');
+                    when 'UNPIN' then oan_message_pkg.set_pinned(to_number(:P40_THREAD_ID), 'N');
+                    when 'LEAVE' then oan_message_pkg.leave_group(to_number(:P40_THREAD_ID));
+                end case;
+                apex_util.redirect_url(apex_page.get_url(p_page => 40, p_items => 'P40_THREAD_ID,P40_TAB',
+                    p_values => case when :REQUEST != 'LEAVE' then :P40_THREAD_ID end || ',' || :P40_TAB));
+                ```
+        }
+        execution {
+            sequence: 30
+            point: beforeHeader
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: PIN,UNPIN,LEAVE
+        }
+    )
+
+    process open-thread (
+        name: Open a conversation and mark it read
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                -- No thread chosen: open the first pinned or most recent one (wide screens show both panes)
+                if :P40_THREAD_ID is null and nvl(:P40_TAB, 'ALL') = 'ALL' then
+                    for t in (select thread_id from oan_my_threads_v
+                               order by case when thread_type = 'ANNOUNCEMENT' then 1 else 0 end, is_pinned desc,
+                                        last_message_at desc nulls last
+                               fetch first 1 row only) loop
+                        :P40_THREAD_ID := t.thread_id;
+                    end loop;
+                end if;
+                if :P40_THREAD_ID is not null then
+                    oan_message_pkg.mark_read(to_number(:P40_THREAD_ID));
+                end if;
+                ```
+        }
+        execution {
+            sequence: 40
+            point: beforeHeader
+        }
+    )
+
+    process send (
+        name: Send message
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare
+                    l_id number;
+                begin
+                    l_id := oan_message_pkg.send(to_number(:P40_THREAD_ID), :P40_BODY);
+                    :P40_BODY := null;
+                end;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        serverSideCondition {
+            whenButtonPressed: @send
+        }
+    )
+
+    process new-group (
+        name: Start group conversation
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                :P40_THREAD_ID := oan_message_pkg.start_group(:P40_GROUP_TITLE, :P40_GROUP_MEMBERS);
+                :P40_GROUP_TITLE   := null;
+                :P40_GROUP_MEMBERS := null;
+                :P40_TAB := 'GROUPS';
+                ```
+        }
+        execution {
+            sequence: 20
+        }
+        serverSideCondition {
+            whenButtonPressed: @new-group
+        }
+        successMessage {
+            successMessage: Group conversation started.
+        }
+    )
+
+    branch back-to-thread (
+        name: Back to the conversation
+        behavior {
+            type: pageOrUrl
+            target: {
+                page: 40
+                items: {
+                    P40_THREAD_ID: &P40_THREAD_ID.
+                    P40_TAB: &P40_TAB.
+                }
+            }
+        }
+        execution {
+            point: afterProcessing
+            sequence: 10
+        }
+    )
+
+)

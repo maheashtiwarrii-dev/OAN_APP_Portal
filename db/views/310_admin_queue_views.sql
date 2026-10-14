@@ -209,3 +209,27 @@ select (select count(*) from oan_users where status = 'ACTIVE' and account_type 
        (select count(*) from oan_users where status = 'ACTIVE' and last_activity_at > add_months(systimestamp, -1)) monthly_active
   from dual
  where sys_context('OAN_CTX','IS_ADMIN') = 'Y';
+
+-- Profile and CV update requests (page 128, FR-47): Platform Admins see who has an open request
+-- and how many reminders went out. Their own rows are excluded like other queues.
+create or replace view oan_admin_update_requests_v as
+select r.id, r.user_id, p.first_name || ' ' || p.last_name member_name, u.email,
+       r.request_type, case r.request_type when 'WORK_PROFILE' then 'Work profile' else 'CV' end type_label,
+       r.status, r.raised_at, r.last_reminded_at, r.reminder_count, r.closed_at,
+       case r.close_reason when 'UPDATED' then 'Updated' when 'CONFIRMED' then 'Confirmed still current'
+                           when 'ACCOUNT_CLOSED' then 'Account closed' end close_label
+  from oan_profile_update_requests r
+  join oan_users u on u.id = r.user_id
+  left join oan_profiles p on p.user_id = r.user_id
+ where sys_context('OAN_CTX','IS_ADMIN') = 'Y'
+   and r.user_id != to_number(sys_context('OAN_CTX','VIEWER_ID'));
+
+-- Aggregate KPIs (S31): daily counts only, no personal data
+create or replace view oan_admin_kpi_v as
+select k.event_code,
+       case k.event_code when 'DIRECTORY_SEARCH' then 'Directory searches'
+                         when 'DIRECTORY_PROFILE_OPEN' then 'Profiles opened'
+                         when 'SEARCH_TO_PROFILE_PCT' then 'Search to profile (%)' else k.event_code end label,
+       k.event_day, k.event_count
+  from oan_kpi_daily k
+ where sys_context('OAN_CTX','IS_ADMIN') = 'Y';

@@ -491,7 +491,21 @@ select c.user_id,
        case when oan_vis.can_see(p.user_id, 'CAREER_STATUS') = 'Y'
             then (select case w.availability when 'ACTIVELY_LOOKING' then 'Actively looking'
                                              when 'OPEN' then 'Open to opportunities' end
-                    from oan_member_work_profile w where w.user_id = p.user_id) end availability
+                    from oan_member_work_profile w where w.user_id = p.user_id) end availability,
+       -- Card stats (directory mockup, 14 Oct): total experience and Oracle tenure are WORK-masked;
+       -- the follower count is shown only when the member accepts followers
+       case when oan_vis.can_see(p.user_id, 'WORK') = 'Y'
+            then extract(year from sysdate)
+                 - nullif(least(nvl((select min(we.start_year) from oan_work_experience we where we.user_id = p.user_id), 9999),
+                                nvl((select min(ot.start_year) from oan_oracle_tenure ot where ot.user_id = p.user_id), 9999),
+                                nvl(p.oracle_from_year, 9999)), 9999) end total_exp_years,
+       case when oan_vis.can_see(p.user_id, 'WORK') = 'Y' and p.oracle_from_year is not null
+            then p.oracle_from_year || '–' || nvl(to_char(p.oracle_to_year), 'now') end oracle_years,
+       case when nvl((select s.followers_enabled from oan_privacy_settings s where s.user_id = p.user_id), 'Y') = 'Y'
+            then (select count(*) from oan_member_follows f where f.followee_id = p.user_id) end follower_count,
+       nvl((select s.followers_enabled from oan_privacy_settings s where s.user_id = p.user_id), 'Y') accepts_followers,
+       (select count(*) from oan_member_follows f
+         where f.followee_id = p.user_id and f.follower_id = to_number(sys_context('OAN_CTX','VIEWER_ID'))) i_follow
   from oan_member_card_v c
   join oan_profiles p on p.user_id = c.user_id
   left join oan_locations l on l.id = p.location_id
@@ -735,3 +749,152 @@ select r.id, r.proposed_name, p.name parent_name,
   from oan_chapter_requests r
   left join oan_chapters p on p.id = r.parent_chapter_id
  where r.requested_by = to_number(sys_context('OAN_CTX','VIEWER_ID'));
+
+------------------------------------------------- W2 completion: CV, nudges, intros --
+-- The viewer's structured CV sections (page 24)
+create or replace view oan_my_cv_sections_v as
+select s.id, s.section_code,
+       case s.section_code when 'SUMMARY' then 'Summary' when 'HIGHLIGHTS' then 'Highlights'
+                           when 'PROJECTS' then 'Projects' else 'Other' end section_label,
+       s.title, s.content, s.sort_order, s.row_version, s.updated_at
+  from oan_cv_sections s
+ where s.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID'));
+
+-- Shares the viewer made (page 24); the recipient's name comes from the profile so revoked or
+-- blocked recipients still show in the owner's history
+create or replace view oan_my_cv_shares_v as
+select s.id, s.cv_id, f.filename, s.target_id member_id,
+       p.first_name || ' ' || p.last_name member_name, s.purpose, s.shared_at, s.expires_at, s.revoked_at,
+       case when s.revoked_at is not null then 'Revoked'
+            when s.expires_at <= systimestamp then 'Expired'
+            else 'Active' end status_label
+  from oan_cv_shares s
+  join oan_member_cv c on c.id = s.cv_id
+  join oan_files f on f.id = c.file_id
+  left join oan_profiles p on p.user_id = s.target_id
+ where s.owner_id = to_number(sys_context('OAN_CTX','VIEWER_ID'))
+   and s.target_type = 'MEMBER';
+
+-- Live CVs other members shared with the viewer; the card view drops blocked or inactive owners
+create or replace view oan_cvs_shared_with_me_v as
+select s.id share_id, c.file_id, f.filename, m.user_id owner_id, m.display_name owner_name, m.headline,
+       s.purpose, s.shared_at, s.expires_at
+  from oan_cv_shares s
+  join oan_member_cv c on c.id = s.cv_id
+  join oan_files f on f.id = c.file_id
+  join oan_member_card_v m on m.user_id = s.owner_id
+ where s.target_type = 'MEMBER'
+   and s.target_id = to_number(sys_context('OAN_CTX','VIEWER_ID'))
+   and s.revoked_at is null
+   and (s.expires_at is null or s.expires_at > systimestamp)
+   and sys_context('OAN_CTX','VIEWER_TYPE') = 'MEMBER';
+
+-- The viewer's open "is this still current?" requests (pages 24, 25 and the home banner)
+create or replace view oan_my_update_requests_v as
+select r.id, r.request_type,
+       case r.request_type when 'WORK_PROFILE' then 'Confirm your work profile' else 'Check your CV' end label,
+       case r.request_type when 'WORK_PROFILE' then 25 else 24 end link_page,
+       r.raised_at, r.reminder_count
+  from oan_profile_update_requests r
+ where r.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID'))
+   and r.status = 'OPEN';
+
+-- Introductions the viewer asked for (page 28)
+create or replace view oan_my_intro_requests_v as
+select i.id, i.status,
+       initcap(i.status) status_label,
+       i.target_id, t.display_name target_name, i.introducer_id, n.display_name introducer_name,
+       i.note, i.introducer_note, i.created_at, i.decided_at
+  from oan_intro_requests i
+  join oan_member_card_v t on t.user_id = i.target_id
+  join oan_member_card_v n on n.user_id = i.introducer_id
+ where i.requester_id = to_number(sys_context('OAN_CTX','VIEWER_ID'));
+
+-- Introductions the viewer was asked to make and has not answered (page 28)
+create or replace view oan_intro_inbox_v as
+select i.id, i.requester_id, r.display_name requester_name, r.headline requester_headline,
+       i.target_id, t.display_name target_name, i.note, i.created_at
+  from oan_intro_requests i
+  join oan_member_card_v r on r.user_id = i.requester_id
+  join oan_member_card_v t on t.user_id = i.target_id
+ where i.introducer_id = to_number(sys_context('OAN_CTX','VIEWER_ID'))
+   and i.status = 'REQUESTED';
+
+-- Members recommended to the viewer, not dismissed (page 28)
+create or replace view oan_my_recommendations_v as
+select r.id, r.recommended_id user_id, m.display_name, m.headline, m.primary_chapter,
+       r.recommender_id, f.display_name recommender_name, r.note, r.created_at
+  from oan_recommendations r
+  join oan_member_card_v m on m.user_id = r.recommended_id
+  join oan_member_card_v f on f.user_id = r.recommender_id
+ where r.recipient_id = to_number(sys_context('OAN_CTX','VIEWER_ID'))
+   and r.dismissed_at is null
+   and sys_context('OAN_CTX','VIEWER_TYPE') = 'MEMBER';
+
+------------------------------------------------------------- conversations (W4.1, page 40) --
+-- The viewer's conversations: direct threads show the other member (dropped when either blocked
+-- the other or the account is no longer active), groups their title, announcements the OAN team.
+create or replace view oan_my_threads_v as
+select t.id thread_id, t.thread_type, t.status,
+       case t.thread_type when 'DIRECT' then o.display_name else t.title end title,
+       case t.thread_type
+            when 'DIRECT' then upper(substr(o.first_name, 1, 1) || substr(o.last_name, 1, 1))
+            when 'ANNOUNCEMENT' then 'OA'
+            else upper(substr(t.title, 1, 2)) end initials,
+       case t.thread_type when 'DIRECT' then o.headline end headline,
+       o.user_id other_user_id,
+       pm.is_pinned,
+       (select substr(m.body, 1, 90) from oan_messages m
+         where m.thread_id = t.id and m.deleted_at is null
+         order by m.created_at desc fetch first 1 row only) last_body,
+       t.last_message_at,
+       (select count(*) from oan_messages m
+         where m.thread_id = t.id and m.deleted_at is null
+           and m.created_at > nvl(pm.last_read_at, timestamp '2000-01-01 00:00:00 UTC')
+           and nvl(m.sender_id, -1) != to_number(sys_context('OAN_CTX','VIEWER_ID'))) unread_count,
+       (select count(*) from oan_msg_participants x where x.thread_id = t.id and x.left_at is null) member_count
+  from oan_msg_participants pm
+  join oan_msg_threads t on t.id = pm.thread_id
+  left join oan_msg_participants po on po.thread_id = t.id and t.thread_type = 'DIRECT' and po.user_id != pm.user_id
+  left join oan_member_card_v o on o.user_id = po.user_id
+ where pm.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID'))
+   and pm.left_at is null
+   and (t.thread_type != 'DIRECT' or o.user_id is not null)
+   and sys_context('OAN_CTX','VIEWER_TYPE') = 'MEMBER';
+
+-- Messages of the viewer's conversations (oldest first on page 40)
+create or replace view oan_thread_messages_v as
+select m.id, m.thread_id, m.sender_id,
+       case when m.sender_id = to_number(sys_context('OAN_CTX','VIEWER_ID')) then 'Y' else 'N' end is_mine,
+       case when t.thread_type = 'ANNOUNCEMENT' then 'OAN Alumni Team'
+            else coalesce((select c.display_name from oan_member_card_v c where c.user_id = m.sender_id), 'Former member') end sender_name,
+       m.body, m.created_at
+  from oan_messages m
+  join oan_msg_threads t on t.id = m.thread_id
+  join oan_msg_participants pm on pm.thread_id = m.thread_id
+                              and pm.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID'))
+                              and pm.left_at is null
+ where m.deleted_at is null
+   and sys_context('OAN_CTX','VIEWER_TYPE') = 'MEMBER';
+
+-- Connections the viewer may add to a group conversation (messaging permission respected)
+create or replace view oan_message_contacts_v as
+select c.user_id, c.display_name
+  from oan_my_connections_v c
+ where oan_message_pkg.can_message(c.user_id) = 'Y';
+
+------------------------------------------------------------------ events (W3.3 first slice) --
+-- Published upcoming events for the Home strip; chapter events only for that chapter's members
+create or replace view oan_upcoming_events_v as
+select e.id, e.title, e.summary, e.starts_at, e.ends_at, e.venue, e.is_online,
+       ch.name chapter_name,
+       to_char(e.starts_at, 'DD') day_no, upper(to_char(e.starts_at, 'MON')) month_abbr,
+       to_char(e.starts_at, 'Dy HH24:MI') when_label
+  from oan_events e
+  left join oan_chapters ch on ch.id = e.chapter_id
+ where e.status = 'PUBLISHED'
+   and e.starts_at >= systimestamp
+   and sys_context('OAN_CTX','VIEWER_TYPE') = 'MEMBER'
+   and (   e.chapter_id is null
+        or exists (select 1 from oan_chapter_members m
+                    where m.chapter_id = e.chapter_id and m.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID'))));

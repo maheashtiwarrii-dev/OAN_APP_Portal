@@ -129,8 +129,18 @@ create or replace package body oan_file_pkg as
       when 'IMPORT_BATCH' then
         return oan_security_pkg.is_admin;
       when 'CV' then
-        -- CV section is PRIVATE (R13): owner only until per-application shares (W2.7)
-        return l_file.owner_id = oan_util.viewer_id;
+        -- CV section is PRIVATE (R13): the owner, or a member holding a live share (W2.7)
+        if l_file.owner_id = oan_util.viewer_id then return true; end if;
+        select count(*) into l_cnt
+          from oan_member_cv c
+          join oan_cv_shares s on s.cv_id = c.id
+         where c.file_id = p_file_id
+           and s.target_type = 'MEMBER' and s.target_id = oan_util.viewer_id
+           and s.revoked_at is null and (s.expires_at is null or s.expires_at > oan_util.now)
+           and not exists (select 1 from oan_blocks b
+                            where (b.blocker_id = c.user_id and b.blocked_id = s.target_id)
+                               or (b.blocker_id = s.target_id and b.blocked_id = c.user_id));
+        return l_cnt > 0;
       else
         return false;
     end case;

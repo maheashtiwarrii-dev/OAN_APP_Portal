@@ -119,6 +119,7 @@ create or replace package body oan_jobs_pkg as
     oan_ctx_pkg.set_system('HOURLY');
     run_step('NOTIFY_DIGEST',       'oan_notify_pkg.send_daily_digests');
     run_step('PRIVACY_EXPORTS',     'oan_privacy_pkg.process_export_queue');
+    run_step('NUDGE',               'oan_nudge_pkg.run');      -- profile/CV update requests at 08:00 local (W2.11)
   end run_hourly;
 
   procedure run_daily is
@@ -138,14 +139,15 @@ create or replace package body oan_jobs_pkg as
   procedure run_analytics is
   begin
     oan_ctx_pkg.set_system('ANALYTICS');
-    run_step('KPI_ROLLUP', 'execute immediate ''begin oan_kpi_pkg.rollup; end;''');
+    run_step('KPI_ROLLUP', 'oan_kpi_pkg.rollup');
   end run_analytics;
 
   procedure run_weekly is
   begin
     oan_ctx_pkg.set_system('WEEKLY');
     run_step('TEXT_OPTIMIZE',  q'[ctx_ddl.optimize_index('OAN_LI_TEXT_IX','FULL'); ctx_ddl.optimize_index('OAN_POST_TEXT_IX','FULL');
-                                  ctx_ddl.optimize_index('OAN_THR_TEXT_IX','FULL'); ctx_ddl.optimize_index('OAN_PROF_NAME_TEXT_IX','FULL')]');
+                                  ctx_ddl.optimize_index('OAN_THR_TEXT_IX','FULL'); ctx_ddl.optimize_index('OAN_DIR_TEXT_IX','FULL')]');
+    run_step('DIRECTORY_CONSISTENCY', 'oan_directory_pkg.run_consistency_check');   -- W2.3 drift check
     run_step('AUDIT_PURGE',    'oan_audit_pkg.purge(add_months(systimestamp, -24))');
     -- Closed applications, login attempts and the job log are purged by the daily RETENTION step (1.33)
     run_step('THROTTLE_PURGE', 'oan_throttle_pkg.purge(systimestamp - interval ''2'' day)');

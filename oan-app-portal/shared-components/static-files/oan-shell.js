@@ -6,6 +6,7 @@
  *   3. Global search box: opens search results (page 19) with the typed terms.
  *   4. Carousel (Home leadership letters): auto-advance, pause on hover/focus, pagination dots,
  *      keyboard arrows, and no auto-advance when the user prefers reduced motion.
+ *   5. Conversations: thread-list filter and scroll to the newest message.
  * No Oracle branding (Q30).
  */
 (function (apex, $) {
@@ -117,10 +118,26 @@
         start();
     }
 
+    /* 5. Conversations (page 40): filter the thread list, show the newest message ----------- */
+    function initConversations() {
+        var body = document.getElementById("oan-chat-body");
+        if (body) {
+            body.scrollTop = body.scrollHeight;
+        }
+        $("#oan-chat-filter").on("input", function () {
+            var q = $.trim(this.value).toLowerCase();
+            $(".oan-thread").each(function () {
+                var title = $(this).attr("data-title") || "";
+                $(this).toggle(q === "" || title.indexOf(q) !== -1);
+            });
+        });
+    }
+
     $(function () {
         initBadge();
         initProfileCard();
         initSearch();
+        initConversations();
         $(".oan-carousel").each(function () { initCarousel(this); });
     });
 

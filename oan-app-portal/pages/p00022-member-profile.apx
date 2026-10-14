@@ -661,6 +661,52 @@ page 22 (
         }
     )
 
+    region r22_intro (
+        name: Ask for an introduction
+        type: staticContent
+        source {
+            htmlCode: <p>You are not connected yet. Ask a mutual connection to introduce you (FR-03).</p>
+        }
+        layout {
+            sequence: 16
+            slot: body
+        }
+        appearance {
+            template: @/collapsible
+            templateOptions: [
+                #DEFAULT#
+                is-collapsed
+            ]
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery: select 1 from oan_mutual_connections_v where user_id = :P22_USER_ID and :P22_CONN_STATUS = 'NONE'
+        }
+    )
+
+    region r22_recommend (
+        name: Recommend to a connection
+        type: staticContent
+        source {
+            htmlCode: <p>Think one of your connections should meet this member? Send them a recommendation.</p>
+        }
+        layout {
+            sequence: 17
+            slot: body
+        }
+        appearance {
+            template: @/collapsible
+            templateOptions: [
+                #DEFAULT#
+                is-collapsed
+            ]
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery: select 1 from oan_my_connections_v where user_id != :P22_USER_ID and :P22_CONN_STATUS is not null
+        }
+    )
+
     region mutual (
         name: Mutual connections
         type: classicReport
@@ -819,6 +865,160 @@ page 22 (
             type: item=value
             item: P22_CONN_STATUS
             value: NONE
+        }
+    )
+
+    pageItem P22_INTRODUCER (
+        type: selectList
+        label {
+            label: Who should introduce you?
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select display_name d, mutual_user_id r from oan_mutual_connections_v where user_id = :P22_USER_ID order by display_name
+                ```
+            displayExtraValues: false
+            displayNullValue: true
+        }
+        layout {
+            sequence: 10
+            region: @r22_intro
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P22_INTRO_NOTE (
+        type: textarea
+        label {
+            label: Why would you like to meet? (optional)
+        }
+        layout {
+            sequence: 20
+            region: @r22_intro
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 500
+        }
+    )
+
+    pageItem P22_RECOMMEND_TO (
+        type: selectList
+        label {
+            label: Recommend to
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select display_name d, user_id r from oan_my_connections_v where user_id != :P22_USER_ID order by display_name
+                ```
+            displayExtraValues: false
+            displayNullValue: true
+        }
+        layout {
+            sequence: 10
+            region: @r22_recommend
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P22_RECOMMEND_NOTE (
+        type: textarea
+        label {
+            label: Note (optional)
+        }
+        layout {
+            sequence: 20
+            region: @r22_recommend
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 500
+        }
+    )
+
+    button message (
+        buttonName: MESSAGE
+        label: Message
+        layout {
+            sequence: 15
+            region: @network
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 40
+                items: {
+                    P40_TO_USER: &P22_USER_ID.
+                }
+                request: START
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: expression
+            language: plsql
+            plsqlExpression: oan_message_pkg.can_message(:P22_USER_ID) = 'Y'
+        }
+    )
+
+    button request-intro (
+        buttonName: REQUEST_INTRO
+        label: Ask for an introduction
+        layout {
+            sequence: 10
+            region: @r22_intro
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button recommend (
+        buttonName: RECOMMEND
+        label: Send recommendation
+        layout {
+            sequence: 10
+            region: @r22_recommend
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
         }
     )
 
@@ -1069,6 +1269,59 @@ page 22 (
         execution {
             sequence: 10
             point: beforeHeader
+        }
+    )
+
+    process kpi-profile-open (
+        name: Count a profile opened from the directory (S31, aggregate only)
+        type: executeCode
+        source {
+            plsqlCode: oan_kpi_pkg.bump('DIRECTORY_PROFILE_OPEN');
+        }
+        execution {
+            sequence: 20
+            point: beforeHeader
+        }
+        serverSideCondition {
+            type: request=Value
+            value: DIR
+        }
+    )
+
+    process intro-recommend (
+        name: Introduction or recommendation
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare
+                    l_id number;
+                begin
+                    if :REQUEST = 'REQUEST_INTRO' then
+                        if :P22_INTRODUCER is null then
+                            raise_application_error(-20400, 'Choose who should introduce you.');
+                        end if;
+                        l_id := oan_network_pkg.request_intro(to_number(:P22_INTRODUCER), :P22_USER_ID, :P22_INTRO_NOTE);
+                        :P22_INTRO_NOTE := null;
+                    else
+                        if :P22_RECOMMEND_TO is null then
+                            raise_application_error(-20400, 'Choose a connection.');
+                        end if;
+                        l_id := oan_network_pkg.recommend(to_number(:P22_RECOMMEND_TO), :P22_USER_ID, :P22_RECOMMEND_NOTE);
+                        :P22_RECOMMEND_NOTE := null;
+                    end if;
+                end;
+                ```
+        }
+        execution {
+            sequence: 20
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: REQUEST_INTRO,RECOMMEND
+        }
+        successMessage {
+            successMessage: Sent. They will get a notification.
         }
     )
 

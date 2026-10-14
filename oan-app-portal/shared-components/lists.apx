@@ -188,7 +188,7 @@ list navigation-menu (
     )
 
     entry directory (
-        label: Directory
+        label: Alumni directory
         icon {
             imageIconCssClasses: fa-address-book-o
         }
@@ -221,9 +221,9 @@ list navigation-menu (
     )
 
     entry library (
-        label: Insights & Knowledge
+        label: Insights and perspectives
         icon {
-            imageIconCssClasses: fa-book
+            imageIconCssClasses: fa-file-text-o
         }
         layout {
             sequence: 30
@@ -250,12 +250,18 @@ list navigation-menu (
     )
 
     entry messages (
-        label: Messages
+        label: Conversations
         icon {
-            imageIconCssClasses: fa-envelope-o
+            imageIconCssClasses: fa-comment-o
         }
         layout {
             sequence: 40
+        }
+        isCurrent {
+            type: pages
+            pages: [
+                40
+            ]
         }
         link {
             target: {
@@ -265,16 +271,37 @@ list navigation-menu (
         security {
             authorizationScheme: @is-active
         }
+        comments {
+            comments: Destination 4 of 7. Page 40 Conversations (W4.1/W4.2 first slice, 14 Oct 2026).
+        }
+    )
+
+    entry events (
+        label: Events
+        icon {
+            imageIconCssClasses: fa-calendar-o
+        }
+        layout {
+            sequence: 45
+        }
+        link {
+            target: {
+                page: 10
+            }
+        }
+        security {
+            authorizationScheme: @is-active
+        }
         config {
-            buildOption: @w4-messaging
+            buildOption: @not-yet-built
         }
         comments {
-            comments: Destination 4 of 7. Hidden until wave W4 is built (R05).
+            comments: Events pages arrive with W3.4; until then upcoming events show on Home. Hidden (R05).
         }
     )
 
     entry opportunities (
-        label: Opportunities
+        label: Careers
         icon {
             imageIconCssClasses: fa-briefcase
         }
@@ -323,6 +350,30 @@ list navigation-menu (
         }
         comments {
             comments: Destination 6 of 7 (groups and posts).
+        }
+    )
+
+    entry helpdesk (
+        label: Helpdesk
+        icon {
+            imageIconCssClasses: fa-life-ring
+        }
+        layout {
+            sequence: 65
+        }
+        link {
+            target: {
+                page: 10
+            }
+        }
+        security {
+            authorizationScheme: @is-active
+        }
+        config {
+            buildOption: @not-yet-built
+        }
+        comments {
+            comments: Helpdesk (FR-44) arrives with W5. Hidden (R05).
         }
     )
 

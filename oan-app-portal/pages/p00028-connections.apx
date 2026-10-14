@@ -18,6 +18,436 @@ page 28 (
         comments: Build Pack page 28 Connections (FR-03, W2.8 first slice). Requests received and sent, connections (searchable), followers, following and blocked members. All rows come from viewer-scoped views; every action goes through OAN_NETWORK_PKG (members only, audited). Introductions and recommendations follow with messaging (FR-18, W4).
     }
 
+    region r28_intro_inbox (
+        name: Introductions you were asked to make
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select id, requester_name, requester_headline, target_name, note, created_at,
+                       'Introduce' accept_label, 'Decline' decline_label
+                  from oan_intro_inbox_v
+                 order by created_at desc
+                ```
+        }
+        layout {
+            sequence: 5
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: Nobody has asked you for an introduction.
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery: select 1 from oan_intro_inbox_v
+        }
+        comments {
+            comments: W2.8 (FR-03): accepting notifies both members; the conversation is theirs to start (page 40).
+        }
+
+        column ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column REQUESTER_NAME (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: From
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column REQUESTER_HEADLINE (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Headline
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column TARGET_NAME (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Wants to meet
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column NOTE (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Note
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+        column CREATED_AT (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Asked
+            }
+            layout {
+                sequence: 6
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+        column ACCEPT_LABEL (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Introduce
+            }
+            layout {
+                sequence: 7
+            }
+            link {
+                target: {
+                    page: 28
+                    items: {
+                        P28_INTRO_ID: \#ID#\
+                    }
+                    request: ACCEPT_INTRO
+                }
+                linkText: #ACCEPT_LABEL#
+            }
+        )
+
+        column DECLINE_LABEL (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Decline
+            }
+            layout {
+                sequence: 8
+            }
+            link {
+                target: {
+                    page: 28
+                    items: {
+                        P28_INTRO_ID: \#ID#\
+                    }
+                    request: DECLINE_INTRO
+                }
+                linkText: #DECLINE_LABEL#
+            }
+        )
+
+    )
+
+    region r28_my_intros (
+        name: Your introduction requests
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select id, target_name, introducer_name, status_label, introducer_note, created_at,
+                       case when status = 'REQUESTED' then 'Withdraw' end withdraw_label
+                  from oan_my_intro_requests_v
+                 order by created_at desc
+                ```
+        }
+        layout {
+            sequence: 6
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: You have not asked for an introduction yet.
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery: select 1 from oan_my_intro_requests_v
+        }
+
+        column ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column TARGET_NAME (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: To meet
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column INTRODUCER_NAME (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Via
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column STATUS_LABEL (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Status
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column INTRODUCER_NOTE (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Their note
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+        column CREATED_AT (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Asked
+            }
+            layout {
+                sequence: 6
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+        column WITHDRAW_LABEL (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Withdraw
+            }
+            layout {
+                sequence: 7
+            }
+            link {
+                target: {
+                    page: 28
+                    items: {
+                        P28_INTRO_ID: \#ID#\
+                    }
+                    request: WITHDRAW_INTRO
+                }
+                linkText: #WITHDRAW_LABEL#
+            }
+        )
+
+    )
+
+    region r28_recommendations (
+        name: Recommended for you
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select id, user_id, display_name, headline, recommender_name, note, created_at,
+                       'View profile' view_label, 'Dismiss' dismiss_label
+                  from oan_my_recommendations_v
+                 order by created_at desc
+                ```
+        }
+        layout {
+            sequence: 7
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: No recommendations yet.
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery: select 1 from oan_my_recommendations_v
+        }
+
+        column ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column USER_ID (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 2
+            }
+        )
+
+        column DISPLAY_NAME (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Member
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column HEADLINE (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Headline
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column RECOMMENDER_NAME (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Recommended by
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+        column NOTE (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Note
+            }
+            layout {
+                sequence: 6
+            }
+        )
+
+        column CREATED_AT (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: When
+            }
+            layout {
+                sequence: 7
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+        column VIEW_LABEL (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Profile
+            }
+            layout {
+                sequence: 8
+            }
+            link {
+                target: {
+                    page: 22
+                    items: {
+                        P22_USER_ID: \#USER_ID#\
+                    }
+                }
+                linkText: #VIEW_LABEL#
+            }
+        )
+
+        column DISMISS_LABEL (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Dismiss
+            }
+            layout {
+                sequence: 9
+            }
+            link {
+                target: {
+                    page: 28
+                    items: {
+                        P28_REC_ID: \#ID#\
+                    }
+                    request: DISMISS_REC
+                }
+                linkText: #DISMISS_LABEL#
+            }
+        )
+
+    )
+
     region incoming (
         name: Requests for you
         type: classicReport
@@ -745,6 +1175,30 @@ page 28 (
         }
     )
 
+    pageItem P28_INTRO_ID (
+        type: hidden
+        layout {
+            sequence: 40
+            region: @connections
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P28_REC_ID (
+        type: hidden
+        layout {
+            sequence: 50
+            region: @connections
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
     button search (
         buttonName: SEARCH
         label: Search
@@ -799,6 +1253,10 @@ page 28 (
                     when 'REMOVE_FOLLOWER' then oan_network_pkg.remove_follower(:P28_USER_ID);
                     when 'UNFOLLOW'        then oan_network_pkg.unfollow(:P28_USER_ID);
                     when 'UNBLOCK'         then oan_network_pkg.unblock_member(:P28_USER_ID);
+                    when 'ACCEPT_INTRO'    then oan_network_pkg.decide_intro(:P28_INTRO_ID, 'Y');
+                    when 'DECLINE_INTRO'   then oan_network_pkg.decide_intro(:P28_INTRO_ID, 'N');
+                    when 'WITHDRAW_INTRO'  then oan_network_pkg.withdraw_intro(:P28_INTRO_ID);
+                    when 'DISMISS_REC'     then oan_network_pkg.dismiss_recommendation(:P28_REC_ID);
                 end case;
                 -- drop the request from the URL so a reload does not repeat the action
                 apex_util.redirect_url(apex_page.get_url(p_page => 28));
@@ -810,7 +1268,7 @@ page 28 (
         }
         serverSideCondition {
             type: requestIsContainedInValue
-            value: ACCEPT,DECLINE,WITHDRAW,REMOVE_FOLLOWER,UNFOLLOW,UNBLOCK
+            value: ACCEPT,DECLINE,WITHDRAW,REMOVE_FOLLOWER,UNFOLLOW,UNBLOCK,ACCEPT_INTRO,DECLINE_INTRO,WITHDRAW_INTRO,DISMISS_REC
         }
     )
 

@@ -61,7 +61,16 @@ page 21 (
                        d.oracle_tenure,
                        d.industry_list,
                        d.language_list,
-                       d.availability
+                       d.availability,
+                       'oan-av-' || mod(d.user_id, 6) av_class,
+                       coalesce(d.availability, d.job_title, d.headline, '—') line2,
+                       d.current_org org_text,
+                       case when coalesce(d.location_name, d.primary_chapter) is not null
+                            then '◦ ' || coalesce(d.location_name, d.primary_chapter) end loc_text,
+                       case when d.total_exp_years is not null then d.total_exp_years || ' yrs' else '—' end total_exp,
+                       nvl(d.oracle_years, '—') oracle_years,
+                       nvl(to_char(d.follower_count), '—') followers,
+                       case when d.i_follow > 0 then 'Following' else 'Follow' end follow_label
                   from oan_directory_v d
                 ```
         }
@@ -87,21 +96,18 @@ page 21 (
             primaryKeyColumn1: USER_ID
         }
         title {
-            column: DISPLAY_NAME
-        }
-        subtitle {
-            column: ROLE_ORG
+            advancedFormatting: true
+            htmlExpression:
+                ```html
+                <span class="oan-dcard-top"><span class="oan-dcard-avatar &AV_CLASS!ATTR." aria-hidden="true">&INITIALS!HTML.</span><span><span class="oan-dcard-name" style="display:block">&DISPLAY_NAME!HTML.</span><span class="oan-dcard-line" style="display:block">&LINE2!HTML.</span><span class="oan-dcard-org" style="display:block">&ORG_TEXT!HTML.</span><span class="oan-dcard-loc" style="display:block">&LOC_TEXT!HTML.</span></span></span>
+                ```
         }
         body {
-            column: WHERE_TEXT
-        }
-        secondaryBody {
-            column: SKILLS_TEXT
-        }
-        iconAndBadge {
-            iconSource: initials
-            iconColumn: INITIALS
-            iconPosition: start
+            advancedFormatting: true
+            htmlExpression:
+                ```html
+                <div class="oan-dcard-stats"><div><span>Total exp.</span><b>&TOTAL_EXP!HTML.</b></div><div><span>Oracle tenure</span><b>&ORACLE_YEARS!HTML.</b></div><div><span>Followers</span><b>&FOLLOWERS!HTML.</b></div></div>
+                ```
         }
         messages {
             whenNoDataFound: Nobody matches these filters. Try fewer filters or a shorter search.
@@ -124,7 +130,54 @@ page 21 (
                         P22_USER_ID: &USER_ID.
                     }
                     clearCache: 22
+                    request: DIR
                 }
+            }
+        )
+
+        action follow (
+            type: button
+            label: &FOLLOW_LABEL.
+            layout {
+                sequence: 20
+                position: primary
+            }
+            behavior {
+                type: redirectThisApp
+                target: {
+                    page: 21
+                    items: {
+                        P21_FOLLOW_ID: &USER_ID.
+                    }
+                    request: FOLLOW_TOGGLE
+                }
+            }
+            appearance {
+                displayType: text
+                hot: true
+            }
+        )
+
+        action message (
+            type: button
+            label: Message
+            layout {
+                sequence: 30
+                position: primary
+            }
+            behavior {
+                type: redirectThisApp
+                target: {
+                    page: 40
+                    items: {
+                        P40_TO_USER: &USER_ID.
+                    }
+                    request: START
+                }
+            }
+            appearance {
+                displayType: text
+                hot: false
             }
         )
     )
@@ -386,4 +439,66 @@ page 21 (
         }
     )
 
+
+    pageItem P21_FOLLOW_ID (
+        type: hidden
+        layout {
+            sequence: 50
+            region: @button-bar
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    process follow-toggle (
+        name: Follow or unfollow from a card
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare
+                    l_following number;
+                begin
+                    select i_follow into l_following from oan_directory_v where user_id = to_number(:P21_FOLLOW_ID);
+                    if l_following > 0 then
+                        oan_network_pkg.unfollow(to_number(:P21_FOLLOW_ID));
+                    else
+                        oan_network_pkg.follow(to_number(:P21_FOLLOW_ID));
+                    end if;
+                    -- faceted search keeps its filters in session state, so the same results come back
+                    apex_util.redirect_url(apex_page.get_url(p_page => 21));
+                exception
+                    when no_data_found then
+                        raise_application_error(-20403, 'That member was not found.');
+                end;
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        serverSideCondition {
+            type: request=Value
+            value: FOLLOW_TOGGLE
+        }
+    )
+
+    process kpi-search (
+        name: Count a directory search (S31, aggregate only)
+        type: executeCode
+        source {
+            plsqlCode: oan_kpi_pkg.bump('DIRECTORY_SEARCH');
+        }
+        execution {
+            sequence: 20
+            point: beforeHeader
+        }
+        serverSideCondition {
+            type: expression
+            language: plsql
+            plsqlExpression: :REQUEST is null or :REQUEST != 'FOLLOW_TOGGLE'
+        }
+    )
 )

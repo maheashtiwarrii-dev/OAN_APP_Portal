@@ -3,7 +3,7 @@ app OAN-APP-PORTAL (
     version: Release 1.0 - Phase 1
     logo {
         type: text
-        text: OAN Portal
+        text: OAN | Alumni
     }
     databaseSession {
         initPlsqlCode: oan_ctx_pkg.set_viewer;

@@ -1,0 +1,29 @@
+automation oan-jobs-analytics (
+    name: OAN Jobs Analytics
+    execution {
+        type: scheduled
+        actionsInitiatedOn: always
+        scheduleExpression: FREQ=DAILY;INTERVAL=1;BYHOUR=3;BYMINUTE=0
+        scheduleStatus: active
+    }
+    actionExecution {
+        actionErrorHandling: ignore
+    }
+    comments {
+        comments: Task 1.34 job map: daily 03:00 UTC aggregate analytics roll-ups (W2.5 search KPI, S31).
+    }
+
+    action run-analytics (
+        name: Run analytics roll-ups
+        type: executeCode
+        execution {
+            sequence: 10
+        }
+        source {
+            location: localDatabase
+            language: plsql
+            plsqlCode: oan_jobs_pkg.run_analytics;
+        }
+    )
+
+)

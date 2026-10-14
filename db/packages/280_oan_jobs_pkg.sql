@@ -4,9 +4,16 @@
 -- Oracle Text SYNC is not here: indexes use SYNC (EVERY ...) (ballot Q06).
 --------------------------------------------------------------------------------
 create or replace package oan_jobs_pkg authid definer as
+  -- 1.34 Job -> automation map (B5): every 15 min (send sweeper), hourly (digest at 07:00 local, exports),
+  -- daily 02:00 (escalation, deletions, purges, retention, MFA), daily 03:00 (analytics roll-up), weekly.
+  -- Each step holds a DBMS_LOCK run lock (release_on_commit => false) so overlapping runs are SKIPPED.
+  procedure run_quarter_hourly;
   procedure run_hourly;
   procedure run_daily;
+  procedure run_analytics;
   procedure run_weekly;
+  -- Test hook only: one step under its run lock (never reachable from OAN_APP)
+  procedure run_step(p_name in varchar2, p_sql in varchar2) accessible by (package ut_oan_platform);
   -- Steps invoked dynamically by run_step (public so EXECUTE IMMEDIATE can reach them)
   procedure inactivity;
   procedure purges;
@@ -15,10 +22,21 @@ end oan_jobs_pkg;
 
 create or replace package body oan_jobs_pkg as
 
-  procedure run_step(p_name in varchar2, p_sql in varchar2) is
-    l_run number;
-    l_err varchar2(4000);
+  procedure run_step(p_name in varchar2, p_sql in varchar2) accessible by (package ut_oan_platform) is
+    l_run    number;
+    l_err    varchar2(4000);
+    l_handle varchar2(128);
+    l_rc     integer;
   begin
+    -- allocate_unique commits; that is fine here because every step commits its own work
+    dbms_lock.allocate_unique('OAN_JOB_' || upper(p_name), l_handle);
+    l_rc := dbms_lock.request(l_handle, dbms_lock.x_mode, 0, false);   -- no wait; survives commits
+    if l_rc not in (0, 4) then
+      insert into oan_job_runs (job_name, status, ended_at, message)
+      values (p_name, 'SKIPPED', systimestamp, 'Previous run still holds the run lock (rc=' || l_rc || ')');
+      commit;
+      return;
+    end if;
     insert into oan_job_runs (job_name) values (p_name) returning id into l_run;
     commit;
     begin
@@ -41,6 +59,11 @@ create or replace package body oan_jobs_pkg as
           when others then null;
         end;
     end;
+    l_rc := dbms_lock.release(l_handle);
+  exception
+    when others then
+      l_rc := dbms_lock.release(l_handle);
+      raise;
   end run_step;
 
   procedure inactivity is
@@ -85,6 +108,12 @@ create or replace package body oan_jobs_pkg as
     execute immediate 'begin oan_chat_pkg.purge_old_messages(90); end;';
   end purges;
 
+  procedure run_quarter_hourly is
+  begin
+    oan_ctx_pkg.set_system('QUARTER_HOURLY');
+    run_step('MARK_STUCK_SENDS', 'oan_notify_pkg.mark_stuck_sends');
+  end run_quarter_hourly;
+
   procedure run_hourly is
   begin
     oan_ctx_pkg.set_system('HOURLY');
@@ -102,7 +131,15 @@ create or replace package body oan_jobs_pkg as
     run_step('PURGES',                  'oan_jobs_pkg.purges');
     run_step('MFA_REATTEST_REMIND',     'oan_security_pkg.remind_mfa_reattestation');
     run_step('MFA_REATTEST_REVOKE',     'oan_security_pkg.revoke_unattested_privileges');
+    run_step('RETENTION',               'oan_retention_pkg.run');
   end run_daily;
+
+  -- Daily 03:00: aggregate analytics roll-ups (W2.5 search KPI and later waves). Steps are added per wave.
+  procedure run_analytics is
+  begin
+    oan_ctx_pkg.set_system('ANALYTICS');
+    run_step('KPI_ROLLUP', 'execute immediate ''begin oan_kpi_pkg.rollup; end;''');
+  end run_analytics;
 
   procedure run_weekly is
   begin
@@ -110,11 +147,8 @@ create or replace package body oan_jobs_pkg as
     run_step('TEXT_OPTIMIZE',  q'[ctx_ddl.optimize_index('OAN_LI_TEXT_IX','FULL'); ctx_ddl.optimize_index('OAN_POST_TEXT_IX','FULL');
                                   ctx_ddl.optimize_index('OAN_THR_TEXT_IX','FULL'); ctx_ddl.optimize_index('OAN_PROF_NAME_TEXT_IX','FULL')]');
     run_step('AUDIT_PURGE',    'oan_audit_pkg.purge(add_months(systimestamp, -24))');
-    run_step('REJECTED_PURGE', q'[delete from oan_registration_apps where status in ('REJECTED','WITHDRAWN')
-                                    and decided_at < add_months(systimestamp, -12)]');
-    run_step('THROTTLE_PURGE', 'oan_throttle_pkg.purge(systimestamp - interval ''2'' day);
-                                delete from oan_login_attempts where attempted_at < systimestamp - interval ''30'' day');
-    run_step('JOB_LOG_PURGE',  'delete from oan_job_runs where started_at < add_months(systimestamp, -3)');
+    -- Closed applications, login attempts and the job log are purged by the daily RETENTION step (1.33)
+    run_step('THROTTLE_PURGE', 'oan_throttle_pkg.purge(systimestamp - interval ''2'' day)');
   end run_weekly;
 
 end oan_jobs_pkg;

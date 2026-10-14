@@ -30,6 +30,9 @@ create or replace package oan_notify_pkg authid definer as
   procedure set_pref(p_type in varchar2, p_mode in varchar2);
   function  effective_mode(p_user_id in number, p_type in varchar2) return varchar2;
   procedure send_daily_digests;     -- P2 (enabled by config DIGEST_ENABLED)
+  -- 1.34 Send state machine: QUEUED -> SENDING -> SENT | FAILED. Rows left SENDING for 15 minutes become
+  -- FAILED_UNKNOWN (delivery unknown) and are never re-sent automatically. Job: every 15 minutes.
+  procedure mark_stuck_sends;
 end oan_notify_pkg;
 /
 
@@ -132,6 +135,7 @@ create or replace package body oan_notify_pkg as
     l_email  oan_users.email%type;
     l_status oan_users.status%type;
     l_id     number;
+    l_err    varchar2(400);
   begin
     select email, status into l_email, l_status from oan_users where id = p_user_id;
 
@@ -143,12 +147,20 @@ create or replace package body oan_notify_pkg as
     returning id into l_id;
 
     if l_mode = 'INSTANT' and l_email is not null and l_status not in ('DELETION_PENDING') then
-      send_email(p_to              => l_email,
-                 p_title           => p_title,
-                 p_body            => p_body,
-                 p_link_url        => case when p_link_page is not null then page_url(p_link_page, p_link_params) end,
-                 p_unsubscribe_url => unsubscribe_url(p_user_id, p_type));
-      update oan_notifications set email_status = 'SENT' where id = l_id;
+      update oan_notifications set email_status = 'SENDING', email_sending_at = systimestamp where id = l_id;
+      begin
+        send_email(p_to              => l_email,
+                   p_title           => p_title,
+                   p_body            => p_body,
+                   p_link_url        => case when p_link_page is not null then page_url(p_link_page, p_link_params) end,
+                   p_unsubscribe_url => unsubscribe_url(p_user_id, p_type));
+        update oan_notifications set email_status = 'SENT' where id = l_id;
+      exception
+        when others then
+          -- The in-app notification stands; the email is marked FAILED and never retried automatically
+          l_err := substr(sqlerrm, 1, 400);
+          update oan_notifications set email_status = 'FAILED', email_error = l_err where id = l_id;
+      end;
     end if;
   exception
     when no_data_found then null;   -- user deleted in the meantime
@@ -213,26 +225,49 @@ create or replace package body oan_notify_pkg as
 
   procedure send_daily_digests is
     l_body varchar2(4000);
+    l_err  varchar2(400);
   begin
     if oan_util.get_config('DIGEST_ENABLED', 'N') = 'N' then
       return;
     end if;
     -- Members whose local time is 07:xx now (job runs hourly)
-    for u in (select distinct n.user_id, usr.email
+    -- DST guard: at most one digest per local calendar date, even when a clock change repeats or skips 07:xx
+    for u in (select distinct n.user_id, usr.email,
+                     trunc(cast(systimestamp at time zone usr.timezone as date)) local_day
                 from oan_notifications n
                 join oan_users usr on usr.id = n.user_id and usr.status = 'ACTIVE'
                where n.email_status = 'DIGEST'
-                 and to_char(systimestamp at time zone usr.timezone, 'HH24') = '07') loop
+                 and to_char(systimestamp at time zone usr.timezone, 'HH24') = '07'
+                 and (usr.digest_last_sent_on is null
+                      or usr.digest_last_sent_on < trunc(cast(systimestamp at time zone usr.timezone as date)))) loop
       l_body := null;
       for n in (select title from oan_notifications
                  where user_id = u.user_id and email_status = 'DIGEST'
                  order by created_at fetch first 30 rows only) loop
         l_body := substr(l_body || '- ' || n.title || chr(10), 1, 3900);
       end loop;
-      send_email(u.email, 'Your OAN daily digest', l_body, page_url(41), 'View all notifications');
-      update oan_notifications set email_status = 'SENT' where user_id = u.user_id and email_status = 'DIGEST';
+      update oan_users set digest_last_sent_on = u.local_day where id = u.user_id;
+      update oan_notifications set email_status = 'SENDING', email_sending_at = systimestamp
+       where user_id = u.user_id and email_status = 'DIGEST';
+      begin
+        send_email(u.email, 'Your OAN daily digest', l_body, page_url(41), 'View all notifications');
+        update oan_notifications set email_status = 'SENT' where user_id = u.user_id and email_status = 'SENDING';
+      exception
+        when others then
+          l_err := substr(sqlerrm, 1, 400);
+          update oan_notifications set email_status = 'FAILED', email_error = l_err
+           where user_id = u.user_id and email_status = 'SENDING';
+      end;
     end loop;
   end send_daily_digests;
+
+  procedure mark_stuck_sends is
+  begin
+    update oan_notifications
+       set email_status = 'FAILED_UNKNOWN',
+           email_error = 'No delivery confirmation within 15 minutes; not re-sent automatically.'
+     where email_status = 'SENDING' and email_sending_at < oan_util.now - interval '15' minute;
+  end mark_stuck_sends;
 
 end oan_notify_pkg;
 /

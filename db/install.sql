@@ -22,6 +22,7 @@ prompt == DDL
 @@ddl/095_profile_career.sql
 @@ddl/097_member_cv.sql
 @@ddl/098_network.sql
+@@ddl/099_platform.sql
 
 prompt == Packages (bodies with forward references compile at the end)
 whenever sqlerror continue
@@ -45,7 +46,9 @@ whenever sqlerror continue
 @@packages/240_oan_group_pkg.sql
 @@packages/250_oan_moderation_pkg.sql
 @@packages/260_oan_privacy_pkg.sql
+@@packages/265_oan_export_pkg.sql
 @@packages/270_oan_search_pkg.sql
+@@packages/275_oan_retention_pkg.sql
 @@packages/280_oan_jobs_pkg.sql
 @@packages/290_oan_error_pkg.sql
 @@packages/295_oan_chat_pkg.sql
@@ -87,5 +90,6 @@ whenever sqlerror continue
 @@tests/ut_oan_directory.sql
 @@tests/ut_oan_career.sql
 @@tests/ut_oan_network.sql
+@@tests/ut_oan_platform.sql
 
 prompt Install complete. Run 20_app_synonyms.sql as OAN_APP, then 30_assert_no_table_grants.sql.

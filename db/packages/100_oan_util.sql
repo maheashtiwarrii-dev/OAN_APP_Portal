@@ -27,10 +27,25 @@ create or replace package oan_util authid definer as
   function former_member_id return number;
   procedure raise_error(p_code in pls_integer, p_message in varchar2);
   procedure assert(p_condition in boolean, p_message in varchar2, p_code in pls_integer default c_err_validation);
+
+  -- 1.33 Injectable clock (S08): use oan_util.now instead of systimestamp in time-based rules so tests can
+  -- move time. Only utPLSQL packages can move it; it resets with the session.
+  function now return timestamp with time zone;
+  procedure set_test_clock(p_now in timestamp with time zone)
+    accessible by (package ut_oan_platform, package ut_oan_w2);
+  procedure reset_test_clock
+    accessible by (package ut_oan_platform, package ut_oan_w2);
+
+  -- 1.37 Feature options (S03): live only when the APEX Build Option is INCLUDE, the DPIA is signed
+  -- (when required) and the gate is open. option_ready ignores the Build Option (usable outside APEX).
+  function option_ready(p_option in varchar2) return varchar2;
+  function option_live(p_option in varchar2) return varchar2;
 end oan_util;
 /
 
 create or replace package body oan_util as
+  g_clock_offset interval day(9) to second(6) := interval '0' second;   -- test clock (1.33)
+
 
   function get_config(p_key in varchar2, p_default in varchar2 default null) return varchar2 is
     l_val oan_config.config_value%type;
@@ -141,6 +156,55 @@ create or replace package body oan_util as
       raise_application_error(p_code, p_message);
     end if;
   end assert;
+
+  function now return timestamp with time zone is
+  begin
+    return systimestamp + g_clock_offset;
+  end now;
+
+  procedure set_test_clock(p_now in timestamp with time zone)
+    accessible by (package ut_oan_platform, package ut_oan_w2) is
+  begin
+    g_clock_offset := p_now - systimestamp;
+  end set_test_clock;
+
+  procedure reset_test_clock
+    accessible by (package ut_oan_platform, package ut_oan_w2) is
+  begin
+    g_clock_offset := interval '0' second;
+  end reset_test_clock;
+
+  function option_ready(p_option in varchar2) return varchar2 is
+    l_ready varchar2(1);
+  begin
+    select case when gate_open = 'Y' and (dpia_required = 'N' or dpia_signed_at is not null) then 'Y' else 'N' end
+      into l_ready
+      from oan_feature_options where option_code = upper(p_option);
+    return l_ready;
+  exception
+    when no_data_found then return 'N';
+  end option_ready;
+
+  function option_live(p_option in varchar2) return varchar2 is
+    l_build  varchar2(255);
+    l_status varchar2(30);
+  begin
+    if option_ready(p_option) = 'N' then
+      return 'N';
+    end if;
+    select build_option into l_build from oan_feature_options where option_code = upper(p_option);
+    begin
+      -- APEX views need the workspace of the current APEX session; outside APEX the option is not live
+      select upper(build_option_status) into l_status
+        from apex_application_build_options
+       where application_id = get_config_num('APP_ID', 200) and build_option_name = l_build;
+    exception
+      when others then l_status := 'UNKNOWN';
+    end;
+    return case when l_status = 'INCLUDE' then 'Y' else 'N' end;
+  exception
+    when no_data_found then return 'N';
+  end option_live;
 
 end oan_util;
 /

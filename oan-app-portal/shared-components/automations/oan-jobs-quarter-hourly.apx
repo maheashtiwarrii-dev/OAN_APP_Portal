@@ -1,0 +1,29 @@
+automation oan-jobs-quarter-hourly (
+    name: OAN Jobs Every 15 Minutes
+    execution {
+        type: scheduled
+        actionsInitiatedOn: always
+        scheduleExpression: FREQ=MINUTELY;INTERVAL=15
+        scheduleStatus: active
+    }
+    actionExecution {
+        actionErrorHandling: ignore
+    }
+    comments {
+        comments: Task 1.34 job map: every 15 minutes (email send sweeper: SENDING over 15 min becomes FAILED_UNKNOWN, never re-sent).
+    }
+
+    action run-quarter-hourly (
+        name: Run 15-minute jobs
+        type: executeCode
+        execution {
+            sequence: 10
+        }
+        source {
+            location: localDatabase
+            language: plsql
+            plsqlCode: oan_jobs_pkg.run_quarter_hourly;
+        }
+    )
+
+)

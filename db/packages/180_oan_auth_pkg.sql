@@ -41,12 +41,15 @@ create or replace package oan_auth_pkg authid definer as
   function  reauth_local(p_password in varchar2) return boolean;
   function  is_recently_reauthenticated(p_minutes in pls_integer default 5) return boolean;
   procedure require_reauth(p_minutes in pls_integer default 5);
+  -- utPLSQL only: treat p_user_id as re-authenticated in this session (no APEX session in tests)
+  procedure set_test_reauth(p_user_id in number) accessible by (package ut_oan_platform, package ut_oan_w2);
 end oan_auth_pkg;
 /
 
 create or replace package body oan_auth_pkg as
 
   c_generic_login_error constant varchar2(100) := 'Invalid email or password.';
+  g_test_reauth_user    number;           -- set only by utPLSQL through set_test_reauth
 
   ------------------------------------------------------------------------------
   -- PBKDF2-HMAC-SHA512, single 64-byte block (dkLen = hLen)
@@ -506,6 +509,9 @@ create or replace package body oan_auth_pkg as
   function is_recently_reauthenticated(p_minutes in pls_integer default 5) return boolean is
     l_cnt number;
   begin
+    if g_test_reauth_user is not null and g_test_reauth_user = oan_util.viewer_id then
+      return true;
+    end if;
     select count(*) into l_cnt from oan_reauth
      where user_id = oan_util.viewer_id
        and apex_session = to_number(v('APP_SESSION'))
@@ -518,6 +524,11 @@ create or replace package body oan_auth_pkg as
     oan_util.assert(is_recently_reauthenticated(p_minutes),
                     'Please confirm your identity to continue.', oan_util.c_err_reauth);
   end require_reauth;
+
+  procedure set_test_reauth(p_user_id in number) accessible by (package ut_oan_platform, package ut_oan_w2) is
+  begin
+    g_test_reauth_user := p_user_id;
+  end set_test_reauth;
 
 end oan_auth_pkg;
 /

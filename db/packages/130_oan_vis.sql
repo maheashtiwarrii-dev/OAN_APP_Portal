@@ -19,6 +19,8 @@ create or replace package oan_vis authid definer as
   function in_directory_ref(p_owner in number, p_viewer in number default null) return varchar2;
   function directory_mode(p_owner in number) return varchar2;  -- Partner card rule (§4.1 item 7) is inlined in oan_member_card_v as an EXISTS: on 23.26 a scalar
   -- macro whose parameter is used only in a correlated subquery fails with ORA-00904 (13 Oct 2026).
+  -- 1.30: 'Y' when the viewer is an ACTIVE member of group p_group_id (R19/R20 private-group access)
+  function in_group(p_group_id in number) return varchar2;
 end oan_vis;
 /
 
@@ -159,6 +161,14 @@ create or replace package body oan_vis as
       else return 'N';
     end case;
   end can_see_ref;
+
+  function in_group(p_group_id in number) return varchar2 is
+    l_cnt number;
+  begin
+    select count(*) into l_cnt from oan_group_members
+     where group_id = p_group_id and user_id = to_number(sys_context('OAN_CTX','VIEWER_ID')) and status = 'ACTIVE';
+    return case when l_cnt > 0 then 'Y' else 'N' end;
+  end in_group;
 
 end oan_vis;
 /

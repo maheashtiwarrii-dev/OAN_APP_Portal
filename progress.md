@@ -215,3 +215,11 @@
 | I17-4 | Artifacts | Repo already holds BRD/PRD/plan/reviews, DB scripts, APEX source, board and project plan. The OAN source documents (FSD, Build Pack, data dictionary) stay out: publishing them to the public repo was refused twice by the tool policy (14 Oct) |
 | I17-5 | User: update project status on GitHub Projects with CI/CD and the Kanban board; create a PDF | Status report `docs/status-report.html` + `docs/OAN-Project-Status-Report.pdf` (3 pages: summary, board counts, workstreams, delivered pages, CI/CD, decisions, next steps), linked from the Pages site. GitHub Projects not updated: the token lacks the `project` scope (user to run `gh auth refresh -h github.com -s project,workflow`) |
 
+## Iteration 18 — GitHub Project, CI green, WS1 platform tasks (14 Oct 2026)
+| Step | Action | Result |
+|---|---|---|
+| I18-1 | User approved GitHub permissions | Token now has `project` and `workflow`. Workflows pushed; CI YAML fixed (quoted step names); Pages switched to the board workflow (board, status report, both PDFs). CI and Delivery board runs green |
+| I18-2 | GitHub Project #1 | 168 items (154 tasks, 11 gates, CI/CD, board, status report) with Status, Sprint, Workstream, Board status, Tier, Priority, Estimate and sprint dates (1,452 field values); readme and repository link |
+| I18-3 | User: complete WS1 and W2 | WS1 batch: `099_platform.sql` (retention rules, feature options, staff scopes, send states, export log, digest guard), `oan_util.now`/test clock/`option_live`, `oan_ctx_pkg` roles + ORG + CHANNEL viewers, `oan_vis.in_group`, one staff grant API + `authz`, notification send state machine + sweeper, `oan_retention_pkg`, `oan_export_pkg`, job run locks + 15-minute and analytics automations; ADMIN granted DBMS_LOCK |
+| I18-4 | Tests | `ut_oan_platform` (17 tests); all 10 suites **89/89 pass**. Recompiling `oan_vis` left macro views stale; re-running 300/310 views fixed them (install order already handles this) |
+

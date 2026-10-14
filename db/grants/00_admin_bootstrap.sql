@@ -49,6 +49,7 @@ grant execute on ctxsys.ctx_doc to oan_data;
 grant execute on sys.dbms_vector to oan_data;
 grant execute on sys.dbms_credential to oan_data;
 grant execute on sys.dbms_scheduler to oan_data;
+grant execute on sys.dbms_lock to oan_data;          -- job run locks (task 1.34, R26)
 
 -- Application context. Only OAN_DATA.OAN_CTX_PKG may set it (NFR-03, Q06).
 create or replace context oan_ctx using oan_data.oan_ctx_pkg;

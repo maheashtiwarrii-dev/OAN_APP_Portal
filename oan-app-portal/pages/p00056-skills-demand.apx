@@ -1,0 +1,204 @@
+page 56 (
+    name: Skills And Demand
+    alias: SKILLS-DEMAND
+    title: Skills in demand
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    security {
+        authorizationScheme: @is-active
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: Build Pack W5 page 56 Skills and demand (FR-38; journeys J-02, J-03). Top 20 skills asked for by open opportunities this week, with trend against last week, how many members list each skill, whether you have it (add it to your profile in one step), and Library items tagged with it. Experts and training links arrive with W6. Aggregate data only (OAN_SKILL_DEMAND, nightly).
+    }
+
+    region r56_top (
+        name: Top skills this week
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select term_id, skill, demand_count, previous_count,
+                       case trend when 'Up' then '▲ Up' when 'Down' then '▼ Down' else '● Steady' end trend_label,
+                       member_count, case when i_have > 0 then 'On your profile' end have_label,
+                       case when i_have = 0 then 'Add to my profile' end add_label,
+                       case when library_items > 0 then library_items || ' in the Library' end library_label
+                  from oan_skill_demand_v
+                 order by demand_count desc, skill
+                 fetch first 20 rows only
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: No demand data yet. It is calculated every night from open opportunities.
+        }
+
+        column TERM_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column SKILL (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Skill
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column DEMAND_COUNT (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Open opportunities
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column PREVIOUS_COUNT (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Last week
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column TREND_LABEL (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Trend
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+        column MEMBER_COUNT (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Members with it
+            }
+            layout {
+                sequence: 6
+            }
+        )
+
+        column HAVE_LABEL (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: You
+            }
+            layout {
+                sequence: 7
+            }
+        )
+
+        column ADD_LABEL (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Add
+            }
+            layout {
+                sequence: 8
+            }
+            link {
+                target: {
+                    page: 56
+                    items: {
+                        P56_TERM_ID: \#TERM_ID#\
+                    }
+                    request: ADD_SKILL
+                }
+                linkText: #ADD_LABEL#
+            }
+        )
+
+        column LIBRARY_LABEL (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Learn
+            }
+            layout {
+                sequence: 9
+            }
+            link {
+                target: {
+                    page: 34
+                }
+                linkText: #LIBRARY_LABEL#
+            }
+        )
+
+    )
+
+    pageItem P56_TERM_ID (
+        type: hidden
+        layout {
+            sequence: 1
+            region: @r56_top
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    process add-skill (
+        name: Add a suggested skill to my profile
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                oan_profile_pkg.add_skill(to_number(:P56_TERM_ID));
+                apex_util.redirect_url(apex_page.get_url(p_page => 56));
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        serverSideCondition {
+            type: request=Value
+            value: ADD_SKILL
+        }
+    )
+
+)

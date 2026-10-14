@@ -12,7 +12,8 @@ create or replace package oan_profile_pkg authid definer as
   -- FR-35 directory switch + FSD FR-03 messaging permission. p_row_version from oan_my_privacy_settings_v
   -- (0 = never saved). Each change is audited with old and new values (FR-26 / BR-04).
   procedure set_privacy_settings(p_directory_mode in varchar2, p_messaging_mode in varchar2, p_row_version in number);
-  procedure set_skills(p_term_ids in varchar2);                -- colon-delimited list (APEX shuttle/popup LOV)
+  procedure set_skills(p_term_ids in varchar2);
+  procedure add_skill(p_term_id in number);                     -- one suggested skill (FR-38, J-02)                -- colon-delimited list (APEX shuttle/popup LOV)
   procedure set_photo(p_file_id in number);
   procedure set_additional_chapters(p_chapter_ids in varchar2); -- colon-delimited
   function  completeness(p_user_id in number) return number;
@@ -193,6 +194,21 @@ create or replace package body oan_profile_pkg as
     if l_cnt >= 3 then mark_step('THREE_SKILLS'); end if;
     refresh_completeness(l_user_id);
   end set_skills;
+
+  procedure add_skill(p_term_id in number) is
+    l_user_id number := me;
+    l_cnt     number;
+  begin
+    select count(*) into l_cnt from oan_profile_skills where user_id = l_user_id;
+    oan_util.assert(l_cnt < 50, 'You can list up to 50 skills.');
+    insert into oan_profile_skills (user_id, term_id)
+    select l_user_id, coalesce(t.canonical_id, t.id)
+      from oan_taxonomy_terms t
+     where t.id = p_term_id and t.term_type = 'SKILL' and t.status in ('APPROVED','MERGED')
+       and not exists (select 1 from oan_profile_skills s where s.user_id = l_user_id and s.term_id = coalesce(t.canonical_id, t.id));
+    if l_cnt + sql%rowcount >= 3 then mark_step('THREE_SKILLS'); end if;
+    refresh_completeness(l_user_id);
+  end add_skill;
 
   procedure set_photo(p_file_id in number) is
     l_user_id number := me;

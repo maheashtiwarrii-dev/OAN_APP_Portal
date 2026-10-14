@@ -1,0 +1,352 @@
+page 54 (
+    name: Referrals
+    alias: REFERRALS
+    title: Referrals
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    security {
+        authorizationScheme: @is-active
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: Build Pack W5 page 54 Referrals (FR-37, R18). Requests other members sent you (accept or decline) and requests you sent (status). Five requests per 7 days, one per member per job; unanswered requests expire after 14 days.
+    }
+
+    region r54_in (
+        name: Asked of you
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select id, other_name, job_title, company_name, note, status_label, created_at,
+                       case when status = 'REQUESTED' then 'Refer' end accept_label,
+                       case when status = 'REQUESTED' then 'Decline' end decline_label
+                  from oan_my_referrals_v
+                 where direction = 'IN'
+                 order by created_at desc
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: Nobody has asked you for a referral.
+        }
+
+        column ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column OTHER_NAME (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: From
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column JOB_TITLE (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Opportunity
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column COMPANY_NAME (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Company
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column NOTE (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Note
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+        column STATUS_LABEL (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Status
+            }
+            layout {
+                sequence: 6
+            }
+        )
+
+        column CREATED_AT (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: Asked
+            }
+            layout {
+                sequence: 7
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+        column ACCEPT_LABEL (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Refer
+            }
+            layout {
+                sequence: 8
+            }
+            link {
+                target: {
+                    page: 54
+                    items: {
+                        P54_ID: \#ID#\
+                    }
+                    request: ACCEPT
+                }
+                linkText: #ACCEPT_LABEL#
+            }
+        )
+
+        column DECLINE_LABEL (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Decline
+            }
+            layout {
+                sequence: 9
+            }
+            link {
+                target: {
+                    page: 54
+                    items: {
+                        P54_ID: \#ID#\
+                    }
+                    request: DECLINE
+                }
+                linkText: #DECLINE_LABEL#
+            }
+        )
+
+    )
+
+    region r54_out (
+        name: Asked by you
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select id, job_id, other_name, job_title, company_name, status_label, created_at, decided_at, 'Open' open_label
+                  from oan_my_referrals_v
+                 where direction = 'OUT'
+                 order by created_at desc
+                ```
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: You have not asked for a referral. Open an opportunity to see who could refer you.
+        }
+
+        column ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column JOB_ID (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 2
+            }
+        )
+
+        column OTHER_NAME (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Member
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column JOB_TITLE (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Opportunity
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column COMPANY_NAME (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Company
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+        column STATUS_LABEL (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Status
+            }
+            layout {
+                sequence: 6
+            }
+        )
+
+        column CREATED_AT (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: Asked
+            }
+            layout {
+                sequence: 7
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+        column DECIDED_AT (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            heading {
+                heading: Answered
+            }
+            layout {
+                sequence: 8
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+        column OPEN_LABEL (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Opportunity
+            }
+            layout {
+                sequence: 9
+            }
+            link {
+                target: {
+                    page: 51
+                    items: {
+                        P51_ID: \#JOB_ID#\
+                    }
+                }
+                linkText: #OPEN_LABEL#
+            }
+        )
+
+    )
+
+    pageItem P54_ID (
+        type: hidden
+        layout {
+            sequence: 1
+            region: @r54_in
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    process decide (
+        name: Accept or decline a referral request
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                oan_job_pkg.decide_referral(to_number(:P54_ID), case :REQUEST when 'ACCEPT' then 'Y' else 'N' end);
+                apex_util.redirect_url(apex_page.get_url(p_page => 54));
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: ACCEPT,DECLINE
+        }
+    )
+
+)

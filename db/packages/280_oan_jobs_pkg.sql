@@ -122,6 +122,7 @@ create or replace package body oan_jobs_pkg as
     run_step('PRIVACY_EXPORTS',     'oan_privacy_pkg.process_export_queue');
     run_step('NUDGE',               'oan_nudge_pkg.run');      -- profile/CV update requests at 08:00 local (W2.11)
     run_step('EVENT_REMINDERS',     'oan_event_pkg.send_reminders');   -- 07:00 local on the event day (W3.6)
+    run_step('SERVICE_SLA',         'oan_helpdesk_pkg.sla_check');     -- W5.6 hourly SLA check
   end run_hourly;
 
   procedure run_daily is
@@ -138,6 +139,8 @@ create or replace package body oan_jobs_pkg as
     run_step('ARTICLE_VIEW_ROLLUP',     'oan_insight_pkg.rollup_views');   -- R24: per-member views to daily counts
     run_step('CHANNEL_HOUSEKEEPING',    'oan_channel_pkg.housekeeping');   -- R02 payloads 7 days; WhatsApp opt-in yearly
     run_step('HELP_REQUESTS_EXPIRE',    'oan_help_pkg.close_expired');     -- FR-04 AC2
+    run_step('REFERRALS_EXPIRE',        'oan_job_pkg.expire_referrals');   -- FR-37: 14 days
+    run_step('JOBS_CLOSE_EXPIRED',      'oan_job_pkg.close_expired_jobs');
   end run_daily;
 
   -- Daily 03:00: aggregate analytics roll-ups (W2.5 search KPI and later waves). Steps are added per wave.
@@ -145,6 +148,7 @@ create or replace package body oan_jobs_pkg as
   begin
     oan_ctx_pkg.set_system('ANALYTICS');
     run_step('KPI_ROLLUP', 'oan_kpi_pkg.rollup');
+    run_step('SKILL_DEMAND', 'oan_job_pkg.compute_skill_demand');      -- FR-38 nightly (analytics automation)
   end run_analytics;
 
   procedure run_weekly is

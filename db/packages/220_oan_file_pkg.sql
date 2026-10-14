@@ -140,6 +140,17 @@ create or replace package body oan_file_pkg as
            and not exists (select 1 from oan_blocks b
                             where (b.blocker_id = c.user_id and b.blocked_id = s.target_id)
                                or (b.blocker_id = s.target_id and b.blocked_id = c.user_id));
+        if l_cnt > 0 then return true; end if;
+        -- R13 / FR-36: a CV sent with a job application, for the posting organisation's contacts or the poster
+        select count(*) into l_cnt
+          from oan_member_cv c
+          join oan_cv_shares s on s.cv_id = c.id and s.target_type = 'APPLICATION'
+          join oan_job_applications a on a.id = s.target_id and a.status in ('APPLIED','SHORTLISTED','HIRED')
+          join oan_jobs j on j.id = a.job_id
+         where c.file_id = p_file_id
+           and s.revoked_at is null and (s.expires_at is null or s.expires_at > oan_util.now)
+           and (   j.posted_by = oan_util.viewer_id
+                or (j.org_id is not null and j.org_id = oan_org_pkg.my_org_id));
         return l_cnt > 0;
       else
         return false;

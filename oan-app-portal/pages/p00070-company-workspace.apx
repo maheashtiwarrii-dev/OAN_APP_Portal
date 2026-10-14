@@ -63,7 +63,7 @@ page 70 (
             htmlCode:
                 ```html
                 <ul>
-                  <li><strong>Post opportunities</strong> - full-time roles, gig and contract assignments, business opportunities and collaboration requests (opening with the Opportunities wave).</li>
+                  <li><strong>Post opportunities</strong> - full-time roles, gig and contract assignments, business opportunities and collaboration requests (review by an OAN moderator first).</li>
                   <li><strong>Find talent</strong> - see member profiles that members make visible to partners, and CVs that members share with you or send with an application.</li>
                   <li><strong>Talk to members</strong> - respond to applications and introductions in Conversations.</li>
                   <li><strong>Invite colleagues</strong> - the company owner can add up to five colleagues.</li>
@@ -77,6 +77,19 @@ page 70 (
         }
         appearance {
             template: @/standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region r70_actions (
+        name: Actions
+        type: staticContent
+        layout {
+            sequence: 5
+            slot: body
+        }
+        appearance {
+            template: @/buttons-container
             templateOptions: #DEFAULT#
         }
     )
@@ -157,6 +170,49 @@ page 70 (
             }
         )
 
+    )
+
+    button post (
+        buttonName: POST
+        label: Post an opportunity
+        layout {
+            sequence: 10
+            region: @r70_actions
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 53
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button jobs (
+        buttonName: JOBS
+        label: Our opportunities and applicants
+        layout {
+            sequence: 20
+            region: @r70_actions
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 71
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
     )
 
 )

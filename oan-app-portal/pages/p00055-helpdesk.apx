@@ -1,0 +1,657 @@
+page 55 (
+    name: Helpdesk
+    alias: HELPDESK
+    title: Helpdesk
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    security {
+        authorizationScheme: @is-signed-in
+        pageAccessProtection: unrestricted
+        formAutoComplete: false
+    }
+    comments {
+        comments: Build Pack W5 page 55 Helpdesk (FR-44, Q29). Members raise expert-connection, RFP, feedback or general support requests (reference OAN-SR-YYYY-NNNNNN, consent, no ID/bank/salary numbers) and follow them; support agents see the queue, take requests, add internal or member notes and change status. HR documents are not handled by OAN: the page signposts Oracle's public alumni HR contact and records nothing. Notifications link here, so P55_ID is unrestricted; OAN_SERVICE_REQUESTS_V and OAN_HELPDESK_PKG decide access.
+    }
+
+    region r55_hr (
+        name: Looking for HR documents?
+        type: staticContent
+        source {
+            htmlCode: <p>OAN does not handle payslips, tax forms, experience letters or other HR documents, and never stores them. Please contact Oracle's alumni HR channel directly: <a href="&P55_HR_URL." target="_blank" rel="noopener noreferrer">Oracle alumni HR contact</a>.</p>
+        }
+        layout {
+            sequence: 5
+            slot: body
+        }
+        appearance {
+            template: @/alert
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region r55_new (
+        name: New request
+        type: staticContent
+        source {
+            htmlCode: <p>Tell us what you need. Please do not include ID, bank, salary or employee numbers.</p>
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/collapsible
+            templateOptions: [
+                #DEFAULT#
+                is-collapsed
+            ]
+        }
+    )
+
+    pageItem P55_TYPE (
+        type: selectList
+        label {
+            label: I need help with
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:Connecting with an expert;EXPERT_CONNECTION,Submitting an RFP;RFP,Feedback about OAN;FEEDBACK,General support;GENERAL
+            displayExtraValues: false
+            displayNullValue: false
+        }
+        layout {
+            sequence: 10
+            region: @r55_new
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+        }
+    )
+
+    pageItem P55_SUBJECT (
+        type: textField
+        label {
+            label: Subject
+        }
+        layout {
+            sequence: 20
+            region: @r55_new
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 200
+        }
+    )
+
+    pageItem P55_DETAILS (
+        type: textarea
+        label {
+            label: Details
+        }
+        layout {
+            sequence: 30
+            region: @r55_new
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 4000
+        }
+    )
+
+    pageItem P55_CONSENT (
+        type: checkbox
+        label {
+            label: OAN support may use these details to handle my request
+        }
+        settings {
+            useDefaults: false
+            checkedValue: Y
+            uncheckedValue: N
+        }
+        layout {
+            sequence: 40
+            region: @r55_new
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    button submit (
+        buttonName: SUBMIT
+        label: Send request
+        layout {
+            sequence: 10
+            region: @r55_new
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    region r55_list (
+        name: Requests
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select id, reference, type_label, subject, status_label, case when sla_breached = 'Y' then 'Overdue' end sla_label,
+                       case when is_mine = 'Y' then 'You' else requester_name end requester, agent_name, created_at, updated_at, 'Open' open_label
+                  from oan_service_requests_v
+                 where (:P55_SHOW = 'MINE' and is_mine = 'Y')
+                    or (nvl(:P55_SHOW, 'MINE') = 'QUEUE' and status in ('SUBMITTED','IN_PROGRESS'))
+                    or (:P55_SHOW = 'ALL')
+                 order by case when status in ('SUBMITTED','IN_PROGRESS') then 0 else 1 end, sla_due_at
+                ```
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: No requests.
+        }
+
+        column ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column REFERENCE (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Reference
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column TYPE_LABEL (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Type
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column SUBJECT (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Subject
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column STATUS_LABEL (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Status
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+        column SLA_LABEL (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: SLA
+            }
+            layout {
+                sequence: 6
+            }
+        )
+
+        column REQUESTER (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: From
+            }
+            layout {
+                sequence: 7
+            }
+        )
+
+        column AGENT_NAME (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            heading {
+                heading: Agent
+            }
+            layout {
+                sequence: 8
+            }
+        )
+
+        column CREATED_AT (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            heading {
+                heading: Raised
+            }
+            layout {
+                sequence: 9
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+        column UPDATED_AT (
+            reportColumnQueryId: 10
+            derivedColumn: N
+            heading {
+                heading: Updated
+            }
+            layout {
+                sequence: 10
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+        column OPEN_LABEL (
+            reportColumnQueryId: 11
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Open
+            }
+            layout {
+                sequence: 11
+            }
+            link {
+                target: {
+                    page: 55
+                    items: {
+                        P55_ID: \#ID#\
+                        P55_SHOW: &P55_SHOW.
+                    }
+                }
+                linkText: #OPEN_LABEL#
+            }
+        )
+
+    )
+
+    region r55_detail (
+        name: Request
+        type: dynamicContent
+        source {
+            plsqlFunctionBody:
+                ```plsql
+                declare
+                    l_html clob;
+                begin
+                    for r in (select * from oan_service_requests_v where id = to_number(:P55_ID)) loop
+                        l_html := '<h3 style="margin-top:0">' || apex_escape.html(r.reference) || ' &middot; ' || apex_escape.html(r.subject) || '</h3>'
+                            || '<p class="oan-article-meta">' || apex_escape.html(r.type_label) || ' &middot; ' || apex_escape.html(r.status_label)
+                            || ' &middot; raised ' || to_char(r.created_at, 'DD Mon YYYY')
+                            || case when r.sla_breached = 'Y' then ' &middot; overdue' end || '</p>'
+                            || '<p>' || replace(apex_escape.html(r.details), chr(10), '<br>') || '</p>';
+                        for n in (select * from oan_service_request_notes_v where request_id = r.id order by created_at) loop
+                            l_html := l_html || '<div class="oan-bubble' || case when n.author_label = 'You' then ' is-mine' end
+                                || '" style="max-width:100%;margin-bottom:8px"><span class="oan-bubble-meta">' || n.author_label
+                                || case when n.is_internal = 'Y' then ' (internal)' end || ' &middot; ' || to_char(n.created_at, 'DD Mon HH24:MI')
+                                || '</span>' || apex_escape.html(n.note) || '</div>';
+                        end loop;
+                    end loop;
+                    return l_html;
+                end;
+                ```
+        }
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P55_ID
+        }
+    )
+
+    pageItem P55_SHOW (
+        type: selectList
+        label {
+            label: Show
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select 'My requests' d, 'MINE' r, 1 s from dual
+                union all select 'Open queue (support)', 'QUEUE', 2 from dual where oan_helpdesk_pkg.is_agent = 'Y'
+                union all select 'All requests (support)', 'ALL', 3 from dual where oan_helpdesk_pkg.is_agent = 'Y'
+                order by 3
+                ```
+            displayExtraValues: false
+            displayNullValue: false
+        }
+        layout {
+            sequence: 1
+            region: @r55_list
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P55_ID (
+        type: hidden
+        layout {
+            sequence: 1
+            region: @r55_detail
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: unrestricted
+        }
+    )
+
+    pageItem P55_HR_URL (
+        type: hidden
+        layout {
+            sequence: 1
+            region: @r55_hr
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P55_NOTE (
+        type: textarea
+        label {
+            label: Add a note
+        }
+        layout {
+            sequence: 10
+            region: @r55_detail
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 2000
+        }
+    )
+
+    pageItem P55_INTERNAL (
+        type: switch
+        label {
+            label: Internal note (support only)
+        }
+        layout {
+            sequence: 20
+            region: @r55_detail
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P55_STATUS (
+        type: selectList
+        label {
+            label: Status (support)
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:In progress;IN_PROGRESS,Fulfilled;FULFILLED,Closed;CLOSED,Rejected;REJECTED
+            displayExtraValues: false
+            displayNullValue: true
+        }
+        layout {
+            sequence: 30
+            region: @r55_detail
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    button refresh (
+        buttonName: REFRESH
+        label: Show
+        layout {
+            sequence: 5
+            region: @r55_list
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button add-note (
+        buttonName: ADD_NOTE
+        label: Add note
+        layout {
+            sequence: 10
+            region: @r55_detail
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button take (
+        buttonName: TAKE
+        label: Take this request
+        layout {
+            sequence: 20
+            region: @r55_detail
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: expression
+            language: plsql
+            plsqlExpression: oan_helpdesk_pkg.is_agent = 'Y'
+        }
+    )
+
+    button set-status (
+        buttonName: SET_STATUS
+        label: Change status
+        layout {
+            sequence: 30
+            region: @r55_detail
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: expression
+            language: plsql
+            plsqlExpression: oan_helpdesk_pkg.is_agent = 'Y'
+        }
+    )
+
+    button reopen (
+        buttonName: REOPEN
+        label: Reopen
+        layout {
+            sequence: 40
+            region: @r55_detail
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--simple
+            ]
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery: select 1 from oan_service_requests_v where id = to_number(:P55_ID) and is_mine = 'Y' and status in ('FULFILLED','CLOSED')
+        }
+    )
+
+    process load (
+        name: Load page values
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                :P55_HR_URL := oan_helpdesk_pkg.hr_alumni_url;
+                if :P55_SHOW is null then
+                    :P55_SHOW := case when oan_helpdesk_pkg.is_agent = 'Y' then 'QUEUE' else 'MINE' end;
+                end if;
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+    )
+
+    process actions (
+        name: Helpdesk actions
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare
+                    l_ref varchar2(30);
+                begin
+                    case :REQUEST
+                        when 'SUBMIT' then
+                            l_ref := oan_helpdesk_pkg.submit(:P55_TYPE, :P55_SUBJECT, :P55_DETAILS, nvl(:P55_CONSENT, 'N'));
+                            select id into :P55_ID from oan_service_requests_v where reference = l_ref;
+                            :P55_SUBJECT := null; :P55_DETAILS := null; :P55_SHOW := 'MINE';
+                            apex_application.g_print_success_message := 'Request ' || l_ref || ' received.';
+                        when 'ADD_NOTE' then
+                            oan_helpdesk_pkg.add_note(to_number(:P55_ID), :P55_NOTE, nvl(:P55_INTERNAL, 'N'));
+                            :P55_NOTE := null;
+                        when 'TAKE' then
+                            oan_helpdesk_pkg.take(to_number(:P55_ID));
+                        when 'SET_STATUS' then
+                            oan_helpdesk_pkg.set_status(to_number(:P55_ID), :P55_STATUS);
+                        when 'REOPEN' then
+                            oan_helpdesk_pkg.reopen(to_number(:P55_ID));
+                        else null;
+                    end case;
+                end;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: SUBMIT,ADD_NOTE,TAKE,SET_STATUS,REOPEN
+        }
+    )
+
+    branch back (
+        name: Back to this page
+        behavior {
+            type: pageOrUrl
+            target: {
+                page: 55
+                items: {
+                    P55_ID: &P55_ID.
+                    P55_SHOW: &P55_SHOW.
+                }
+            }
+        }
+        execution {
+            point: afterProcessing
+            sequence: 10
+        }
+    )
+
+)

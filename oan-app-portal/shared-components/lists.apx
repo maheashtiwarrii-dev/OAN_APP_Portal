@@ -343,6 +343,17 @@ list navigation-menu (
         layout {
             sequence: 50
         }
+        isCurrent {
+            type: pages
+            pages: [
+                50
+                51
+                52
+                53
+                54
+                56
+            ]
+        }
         link {
             target: {
                 page: 50
@@ -351,11 +362,8 @@ list navigation-menu (
         security {
             authorizationScheme: @is-active
         }
-        config {
-            buildOption: @w5-opportunities
-        }
         comments {
-            comments: Destination 5 of 7. Hidden until wave W5 is built (R05).
+            comments: W5 Opportunities (pages 50-56), 15 Oct 2026.
         }
     )
 
@@ -400,6 +408,7 @@ list navigation-menu (
             type: pages
             pages: [
                 70
+                71
             ]
         }
         link {
@@ -423,19 +432,22 @@ list navigation-menu (
         layout {
             sequence: 65
         }
+        isCurrent {
+            type: pages
+            pages: [
+                55
+            ]
+        }
         link {
             target: {
-                page: 10
+                page: 55
             }
         }
         security {
-            authorizationScheme: @is-active
-        }
-        config {
-            buildOption: @not-yet-built
+            authorizationScheme: @is-signed-in
         }
         comments {
-            comments: Helpdesk (FR-44) arrives with W5. Hidden (R05).
+            comments: W5 Helpdesk (FR-44), page 55.
         }
     )
 

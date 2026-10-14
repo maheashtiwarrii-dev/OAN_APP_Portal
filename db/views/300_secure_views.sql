@@ -1078,3 +1078,116 @@ select x.id, x.request_id, x.response_type,
   join oan_help_requests_v r on r.id = x.request_id
   join oan_member_card_v c on c.user_id = x.responder_id
  where x.status = 'VISIBLE';
+
+--------------------------------------------------------- opportunities (W5.2-W5.5, pages 50-56) --
+-- Open opportunities for members, ranked by skills match (FR-36); company postings show the verified org
+create or replace view oan_opportunities_v as
+select j.id, j.job_type,
+       case j.job_type when 'ORACLE' then 'Oracle role' when 'PARTNER' then 'Oracle partner' when 'CUSTOMER' then 'Oracle customer'
+                       when 'COMPANY' then 'Company' when 'CONTRACT' then 'Contract (member post)' else 'Gig (member post)' end source_label,
+       j.engagement_type,
+       case j.engagement_type when 'FULL_TIME' then 'Full-time' when 'PART_TIME' then 'Part-time' when 'CONTRACT' then 'Contract'
+                              when 'GIG' then 'Gig' else 'Internship' end engagement_label,
+       j.title, j.company_name, j.description, j.business_area, j.location_text, j.is_remote,
+       nvl(j.location_text, case when j.is_remote = 'Y' then 'Remote' end) where_text,
+       j.apply_url, j.close_date, j.published_at, j.org_id,
+       case when o.verified = 'Y' then 'Verified company' end verified_label,
+       (select listagg(t.name, ', ') within group (order by js.must_have desc, t.name)
+          from oan_job_skills js join oan_taxonomy_terms t on t.id = js.term_id where js.job_id = j.id) skills,
+       oan_job_pkg.match_score(j.id, to_number(sys_context('OAN_CTX','VIEWER_ID'))) match_pct,
+       (select a.status from oan_job_applications a
+         where a.job_id = j.id and a.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID'))) my_status,
+       case when j.posted_by = to_number(sys_context('OAN_CTX','VIEWER_ID')) then 'Y' else 'N' end is_mine
+  from oan_jobs j
+  left join oan_organisations o on o.id = j.org_id
+ where j.status = 'OPEN'
+   and (j.close_date is null or j.close_date >= trunc(sysdate))
+   and sys_context('OAN_CTX','VIEWER_TYPE') = 'MEMBER';
+
+-- The viewer's applications (page 52)
+create or replace view oan_my_applications_v as
+select a.id, a.job_id, j.title, j.company_name, initcap(a.status) status_label, a.status, a.created_at, a.updated_at,
+       case when a.cv_share_id is not null then 'Sent' else 'Not sent' end cv_label
+  from oan_job_applications a
+  join oan_jobs j on j.id = a.job_id
+ where a.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID'));
+
+-- Opportunities the viewer manages: own gigs, the organisation's postings, Oracle roles for content editors
+create or replace view oan_my_jobs_v as
+select j.id, j.title, j.company_name, j.job_type, initcap(replace(j.status, '_', ' ')) status_label, j.status, j.review_note,
+       j.created_at, j.published_at, j.close_date,
+       (select count(*) from oan_job_applications a where a.job_id = j.id and a.status != 'WITHDRAWN') applicants
+  from oan_jobs j
+ where oan_job_pkg.can_manage_job(j.id) = 'Y';
+
+-- Applicants of opportunities the viewer manages. Applying shares name, headline and the note; the CV only
+-- when the member chose to send it (live APPLICATION share, R13)
+create or replace view oan_job_applicants_v as
+select a.id application_id, a.job_id, j.title job_title, a.user_id, p.first_name || ' ' || p.last_name applicant_name,
+       p.headline, a.cover_note, a.status, initcap(a.status) status_label, a.created_at,
+       oan_job_pkg.match_score(a.job_id, a.user_id) match_pct,
+       (select c.file_id from oan_cv_shares s join oan_member_cv c on c.id = s.cv_id
+         where s.id = a.cv_share_id and s.revoked_at is null and (s.expires_at is null or s.expires_at > systimestamp)) cv_file_id
+  from oan_job_applications a
+  join oan_jobs j on j.id = a.job_id
+  join oan_profiles p on p.user_id = a.user_id
+ where a.status != 'WITHDRAWN'
+   and oan_job_pkg.can_manage_job(a.job_id) = 'Y';
+
+-- Suggested referrers for a job: directory-visible members at the hiring company who accept messages (FR-37 AC1)
+create or replace view oan_referral_candidates_v as
+select j.id job_id, d.user_id, d.display_name, d.headline, d.current_org
+  from oan_jobs j
+  join oan_directory_v d on d.current_org is not null
+                        and (instr(upper(d.current_org), upper(j.company_name)) > 0 or instr(upper(j.company_name), upper(d.current_org)) > 0)
+ where j.status = 'OPEN'
+   and oan_message_pkg.can_message(d.user_id) = 'Y';
+
+-- Referral requests the viewer sent (direction OUT) or received (IN), page 54
+create or replace view oan_my_referrals_v as
+select r.id, case when r.requester_id = to_number(sys_context('OAN_CTX','VIEWER_ID')) then 'OUT' else 'IN' end direction,
+       j.title job_title, j.company_name, r.job_id,
+       case when r.requester_id = to_number(sys_context('OAN_CTX','VIEWER_ID')) then rf.display_name else rq.display_name end other_name,
+       r.note, r.status, initcap(r.status) status_label, r.created_at, r.decided_at
+  from oan_referrals r
+  join oan_jobs j on j.id = r.job_id
+  left join oan_member_card_v rq on rq.user_id = r.requester_id
+  left join oan_member_card_v rf on rf.user_id = r.referrer_id
+ where to_number(sys_context('OAN_CTX','VIEWER_ID')) in (r.requester_id, r.referrer_id);
+
+-- Helpdesk (page 55): the viewer's own requests, or every request for support agents
+create or replace view oan_service_requests_v as
+select s.id, s.reference, s.request_type,
+       case s.request_type when 'EXPERT_CONNECTION' then 'Expert connection' when 'RFP' then 'RFP submission'
+                           when 'FEEDBACK' then 'Feedback' else 'General support' end type_label,
+       s.subject, s.details, s.status, initcap(replace(s.status, '_', ' ')) status_label, s.created_at, s.updated_at,
+       s.sla_due_at, s.sla_breached, s.reopened, s.user_id,
+       case when s.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID')) then 'Y' else 'N' end is_mine,
+       (select p.first_name || ' ' || p.last_name from oan_profiles p where p.user_id = s.user_id) requester_name,
+       (select p.first_name || ' ' || p.last_name from oan_profiles p where p.user_id = s.assigned_to) agent_name
+  from oan_service_requests s
+ where s.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID'))
+    or oan_helpdesk_pkg.is_agent = 'Y';
+
+create or replace view oan_service_request_notes_v as
+select n.id, n.request_id, n.note, n.is_internal, n.created_at,
+       case when n.author_id = r.user_id then 'You' else 'OAN support' end author_label
+  from oan_service_request_notes n
+  join oan_service_requests_v r on r.id = n.request_id
+ where n.is_internal = 'N' or oan_helpdesk_pkg.is_agent = 'Y';
+
+-- Skills & demand (page 56, FR-38): this week vs last week, and whether the viewer has the skill
+create or replace view oan_skill_demand_v as
+select d.term_id, t.name skill, d.demand_count, d.member_count,
+       nvl((select p.demand_count from oan_skill_demand p where p.term_id = d.term_id and p.period_start = d.period_start - 7), 0) previous_count,
+       case when d.demand_count > nvl((select p.demand_count from oan_skill_demand p where p.term_id = d.term_id and p.period_start = d.period_start - 7), 0) then 'Up'
+            when d.demand_count < nvl((select p.demand_count from oan_skill_demand p where p.term_id = d.term_id and p.period_start = d.period_start - 7), 0) then 'Down'
+            else 'Steady' end trend,
+       (select count(*) from oan_profile_skills ps where ps.term_id = d.term_id
+           and ps.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID'))) i_have,
+       (select count(*) from oan_library_item_tags lt join oan_library_items li on li.id = lt.item_id and li.status = 'PUBLISHED'
+         where lt.term_id = d.term_id) library_items
+  from oan_skill_demand d
+  join oan_taxonomy_terms t on t.id = d.term_id
+ where d.period_start = (select max(x.period_start) from oan_skill_demand x)
+   and sys_context('OAN_CTX','VIEWER_TYPE') = 'MEMBER';

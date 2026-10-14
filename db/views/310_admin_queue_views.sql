@@ -264,3 +264,14 @@ select 'Queued messages', count(*) from oan_channel_messages where status = 'QUE
 select 'Failed messages (7 days)', count(*) from oan_channel_messages where status = 'FAILED' and created_at > systimestamp - interval '7' day union all
 select 'Inbound events ignored (7 days)', count(*) from oan_channel_events where status = 'IGNORED' and received_at > systimestamp - interval '7' day)
  where sys_context('OAN_CTX','IS_ADMIN') = 'Y';
+
+-- Opportunities waiting for review (moderators, never their own posting) - FR-36 pre-moderation
+create or replace view oan_job_review_queue_v as
+select j.id, j.title, j.company_name, j.job_type, j.engagement_type, j.description, j.created_at,
+       (select o.name from oan_organisations o where o.id = j.org_id) org_name,
+       (select listagg(t.name, ', ') within group (order by t.name)
+          from oan_job_skills js join oan_taxonomy_terms t on t.id = js.term_id where js.job_id = j.id) skills
+  from oan_jobs j
+ where j.status = 'PENDING_REVIEW'
+   and (sys_context('OAN_CTX','IS_MODERATOR') = 'Y' or sys_context('OAN_CTX','IS_ADMIN') = 'Y')
+   and nvl(j.posted_by, -1) != to_number(sys_context('OAN_CTX','VIEWER_ID'));

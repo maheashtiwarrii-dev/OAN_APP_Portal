@@ -1,0 +1,352 @@
+page 52 (
+    name: My Applications
+    alias: MY-APPLICATIONS
+    title: My applications
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    security {
+        authorizationScheme: @is-active
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: Build Pack W5 page 52 (FR-36 AC3). The member's applications with status, and the gigs or contracts they posted with applicant counts (open page 51 to manage applicants).
+    }
+
+    region r52_apps (
+        name: My applications
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select id, job_id, title, company_name, status_label, cv_label, created_at, updated_at, 'Open' open_label
+                  from oan_my_applications_v
+                 order by updated_at desc
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: You have not applied yet. Browse Opportunities to find roles that match your skills.
+        }
+
+        column ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column JOB_ID (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 2
+            }
+        )
+
+        column TITLE (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Opportunity
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column COMPANY_NAME (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Company
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column STATUS_LABEL (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Status
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+        column CV_LABEL (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: CV
+            }
+            layout {
+                sequence: 6
+            }
+        )
+
+        column CREATED_AT (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: Applied
+            }
+            layout {
+                sequence: 7
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+        column UPDATED_AT (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            heading {
+                heading: Updated
+            }
+            layout {
+                sequence: 8
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+        column OPEN_LABEL (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Open
+            }
+            layout {
+                sequence: 9
+            }
+            link {
+                target: {
+                    page: 51
+                    items: {
+                        P51_ID: \#JOB_ID#\
+                    }
+                }
+                linkText: #OPEN_LABEL#
+            }
+        )
+
+    )
+
+    region r52_posted (
+        name: Opportunities I posted
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select id, title, company_name, status_label, review_note, applicants, published_at, 'Manage' manage_label
+                  from oan_my_jobs_v
+                 order by created_at desc
+                ```
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: You have not posted an opportunity.
+        }
+
+        column ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column TITLE (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Opportunity
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column COMPANY_NAME (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Company
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column STATUS_LABEL (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Status
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column REVIEW_NOTE (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Review note
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+        column APPLICANTS (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Applicants
+            }
+            layout {
+                sequence: 6
+            }
+        )
+
+        column PUBLISHED_AT (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: Published
+            }
+            layout {
+                sequence: 7
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+        column MANAGE_LABEL (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Manage
+            }
+            layout {
+                sequence: 8
+            }
+            link {
+                target: {
+                    page: 51
+                    items: {
+                        P51_ID: \#ID#\
+                    }
+                }
+                linkText: #MANAGE_LABEL#
+            }
+        )
+
+    )
+
+    region r52_actions (
+        name: Actions
+        type: staticContent
+        layout {
+            sequence: 5
+            slot: body
+        }
+        appearance {
+            template: @/buttons-container
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    button post (
+        buttonName: POST
+        label: Post a gig or contract
+        layout {
+            sequence: 10
+            region: @r52_actions
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 53
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button browse (
+        buttonName: BROWSE
+        label: Browse opportunities
+        layout {
+            sequence: 20
+            region: @r52_actions
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--simple
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 50
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+)

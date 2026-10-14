@@ -261,3 +261,11 @@
 | I22-2 | Pages | 29 Help Me Connect, 40 (message search + 20s polling), 41 (links), 42 Notification settings, 43 Slack and WhatsApp (linking forms appear when CHANNELS is live), 44 Unsubscribe (public, HMAC) |
 | I22-3 | Gate G-CH | Slack/WhatsApp are built but off: no Slack app, WhatsApp Business number, DPAs or DPIA annex yet. Inbound events with a bad signature or while off are logged and ignored; outbound is skipped |
 | I22-4 | Checks | `ut_oan_w4` 11/11 plus 10 other suites (94 tests); harness 101 queries / 141 blocks; links, base tables, brand, APEXLang validation pass; app 200 imported (65 pages) |
+
+## Iteration 23 — W5 opportunities, referrals, helpdesk, skills demand (15 Oct 2026)
+| Step | Action | Result |
+|---|---|---|
+| I23-1 | Project status | Board data updated for iterations 17-22 and GitHub Project #1 reloaded (168 items, 1,452 field values) on user request |
+| I23-2 | Database | `107_opportunities_helpdesk.sql` (jobs, skills, applications + history, referrals, service requests + notes, skill demand, job Text index, retention rules), `oan_job_pkg`, `oan_helpdesk_pkg`, `oan_profile_pkg.add_skill`; CV download for APPLICATION shares (posting company only); job steps SERVICE_SLA (hourly), REFERRALS_EXPIRE and JOBS_CLOSE_EXPIRED (daily), SKILL_DEMAND (analytics) |
+| I23-3 | Pages | 50 Opportunities, 51 Opportunity (apply, Oracle Careers, referrals, applicants), 52 My applications, 53 Post an opportunity, 54 Referrals, 55 Helpdesk, 56 Skills in demand, 71 Company opportunities; job review on 107; Careers and Helpdesk in the rail; company workspace links |
+| I23-4 | Checks | `ut_oan_w5` 9/9 (+ related suites, 39 and 29 tests); harness 115 queries / 153 blocks; links, base tables, brand, validation pass; app 200 imported (73 pages) |

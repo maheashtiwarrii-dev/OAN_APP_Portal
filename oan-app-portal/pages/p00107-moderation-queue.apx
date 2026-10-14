@@ -284,6 +284,183 @@ page 107 (
         }
     )
 
+    region r107_jobs (
+        name: Opportunities waiting for review
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select id, title, company_name, org_name, job_type, skills, substr(description, 1, 300) summary, created_at,
+                       'Approve' approve_label, 'Reject' reject_label
+                  from oan_job_review_queue_v
+                 order by created_at
+                ```
+        }
+        layout {
+            sequence: 90
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: No opportunities are waiting for review.
+        }
+
+        column ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column TITLE (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Opportunity
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column COMPANY_NAME (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Company
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column ORG_NAME (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Verified organisation
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column JOB_TYPE (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Type
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+        column SKILLS (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Skills
+            }
+            layout {
+                sequence: 6
+            }
+        )
+
+        column SUMMARY (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: Description
+            }
+            layout {
+                sequence: 7
+            }
+        )
+
+        column CREATED_AT (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            heading {
+                heading: Posted
+            }
+            layout {
+                sequence: 8
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+        column APPROVE_LABEL (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Approve
+            }
+            layout {
+                sequence: 9
+            }
+            link {
+                target: {
+                    page: 107
+                    items: {
+                        P107_JOB_ID: \#ID#\
+                    }
+                    request: JOB_APPROVE
+                }
+                linkText: #APPROVE_LABEL#
+            }
+        )
+
+        column REJECT_LABEL (
+            reportColumnQueryId: 10
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Reject
+            }
+            layout {
+                sequence: 10
+            }
+            link {
+                target: {
+                    page: 107
+                    items: {
+                        P107_JOB_ID: \#ID#\
+                    }
+                    request: JOB_REJECT
+                }
+                linkText: #REJECT_LABEL#
+            }
+        )
+
+    )
+
+    pageItem P107_JOB_ID (
+        type: hidden
+        layout {
+            sequence: 1
+            region: @r107_jobs
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
     pageItem P107_QUEUE_TYPE (
         type: hidden
         layout {
@@ -486,6 +663,27 @@ page 107 (
                 clearCache: 107
             }
             warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process job-review (
+        name: Approve or reject an opportunity (FR-36)
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                oan_job_pkg.review_job(to_number(:P107_JOB_ID), case :REQUEST when 'JOB_APPROVE' then 'Y' else 'N' end,
+                                       case :REQUEST when 'JOB_REJECT' then 'This posting does not meet the OAN opportunity guidelines. Edit and post it again, or contact the helpdesk.' end);
+                apex_util.redirect_url(apex_page.get_url(p_page => 107));
+                ```
+        }
+        execution {
+            sequence: 5
+            point: beforeHeader
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: JOB_APPROVE,JOB_REJECT
         }
     )
 

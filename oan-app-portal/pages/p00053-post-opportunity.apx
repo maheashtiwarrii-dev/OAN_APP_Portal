@@ -1,0 +1,387 @@
+page 53 (
+    name: Post Opportunity
+    alias: POST-OPPORTUNITY
+    title: Post an opportunity
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    security {
+        authorizationScheme: @is-signed-in
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: Build Pack W5 page 53 (FR-36). Members post gig or contract work (live at once, post-moderated); contacts of a verified company post full-time, part-time, contract or gig roles (pre-moderated); content editors add Oracle roles as Careers links. OAN_JOB_PKG.POST_JOB decides what the viewer may post.
+    }
+
+    region r53_form (
+        name: Opportunity
+        type: staticContent
+        source {
+            htmlCode: <p>Describe the work and the skills it needs. Company postings are reviewed by an OAN moderator before they appear; member gigs appear at once and can be reported.</p>
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P53_TYPE (
+        type: selectList
+        label {
+            label: Posting as
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select 'Member gig' d, 'GIG' r, 1 s from dual where sys_context('OAN_CTX','VIEWER_TYPE') = 'MEMBER'
+                union all select 'Member contract', 'CONTRACT', 2 from dual where sys_context('OAN_CTX','VIEWER_TYPE') = 'MEMBER'
+                union all select 'My company (verified)', 'COMPANY', 3 from dual where oan_org_pkg.is_org_contact = 'Y'
+                union all select 'Oracle role (Careers link)', 'ORACLE', 4 from dual where oan_security_pkg.authz('CONTENT_EDITOR') = 'Y'
+                order by 3
+                ```
+            displayExtraValues: false
+            displayNullValue: false
+        }
+        layout {
+            sequence: 10
+            region: @r53_form
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+        }
+    )
+
+    pageItem P53_ENGAGEMENT (
+        type: selectList
+        label {
+            label: Type of work
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:Full-time;FULL_TIME,Part-time;PART_TIME,Contract;CONTRACT,Gig;GIG,Internship;INTERNSHIP
+            displayExtraValues: false
+            displayNullValue: false
+        }
+        layout {
+            sequence: 20
+            region: @r53_form
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+        }
+    )
+
+    pageItem P53_TITLE (
+        type: textField
+        label {
+            label: Title
+        }
+        layout {
+            sequence: 30
+            region: @r53_form
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+            maxLength: 200
+        }
+    )
+
+    pageItem P53_COMPANY (
+        type: textField
+        label {
+            label: Company (empty = your verified company)
+        }
+        layout {
+            sequence: 40
+            region: @r53_form
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 200
+        }
+    )
+
+    pageItem P53_DESCRIPTION (
+        type: textarea
+        label {
+            label: Description
+        }
+        layout {
+            sequence: 50
+            region: @r53_form
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+            maxLength: 4000
+        }
+    )
+
+    pageItem P53_MUST (
+        type: selectMany
+        label {
+            label: Must-have skills
+        }
+        lov {
+            type: sharedComponent
+            lov: @oan-skills
+        }
+        layout {
+            sequence: 60
+            region: @r53_form
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P53_NICE (
+        type: selectMany
+        label {
+            label: Nice-to-have skills
+        }
+        lov {
+            type: sharedComponent
+            lov: @oan-skills
+        }
+        layout {
+            sequence: 70
+            region: @r53_form
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P53_AREA (
+        type: textField
+        label {
+            label: Business area
+        }
+        layout {
+            sequence: 80
+            region: @r53_form
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 100
+        }
+    )
+
+    pageItem P53_LOCATION (
+        type: textField
+        label {
+            label: Location
+        }
+        layout {
+            sequence: 90
+            region: @r53_form
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 200
+        }
+    )
+
+    pageItem P53_REMOTE (
+        type: switch
+        label {
+            label: Remote possible
+        }
+        layout {
+            sequence: 100
+            region: @r53_form
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P53_CLOSE (
+        type: datePicker
+        label {
+            label: Closing date (optional)
+        }
+        layout {
+            sequence: 110
+            region: @r53_form
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P53_APPLY_URL (
+        type: textField
+        label {
+            label: Oracle Careers link (Oracle roles only)
+        }
+        layout {
+            sequence: 120
+            region: @r53_form
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 500
+        }
+    )
+
+    button submit (
+        buttonName: SUBMIT
+        label: Post
+        layout {
+            sequence: 10
+            region: @r53_form
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button cancel (
+        buttonName: CANCEL
+        label: Cancel
+        layout {
+            sequence: 20
+            region: @r53_form
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--simple
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 50
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process post (
+        name: Post the opportunity
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare
+                    l_id number;
+                begin
+                    l_id := oan_job_pkg.post_job(:P53_TYPE, :P53_ENGAGEMENT, :P53_TITLE, :P53_COMPANY, :P53_DESCRIPTION, :P53_AREA,
+                                                 :P53_LOCATION, nvl(:P53_REMOTE, 'N'), :P53_APPLY_URL, to_date(:P53_CLOSE), :P53_MUST, :P53_NICE);
+                    :P53_ID := l_id;
+                end;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        serverSideCondition {
+            whenButtonPressed: @submit
+        }
+        successMessage {
+            successMessage: Posted. Company postings appear after an OAN moderator reviews them.
+        }
+    )
+
+    pageItem P53_ID (
+        type: hidden
+        layout {
+            sequence: 1
+            region: @r53_form
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    branch to-job (
+        name: To the opportunity
+        behavior {
+            type: pageOrUrl
+            target: {
+                page: 51
+                items: {
+                    P51_ID: &P53_ID.
+                }
+            }
+        }
+        execution {
+            point: afterProcessing
+            sequence: 10
+        }
+        serverSideCondition {
+            whenButtonPressed: @submit
+        }
+    )
+
+)

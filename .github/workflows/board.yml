@@ -1,4 +1,4 @@
-# Publishes the Kanban delivery board to GitHub Pages (board only, not the rest of the repo).
+# Publishes the Kanban delivery board and the status report to GitHub Pages (not the rest of the repo).
 name: Delivery board
 
 on:
@@ -7,6 +7,9 @@ on:
     paths:
       - docs/delivery-board.html
       - docs/OAN-Delivery-Board-landscape.pdf
+      - docs/status-report.html
+      - docs/OAN-Project-Status-Report.pdf
+      - docs/index.html
       - .github/workflows/board.yml
   workflow_dispatch:
 
@@ -36,8 +39,9 @@ jobs:
             echo '<meta name="viewport" content="width=device-width, initial-scale=1"></head><body>'
             cat docs/delivery-board.html
             echo '</body></html>'
-          } > site/index.html
-          cp docs/OAN-Delivery-Board-landscape.pdf site/
+          } > site/delivery-board.html
+          cp docs/index.html docs/status-report.html site/
+          cp docs/OAN-Delivery-Board-landscape.pdf docs/OAN-Project-Status-Report.pdf site/
           touch site/.nojekyll
 
       - uses: actions/upload-pages-artifact@v3

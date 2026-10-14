@@ -244,3 +244,12 @@
 | I20-3 | Dev data | `dev/660_sample_insights_events.sql` (3 insights, 2 perspectives, saves, 7 events incl. past ones with resources, registrations) |
 | I20-4 | Checks | `ut_oan_w3` 11/11; all 14 suites pass (121 + content); harness 90 queries / 125 blocks; links, base tables, brand, APEXLang validation pass; app 200 imported (58 pages) |
 | I20-5 | User request | Company registration for CXOs, partner and other companies (gig and full-time work for OAN members), no third-party association names: next, pulled forward from W5.1 / W6.5 |
+
+## Iteration 21 — Company registration (W5.1 pulled forward, 14 Oct 2026)
+| Step | Action | Result |
+|---|---|---|
+| I21-1 | User request | A company registration page for IT CXOs, Oracle partners and any other company, to offer OAN members full-time roles and gig work, post opportunities, talk to members and review profiles/CVs. No reference to the third-party association named on the sample form |
+| I21-2 | Database | `104_organisations.sql` (organisations, contacts, applications with reference OAN-ORG-YYYY-NNNNNN, interest and engagement lookups, PD registry), `oan_org_pkg` (public submit with rate limits and an ID-number check, admin decision with re-auth, approval creates a verified organisation and a PARTNER owner with a set-password link or an organisation scope for an existing member, suspension), `send_email` no longer undoes the calling action when mail fails (audited) |
+| I21-3 | Pages | 76 Register your company (public; areas of interest, ways to work with members, name, email, designation, company, type, website, industry, country, size, LinkedIn, initiatives, terms), 112 Company registrations (admin review), 70 Company workspace (organisation page group, ORG viewer); login page link; rail entries; Home routes company accounts to 70 |
+| I21-4 | Privacy | Companies see only what members choose to share (Members+Partners profile sections, CVs shared with them or sent with an application, R13); no export, print or REST of member data (FR-20) |
+| I21-5 | Checks | `ut_oan_orgs` 6/6 with auth, registry, platform and API suites (39 tests); harness 95 queries / 131 blocks; links, base tables, brand, validation pass; app 200 imported (61 pages) |

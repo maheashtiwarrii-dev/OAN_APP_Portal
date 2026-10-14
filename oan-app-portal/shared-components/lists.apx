@@ -361,6 +361,33 @@ list navigation-menu (
         }
     )
 
+    entry company-workspace (
+        label: Company workspace
+        icon {
+            imageIconCssClasses: fa-building-o
+        }
+        layout {
+            sequence: 62
+        }
+        isCurrent {
+            type: pages
+            pages: [
+                70
+            ]
+        }
+        link {
+            target: {
+                page: 70
+            }
+        }
+        security {
+            authorizationScheme: @is-org-contact
+        }
+        comments {
+            comments: Company workspace for verified organisation contacts (FR-20/42).
+        }
+    )
+
     entry helpdesk (
         label: Helpdesk
         icon {
@@ -454,6 +481,25 @@ list navigation-menu (
         }
         security {
             authorizationScheme: @can-approve
+        }
+    )
+
+    entry company-registrations (
+        label: Company registrations
+        icon {
+            imageIconCssClasses: fa-building-o
+        }
+        layout {
+            sequence: 112
+            parentEntry: @administration
+        }
+        link {
+            target: {
+                page: 112
+            }
+        }
+        security {
+            authorizationScheme: @administration-rights
         }
     )
 

@@ -38,6 +38,7 @@ page 1 (
             htmlCode:
                 ```html
                 <p class="u-textCenter">New to OAN? <a href="f?p=&APP_ID.:3:&APP_SESSION.">Create an account</a></p>
+                <p class="u-textCenter">Hiring or partnering? <a href="f?p=&APP_ID.:76:&APP_SESSION.">Register your company</a></p>
                 <p class="u-textCenter"><a href="f?p=&APP_ID.:8:&APP_SESSION.">Forgot your password?</a> &middot; <a href="f?p=&APP_ID.:11:&APP_SESSION.">About OAN</a></p>
                 <p class="u-textCenter u-color-gray" style="font-size:12px">OAN is an independent alumni community and is not affiliated with or endorsed by Oracle Corporation.</p>
                 ```

@@ -1,0 +1,576 @@
+page 112 (
+    name: Company Registrations
+    alias: COMPANY-REGISTRATIONS
+    title: Company registrations
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    security {
+        authorizationScheme: @administration-rights
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: Organisation verification (FR-20, R22, B10.19). Platform Admins review company registrations from page 76 and approve (verified organisation + PARTNER owner, or an organisation scope for an existing member), reject or ask for more information. Decisions need a recent re-authentication (page 15) and are audited by OAN_ORG_PKG.
+    }
+
+    region r112_applications (
+        name: Registrations
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select id, reference, org_name, org_type_label, contact_name, designation, engagements, status_label, created_at,
+                       'Review' review_label
+                  from oan_admin_org_applications_v
+                 where (:P112_SHOW = 'ALL' or status in ('SUBMITTED','MORE_INFO'))
+                 order by case when status in ('SUBMITTED','MORE_INFO') then 0 else 1 end, created_at desc
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: No registrations waiting for review.
+        }
+
+        column ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column REFERENCE (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Reference
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column ORG_NAME (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Company
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column ORG_TYPE_LABEL (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Type
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column CONTACT_NAME (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Contact
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+        column DESIGNATION (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Designation
+            }
+            layout {
+                sequence: 6
+            }
+        )
+
+        column ENGAGEMENTS (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: Offers
+            }
+            layout {
+                sequence: 7
+            }
+        )
+
+        column STATUS_LABEL (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            heading {
+                heading: Status
+            }
+            layout {
+                sequence: 8
+            }
+        )
+
+        column CREATED_AT (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            heading {
+                heading: Received
+            }
+            layout {
+                sequence: 9
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+        column REVIEW_LABEL (
+            reportColumnQueryId: 10
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Review
+            }
+            layout {
+                sequence: 10
+            }
+            link {
+                target: {
+                    page: 112
+                    items: {
+                        P112_ID: \#ID#\
+                    }
+                }
+                linkText: #REVIEW_LABEL#
+            }
+        )
+
+    )
+
+    region r112_detail (
+        name: Review registration
+        type: dynamicContent
+        source {
+            plsqlFunctionBody:
+                ```plsql
+                declare
+                    l_html clob;
+                    function row_(p_label in varchar2, p_value in varchar2) return varchar2 is
+                    begin
+                        return '<tr><th scope="row" style="text-align:left;padding:4px 12px 4px 0;vertical-align:top">' || p_label
+                            || '</th><td style="padding:4px 0">' || nvl(apex_escape.html(p_value), '-') || '</td></tr>';
+                    end row_;
+                begin
+                    for a in (select * from oan_admin_org_applications_v where id = :P112_ID) loop
+                        l_html := '<table>' || row_('Reference', a.reference) || row_('Status', a.status_label)
+                            || row_('Company', a.org_name) || row_('Type', a.org_type_label) || row_('Website', a.website)
+                            || row_('Industry', a.industry) || row_('Country', a.country) || row_('Size', a.company_size)
+                            || row_('Contact', a.contact_name) || row_('Email', a.email) || row_('Designation', a.designation)
+                            || row_('LinkedIn', a.linkedin_url)
+                            || row_('Existing OAN member', case when a.is_member > 0 then 'Yes - the organisation is added to their account'
+                                                                else 'No - a partner account is created' end)
+                            || row_('Interests', a.interests) || row_('Offers', a.engagements)
+                            || row_('Initiatives', a.contributions) || row_('Decision note', a.decision_note) || '</table>';
+                    end loop;
+                    return l_html;
+                end;
+                ```
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P112_ID
+        }
+    )
+
+    region r112_orgs (
+        name: Verified organisations
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select id, name, initcap(replace(org_type, '_', ' ')) type_label, initcap(status) status_label, contacts, verified_at
+                  from oan_admin_organisations_v
+                 order by name
+                ```
+        }
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: No organisations yet.
+        }
+
+        column ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column NAME (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Organisation
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column TYPE_LABEL (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Type
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column STATUS_LABEL (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Status
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column CONTACTS (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Contacts
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+        column VERIFIED_AT (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Verified
+            }
+            layout {
+                sequence: 6
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+    )
+
+    pageItem P112_SHOW (
+        type: selectList
+        label {
+            label: Show
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:Waiting for review;OPEN,All registrations;ALL
+            displayExtraValues: false
+            displayNullValue: false
+        }
+        default {
+            type: static
+            staticValue: OPEN
+        }
+        layout {
+            sequence: 1
+            region: @r112_applications
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P112_ID (
+        type: hidden
+        layout {
+            sequence: 1
+            region: @r112_detail
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P112_REAUTH_OK (
+        type: hidden
+        layout {
+            sequence: 2
+            region: @r112_detail
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P112_DECISION (
+        type: radioGroup
+        label {
+            label: Decision
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:Approve and verify;APPROVE,Ask for more information;MORE_INFO,Reject;REJECT
+            displayExtraValues: false
+        }
+        layout {
+            sequence: 10
+            region: @r112_detail
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P112_ORG_TYPE (
+        type: selectList
+        label {
+            label: Organisation type (confirm)
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:Oracle partner;PARTNER,Oracle customer;CUSTOMER,Technology partner (non-Oracle);NON_ORACLE_PARTNER,Other company;OTHER
+            displayExtraValues: false
+            displayNullValue: true
+        }
+        layout {
+            sequence: 20
+            region: @r112_detail
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P112_NOTE (
+        type: textarea
+        label {
+            label: Note (verification evidence; sent to the applicant when rejecting or asking for more)
+        }
+        layout {
+            sequence: 30
+            region: @r112_detail
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 1000
+        }
+    )
+
+    button refresh (
+        buttonName: REFRESH
+        label: Show
+        layout {
+            sequence: 5
+            region: @r112_applications
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button decide (
+        buttonName: DECIDE
+        label: Record decision
+        layout {
+            sequence: 10
+            region: @r112_detail
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: item=value
+            item: P112_REAUTH_OK
+            value: Y
+        }
+    )
+
+    button confirm-identity (
+        buttonName: CONFIRM_IDENTITY
+        label: Confirm my identity to decide
+        layout {
+            sequence: 20
+            region: @r112_detail
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: item=value
+            item: P112_REAUTH_OK
+            value: N
+        }
+    )
+
+    process reauth-state (
+        name: Re-authentication state
+        type: executeCode
+        source {
+            plsqlCode: :P112_REAUTH_OK := case when oan_auth_pkg.is_recently_reauthenticated(5) then 'Y' else 'N' end;
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+    )
+
+    process decide (
+        name: Record decision
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                if :P112_DECISION is null then
+                    raise_application_error(-20400, 'Choose a decision.');
+                end if;
+                oan_org_pkg.decide_application(to_number(:P112_ID), :P112_DECISION, :P112_NOTE, :P112_ORG_TYPE);
+                :P112_DECISION := null;
+                :P112_NOTE := null;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        serverSideCondition {
+            whenButtonPressed: @decide
+        }
+        successMessage {
+            successMessage: Decision recorded. The applicant was emailed.
+        }
+    )
+
+    process remember-return (
+        name: Remember return page
+        type: executeCode
+        source {
+            plsqlCode: :REAUTH_RETURN_PAGE := 112;
+        }
+        execution {
+            sequence: 20
+        }
+        serverSideCondition {
+            whenButtonPressed: @confirm-identity
+        }
+    )
+
+    branch to-reauth (
+        name: To identity confirmation
+        behavior {
+            type: pageOrUrl
+            target: {
+                page: 15
+            }
+        }
+        execution {
+            point: afterProcessing
+            sequence: 10
+        }
+        serverSideCondition {
+            whenButtonPressed: @confirm-identity
+        }
+    )
+
+    branch stay (
+        name: Back to the list
+        behavior {
+            type: pageOrUrl
+            target: {
+                page: 112
+                items: {
+                    P112_ID: &P112_ID.
+                    P112_SHOW: &P112_SHOW.
+                }
+            }
+        }
+        execution {
+            point: afterProcessing
+            sequence: 20
+        }
+    )
+
+)

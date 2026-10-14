@@ -233,3 +233,25 @@ select k.event_code,
        k.event_day, k.event_count
   from oan_kpi_daily k
  where sys_context('OAN_CTX','IS_ADMIN') = 'Y';
+
+-- Company registrations (page 112, Platform Admin)
+create or replace view oan_admin_org_applications_v as
+select a.id, a.reference, a.org_name, a.org_type,
+       case a.org_type when 'PARTNER' then 'Oracle partner' when 'CUSTOMER' then 'Oracle customer'
+                       when 'NON_ORACLE_PARTNER' then 'Technology partner' else 'Company' end org_type_label,
+       a.website, a.industry, a.country, a.company_size,
+       a.first_name || ' ' || a.last_name contact_name, a.email, a.designation, a.linkedin_url,
+       (select listagg(c.label, ', ') within group (order by c.sort_order) from oan_lu_codes c
+         where c.code_type = 'ORG_INTEREST' and instr(':' || a.interest_areas || ':', ':' || c.code || ':') > 0) interests,
+       (select listagg(c.label, ', ') within group (order by c.sort_order) from oan_lu_codes c
+         where c.code_type = 'ORG_ENGAGEMENT' and instr(':' || a.engagement_types || ':', ':' || c.code || ':') > 0) engagements,
+       a.contributions, a.status, initcap(replace(a.status, '_', ' ')) status_label, a.decision_note, a.created_at, a.decided_at,
+       (select count(*) from oan_users u where lower(u.email) = a.email and u.account_type = 'MEMBER') is_member
+  from oan_org_applications a
+ where sys_context('OAN_CTX','IS_ADMIN') = 'Y';
+
+create or replace view oan_admin_organisations_v as
+select o.id, o.name, o.org_type, o.verified, o.status, o.created_at, o.verified_at,
+       (select count(*) from oan_org_contacts c where c.org_id = o.id) contacts
+  from oan_organisations o
+ where sys_context('OAN_CTX','IS_ADMIN') = 'Y';

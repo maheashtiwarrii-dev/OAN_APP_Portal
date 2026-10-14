@@ -355,7 +355,7 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 ### W5 — Opportunities, helpdesk, skills insights, organisations (S7–S8)
 | ID | Page(s) / task | Delivers | Est | Status |
 |---|---|---|---|---|
-| W5.1 | Organisations + 55 application + 1025; **conversion of onboarding role answers to a draft org application** (S30) | FR-20/42, R22 | 4.5 | [ ] |
+| W5.1 | Organisations + 55 application + 1025; **conversion of onboarding role answers to a draft org application** (S30) | FR-20/42, R22 | 4.5 | [~] 14 Oct (pulled forward on user request): `104_organisations.sql`, `oan_org_pkg` (public registration for any company - CXOs, Oracle partners, customers, others - offering full-time, gig, contract, business and collaboration work; admin verification with re-auth; PARTNER owner or member org scope), page 76 Register your company, page 112 Company registrations, page 70 Company workspace (first slice), suite `ut_oan_orgs` 6/6. Open: contact invites, conversion of onboarding role answers |
 | W5.2 | Jobs + `OAN_OPPORTUNITY_FEED_V` (incl. `NON_ORACLE_PARTNER` filter, S25-Y) + 27, 28, 29 + **separate `ORG_WORKSPACE` org views of 27/28** (S09) + 1026; applications purged at 12 months (+ test); **aggregate Careers-click and boomerang events** (S31) | FR-36, R07 | 7 | [ ] |
 | W5.3 | Referrals + 33 (R18); 12-month purge (+ test) | FR-37 | 2.5 | [ ] |
 | W5.4 | Helpdesk (expert connection, RFP, feedback, general support) + 34, 35, 1052; **"HR documents" topic = signpost to Oracle's public alumni HR channel, no request row** (Q29); personal-data pattern check on all free text; **aggregate "resolved with no reopen"** (S31) | FR-44 | 3 | [ ] |

@@ -1,0 +1,162 @@
+page 70 (
+    name: Company Workspace
+    alias: COMPANY-WORKSPACE
+    title: Company workspace
+    pageGroup: @organisation
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    security {
+        authorizationScheme: @is-org-contact
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: Build Pack W6 partner workspace landing (page 70; FR-42), first slice pulled forward on 14 Oct 2026 with company registration. Organisation page group, so the viewer runs as ORG (R01). Shows the verified organisation and its contacts. Posting jobs, gig work and business opportunities, responses, conversations with members and CV review with member consent arrive in W5/W6 on this workspace.
+    }
+
+    region r70_org (
+        name: Your company
+        type: dynamicContent
+        source {
+            plsqlFunctionBody:
+                ```plsql
+                declare
+                    l_html clob;
+                begin
+                    for o in (select * from oan_my_org_v) loop
+                        l_html := '<div class="oan-dcard-top"><span class="oan-dcard-avatar oan-av-1" aria-hidden="true">'
+                            || apex_escape.html(upper(substr(o.name, 1, 2))) || '</span><div>'
+                            || '<div class="oan-dcard-name" style="font-size:20px">' || apex_escape.html(o.name) || '</div>'
+                            || '<div class="oan-dcard-line">' || apex_escape.html(o.org_type_label)
+                            || case when o.verified = 'Y' then ' &middot; Verified by OAN' end
+                            || case when o.status = 'SUSPENDED' then ' &middot; Suspended' end || '</div>'
+                            || case when o.website is not null then '<div class="oan-dcard-org">' || apex_escape.html(o.website) || '</div>' end
+                            || '<div class="oan-dcard-loc">' || apex_escape.html(trim(o.industry || case when o.industry is not null and o.country is not null then ' &middot; ' end || o.country)) || '</div>'
+                            || '</div></div>'
+                            || '<p><strong>Interests:</strong> ' || apex_escape.html(nvl(o.interests, '-')) || '</p>'
+                            || '<p><strong>Working with OAN members:</strong> ' || apex_escape.html(nvl(o.engagements, '-')) || '</p>'
+                            || '<p><strong>Your role:</strong> ' || initcap(nvl(o.my_role, 'contact')) || '</p>';
+                    end loop;
+                    return l_html;
+                end;
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region r70_next (
+        name: What you can do with OAN
+        type: staticContent
+        source {
+            htmlCode:
+                ```html
+                <ul>
+                  <li><strong>Post opportunities</strong> - full-time roles, gig and contract assignments, business opportunities and collaboration requests (opening with the Opportunities wave).</li>
+                  <li><strong>Find talent</strong> - see member profiles that members make visible to partners, and CVs that members share with you or send with an application.</li>
+                  <li><strong>Talk to members</strong> - respond to applications and introductions in Conversations.</li>
+                  <li><strong>Invite colleagues</strong> - the company owner can add up to five colleagues.</li>
+                </ul>
+                <p>OAN never sells or exports member data. Members decide what you see, and can withdraw it at any time.</p>
+                ```
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region r70_contacts (
+        name: Company contacts
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select contact_name, designation, role_label, added_at
+                  from oan_my_org_contacts_v
+                 order by role_label desc, contact_name
+                ```
+        }
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: No contacts yet.
+        }
+
+        column CONTACT_NAME (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: Name
+            }
+            layout {
+                sequence: 1
+            }
+        )
+
+        column DESIGNATION (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Designation
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column ROLE_LABEL (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Role
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column ADDED_AT (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Since
+            }
+            layout {
+                sequence: 4
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+    )
+
+)

@@ -93,6 +93,14 @@ create or replace package body oan_notify_pkg as
                        p_link_url in varchar2 default null, p_link_text in varchar2 default null,
                        p_unsubscribe_url in varchar2 default null) is
   begin
+    -- Jobs and tests run without an APEX session: the template lookup needs the workspace
+    if sys_context('APEX$SESSION', 'APP_SESSION') is null then
+      begin
+        apex_util.set_workspace(p_workspace => nvl(oan_util.get_config('APEX_WORKSPACE'), 'OAN_APP'));
+      exception
+        when others then null;
+      end;
+    end if;
     apex_mail.send(
       p_to                 => p_to,
       p_from               => oan_util.get_config('MAIL_FROM'),
@@ -103,6 +111,11 @@ create or replace package body oan_notify_pkg as
                                           'LINK_TEXT'       value coalesce(p_link_text, 'Open OAN Portal'),
                                           'UNSUBSCRIBE_URL' value p_unsubscribe_url),
       p_application_id     => app_id);
+  exception
+    when others then
+      -- A mail problem never undoes the action that sent it; the failure is audited (no address logged)
+      oan_audit_pkg.log_autonomous('EMAIL_SEND_FAILED', null, null, null,
+                                   json_object('title' value substr(p_title, 1, 100), 'error' value substr(sqlerrm, 1, 200)));
   end send_email;
 
   function effective_mode(p_user_id in number, p_type in varchar2) return varchar2 is

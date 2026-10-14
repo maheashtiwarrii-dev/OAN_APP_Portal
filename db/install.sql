@@ -27,6 +27,7 @@ prompt == DDL
 @@ddl/101_messaging.sql
 @@ddl/102_events.sql
 @@ddl/103_insights_events.sql
+@@ddl/104_organisations.sql
 
 prompt == Packages (bodies with forward references compile at the end)
 whenever sqlerror continue
@@ -54,6 +55,7 @@ whenever sqlerror continue
 @@packages/240_oan_group_pkg.sql
 @@packages/245_oan_message_pkg.sql
 @@packages/250_oan_moderation_pkg.sql
+@@packages/255_oan_org_pkg.sql
 @@packages/260_oan_privacy_pkg.sql
 @@packages/265_oan_export_pkg.sql
 @@packages/270_oan_search_pkg.sql
@@ -104,5 +106,6 @@ whenever sqlerror continue
 @@tests/ut_oan_w2.sql
 @@tests/ut_oan_messaging.sql
 @@tests/ut_oan_w3.sql
+@@tests/ut_oan_orgs.sql
 
 prompt Install complete. Run 20_app_synonyms.sql as OAN_APP, then 30_assert_no_table_grants.sql.

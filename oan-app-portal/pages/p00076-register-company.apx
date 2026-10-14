@@ -1,0 +1,499 @@
+page 76 (
+    name: Company Registration
+    alias: REGISTER-COMPANY
+    title: Register your company with OAN
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    security {
+        authentication: public
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: Organisation application (PRD B10.19 / FR-20, R22; Build Pack page 76 per Q31; pulled forward 14 Oct 2026 on user request). Public form for any company - IT CXOs, Oracle partners, customers and other companies - to offer OAN members full-time roles, gig and contract work, business opportunities and collaboration. OAN_ORG_PKG.SUBMIT_APPLICATION validates, rate-limits, refuses ID numbers and notifies Platform Admins (page 112). Companies see only what members choose to share (Members+Partners sections, CVs shared with them, R13).
+    }
+
+    region r76_intro (
+        name: Work with OAN alumni
+        type: staticContent
+        source {
+            htmlCode:
+                ```html
+                <p>OAN brings together experienced Oracle alumni across cloud, applications, consulting, sales and support.
+                CXOs, Oracle partners, customers and any company looking for this talent can register to:</p>
+                <ul>
+                  <li>post full-time roles, gig and contract assignments for OAN members;</li>
+                  <li>share business opportunities, bids and collaboration requests;</li>
+                  <li>talk to members in OAN Conversations;</li>
+                  <li>review member profiles, and CVs that members choose to share with you or send with an application.</li>
+                </ul>
+                <p>An OAN administrator verifies every company before it can post. Registration is free.</p>
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: itemIsNull
+            item: P76_REFERENCE
+        }
+    )
+
+    region r76_form (
+        name: Company registration
+        type: staticContent
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: itemIsNull
+            item: P76_REFERENCE
+        }
+    )
+
+    region r76_done (
+        name: Thank you
+        type: staticContent
+        source {
+            htmlCode:
+                ```html
+                <p>Thank you. Your registration reference is <strong>&P76_REFERENCE.</strong>.</p>
+                <p>We have emailed you a confirmation. An OAN administrator will verify your company and email you the decision,
+                with a link to set your password and open the Company workspace.</p>
+                ```
+        }
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P76_REFERENCE
+        }
+    )
+
+    pageItem P76_REFERENCE (
+        type: hidden
+        layout {
+            sequence: 1
+            region: @r76_done
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P76_INTERESTS (
+        type: checkboxGroup
+        label {
+            label: Areas of interest
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select d, r from oan_org_interests_lov_v order by sort_order
+                ```
+        }
+        layout {
+            sequence: 10
+            region: @r76_form
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+        }
+    )
+
+    pageItem P76_ENGAGEMENTS (
+        type: checkboxGroup
+        label {
+            label: How would you like to work with OAN members?
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select d, r from oan_org_engagements_lov_v order by sort_order
+                ```
+        }
+        layout {
+            sequence: 20
+            region: @r76_form
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+        }
+    )
+
+    pageItem P76_FIRST_NAME (
+        type: textField
+        label {
+            label: First name
+        }
+        layout {
+            sequence: 30
+            region: @r76_form
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+            maxLength: 100
+        }
+    )
+
+    pageItem P76_LAST_NAME (
+        type: textField
+        label {
+            label: Last name
+        }
+        layout {
+            sequence: 40
+            region: @r76_form
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+            maxLength: 100
+        }
+    )
+
+    pageItem P76_EMAIL (
+        type: textField
+        label {
+            label: Work email
+        }
+        layout {
+            sequence: 50
+            region: @r76_form
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+            maxLength: 320
+        }
+    )
+
+    pageItem P76_DESIGNATION (
+        type: textField
+        label {
+            label: Designation
+        }
+        layout {
+            sequence: 60
+            region: @r76_form
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+            maxLength: 200
+        }
+    )
+
+    pageItem P76_COMPANY (
+        type: textField
+        label {
+            label: Company name
+        }
+        layout {
+            sequence: 70
+            region: @r76_form
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+            maxLength: 200
+        }
+    )
+
+    pageItem P76_ORG_TYPE (
+        type: selectList
+        label {
+            label: Type of company
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:Oracle partner;PARTNER,Oracle customer;CUSTOMER,Technology partner (non-Oracle);NON_ORACLE_PARTNER,Other company;OTHER
+            displayExtraValues: false
+            displayNullValue: false
+        }
+        default {
+            type: static
+            staticValue: OTHER
+        }
+        layout {
+            sequence: 80
+            region: @r76_form
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P76_WEBSITE (
+        type: textField
+        label {
+            label: Company website (https://)
+        }
+        layout {
+            sequence: 90
+            region: @r76_form
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 300
+        }
+    )
+
+    pageItem P76_INDUSTRY (
+        type: textField
+        label {
+            label: Industry
+        }
+        layout {
+            sequence: 100
+            region: @r76_form
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 100
+        }
+    )
+
+    pageItem P76_COUNTRY (
+        type: textField
+        label {
+            label: Country
+        }
+        layout {
+            sequence: 110
+            region: @r76_form
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 100
+        }
+    )
+
+    pageItem P76_SIZE (
+        type: selectList
+        label {
+            label: Company size
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:1-10 people;1-10,11-50 people;11-50,51-200 people;51-200,201-1000 people;201-1000,1001-5000 people;1001-5000,More than 5000;5000+
+            displayExtraValues: false
+            displayNullValue: true
+        }
+        layout {
+            sequence: 120
+            region: @r76_form
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P76_LINKEDIN (
+        type: textField
+        label {
+            label: Your LinkedIn profile link
+        }
+        layout {
+            sequence: 130
+            region: @r76_form
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+            maxLength: 500
+        }
+    )
+
+    pageItem P76_CONTRIBUTIONS (
+        type: textarea
+        label {
+            label: Share examples of initiatives you have led or supported for the IT industry, talent development or alumni communities
+        }
+        layout {
+            sequence: 140
+            region: @r76_form
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+            maxLength: 4000
+        }
+    )
+
+    pageItem P76_TERMS (
+        type: checkbox
+        label {
+            label: I accept the Partner Terms and the Privacy Notice, and I am authorised to register this company
+        }
+        settings {
+            useDefaults: false
+            checkedValue: Y
+            uncheckedValue: N
+        }
+        layout {
+            sequence: 150
+            region: @r76_form
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    button submit (
+        buttonName: SUBMIT
+        label: Register company
+        layout {
+            sequence: 10
+            region: @r76_form
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process submit (
+        name: Submit company registration
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                :P76_REFERENCE := oan_org_pkg.submit_application(
+                    p_org_name         => :P76_COMPANY,
+                    p_org_type         => :P76_ORG_TYPE,
+                    p_website          => :P76_WEBSITE,
+                    p_industry         => :P76_INDUSTRY,
+                    p_country          => :P76_COUNTRY,
+                    p_company_size     => :P76_SIZE,
+                    p_first_name       => :P76_FIRST_NAME,
+                    p_last_name        => :P76_LAST_NAME,
+                    p_email            => :P76_EMAIL,
+                    p_designation      => :P76_DESIGNATION,
+                    p_linkedin_url     => :P76_LINKEDIN,
+                    p_interest_areas   => :P76_INTERESTS,
+                    p_engagement_types => :P76_ENGAGEMENTS,
+                    p_contributions    => :P76_CONTRIBUTIONS,
+                    p_terms            => nvl(:P76_TERMS, 'N'));
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        serverSideCondition {
+            whenButtonPressed: @submit
+        }
+    )
+
+    branch done (
+        name: Show the reference
+        behavior {
+            type: pageOrUrl
+            target: {
+                page: 76
+                items: {
+                    P76_REFERENCE: &P76_REFERENCE.
+                }
+            }
+        }
+        execution {
+            point: afterProcessing
+            sequence: 10
+        }
+        serverSideCondition {
+            whenButtonPressed: @submit
+        }
+    )
+
+)

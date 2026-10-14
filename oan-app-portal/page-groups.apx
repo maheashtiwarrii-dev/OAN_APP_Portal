@@ -2,3 +2,7 @@ pageGroup administration (
     name: Administration
 )
 
+
+pageGroup organisation (
+    name: Organisation
+)

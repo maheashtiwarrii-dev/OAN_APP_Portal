@@ -989,3 +989,32 @@ select i.id, i.title, i.content_type,
   from oan_library_items i
  where i.item_type = 'ARTICLE'
    and i.author_id = to_number(sys_context('OAN_CTX','VIEWER_ID'));
+
+------------------------------------------------------- organisations (W5.1, pages 70/76) --
+-- Public lists for the company registration form (no personal data)
+create or replace view oan_org_interests_lov_v as
+select c.label d, c.code r, c.sort_order from oan_lu_codes c where c.code_type = 'ORG_INTEREST' and c.active_yn = 'Y';
+
+create or replace view oan_org_engagements_lov_v as
+select c.label d, c.code r, c.sort_order from oan_lu_codes c where c.code_type = 'ORG_ENGAGEMENT' and c.active_yn = 'Y';
+
+-- The viewer's organisation (company workspace, page 70)
+create or replace view oan_my_org_v as
+select o.id, o.name, o.org_type,
+       case o.org_type when 'PARTNER' then 'Oracle partner' when 'CUSTOMER' then 'Oracle customer'
+                       when 'NON_ORACLE_PARTNER' then 'Technology partner' else 'Company' end org_type_label,
+       o.website, o.industry, o.country, o.company_size, o.verified, o.verified_at, o.status,
+       (select listagg(c.label, ', ') within group (order by c.sort_order) from oan_lu_codes c
+         where c.code_type = 'ORG_INTEREST' and instr(':' || o.interest_areas || ':', ':' || c.code || ':') > 0) interests,
+       (select listagg(c.label, ', ') within group (order by c.sort_order) from oan_lu_codes c
+         where c.code_type = 'ORG_ENGAGEMENT' and instr(':' || o.engagement_types || ':', ':' || c.code || ':') > 0) engagements,
+       (select oc.contact_role from oan_org_contacts oc
+         where oc.org_id = o.id and oc.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID'))) my_role
+  from oan_organisations o
+ where o.id = oan_org_pkg.my_org_id;
+
+create or replace view oan_my_org_contacts_v as
+select oc.user_id, p.first_name || ' ' || p.last_name contact_name, oc.designation, initcap(oc.contact_role) role_label, oc.added_at
+  from oan_org_contacts oc
+  join oan_profiles p on p.user_id = oc.user_id
+ where oc.org_id = oan_org_pkg.my_org_id;

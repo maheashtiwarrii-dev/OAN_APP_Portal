@@ -209,3 +209,19 @@ authorization is-support (
         comments: Build Pack §2.1 / PRD B2 scheme. Reads the APEX ACL role SUPPORT until OAN_CTX carries a ROLES list (task 1.30); the data layer re-checks in packages.
     }
 )
+authorization is-org-contact (
+    name: IS_ORG_CONTACT
+    type: plSqlFunctionBody
+    settings {
+        plsqlFunctionBody: return oan_org_pkg.is_org_contact = 'Y';
+    }
+    advanced {
+        evaluationType: perPageView
+    }
+    error {
+        errorMessage: This page is for contacts of a verified company. Register your company first.
+    }
+    comments {
+        comments: Company workspace (W5.1 pulled forward, FR-20/42). True for the owner and contacts of an active, verified organisation (PARTNER accounts, or members holding a PARTNER_CONTACT scope for it). OAN_ORG_PKG re-checks.
+    }
+)

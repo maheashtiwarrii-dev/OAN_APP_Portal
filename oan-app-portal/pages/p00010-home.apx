@@ -443,6 +443,25 @@ page 10 (
         }
     )
 
+    branch route-company (
+        name: Route company accounts to the Company workspace
+        behavior {
+            type: pageOrUrl
+            target: {
+                page: 70
+            }
+        }
+        execution {
+            point: beforeHeader
+            sequence: 5
+        }
+        serverSideCondition {
+            type: expression
+            language: plsql
+            plsqlExpression: sys_context('OAN_CTX','VIEWER_TYPE') = 'PARTNER' and oan_org_pkg.is_org_contact = 'Y'
+        }
+    )
+
     branch route-applicants (
         name: Route non-members to their status page
         behavior {

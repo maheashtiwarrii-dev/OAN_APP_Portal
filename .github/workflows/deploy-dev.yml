@@ -1,0 +1,101 @@
+# CD to the dev Autonomous Database (plan task 0.16b). Manual only: never runs on push.
+# PROD deployment is not automated here; it needs gate 8.0 (plan WS8).
+#
+# Repository secrets (Settings > Secrets and variables > Actions), environment "dev":
+#   OAN_WALLET_ZIP_B64   base64 of the ADB wallet zip
+#   OAN_DB_SERVICE       TNS alias, for example aiatp_tp
+#   OAN_APP_PASSWORD     password of OAN_APP (APEX parsing schema)
+#   OAN_DEPLOY_PASSWORD  password of OAN_DEPLOY (connects as OAN_DEPLOY[OAN_DATA] for tests)
+#   OAN_APP_URL          public app URL, for example https://<host>/ords/f?p=200
+name: Deploy to dev
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_tests:
+        description: Run the utPLSQL suites after the import
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-dev
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Import app 200 into dev
+    runs-on: ubuntu-latest
+    environment: dev
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Install SQLcl
+        run: |
+          curl -fsSL -o sqlcl.zip https://download.oracle.com/otn_software/java/sqldeveloper/sqlcl-latest.zip
+          unzip -q sqlcl.zip -d "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/sqlcl/bin" >> "$GITHUB_PATH"
+
+      - name: Validate before deploying
+        run: |
+          printf 'apex validate -input "%s"\nexit\n' "$PWD/oan-app-portal" | sql /nolog | tee validate.log
+          grep -q 'Validation successful' validate.log
+
+      - name: Write wallet
+        env:
+          WALLET_B64: ${{ secrets.OAN_WALLET_ZIP_B64 }}
+        run: echo "$WALLET_B64" | base64 -d > "$RUNNER_TEMP/wallet.zip"
+
+      - name: Import application 200
+        env:
+          APP_PWD: ${{ secrets.OAN_APP_PASSWORD }}
+          SERVICE: ${{ secrets.OAN_DB_SERVICE }}
+        run: |
+          {
+            echo "set cloudconfig $RUNNER_TEMP/wallet.zip"
+            echo "connect OAN_APP/\"$APP_PWD\"@$SERVICE"
+            echo "begin apex_application_install.set_auto_install_sup_obj(p_auto_install_sup_obj => true); end;"
+            echo "/"
+            echo "apex import -input \"$PWD/oan-app-portal\""
+            echo "select application_id, pages from apex_applications where application_id = 200;"
+            echo "exit"
+          } > "$RUNNER_TEMP/import.sql"
+          sql -S /nolog @"$RUNNER_TEMP/import.sql" | tee import.log
+          rm -f "$RUNNER_TEMP/import.sql"
+          grep -q 'Import successful' import.log
+
+      - name: utPLSQL suites
+        if: ${{ inputs.run_tests }}
+        env:
+          DEPLOY_PWD: ${{ secrets.OAN_DEPLOY_PASSWORD }}
+          SERVICE: ${{ secrets.OAN_DB_SERVICE }}
+        run: |
+          {
+            echo "set cloudconfig $RUNNER_TEMP/wallet.zip"
+            echo "connect OAN_DEPLOY[OAN_DATA]/\"$DEPLOY_PWD\"@$SERVICE"
+            echo "set serveroutput on size unlimited"
+            echo "exec ut.run(ut_varchar2_list('ut_oan_vis','ut_oan_directory','ut_oan_career','ut_oan_network'));"
+            echo "exit"
+          } > "$RUNNER_TEMP/ut.sql"
+          sql -S /nolog @"$RUNNER_TEMP/ut.sql" | tee ut.log
+          rm -f "$RUNNER_TEMP/ut.sql"
+          grep -qE '[0-9]+ tests, 0 failed, 0 errored' ut.log
+
+      - name: Smoke test (sign-in page responds)
+        env:
+          APP_URL: ${{ secrets.OAN_APP_URL }}
+        run: |
+          code=$(curl -s -L -c cj.txt -b cj.txt -o page.html -w '%{http_code}' --max-redirs 10 "$APP_URL")
+          echo "HTTP $code"
+          test "$code" = "200"
+
+      - name: Remove wallet
+        if: always()
+        run: rm -f "$RUNNER_TEMP/wallet.zip"

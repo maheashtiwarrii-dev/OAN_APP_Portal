@@ -1,0 +1,65 @@
+# CI for OAN Portal (plan task 0.9). Runs on every push and pull request.
+# No database and no secrets are needed: APEXLang validation is offline.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  static-checks:
+    name: Static checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Brand check (no Oracle logos, Q23/Q30)
+        shell: pwsh
+        run: ./ci/check-brand.ps1 -AppDirectory ./oan-app-portal
+
+      - name: Link check (no reachable link to a missing page)
+        run: python3 ci/check-links.py oan-app-portal
+
+      - name: Base-table check (NFR-03: views and granted packages only)
+        run: python3 ci/check-base-tables.py oan-app-portal db
+
+      - name: Dev-only scripts stay out of the install
+        run: |
+          if grep -nE '@@?dev/' db/install.sql; then
+            echo "db/install.sql must not run dev-only scripts"; exit 1
+          fi
+          echo "install.sql has no dev-only scripts"
+
+      - name: Secret scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  apex-validate:
+    name: APEXLang validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Install SQLcl
+        run: |
+          curl -fsSL -o sqlcl.zip https://download.oracle.com/otn_software/java/sqldeveloper/sqlcl-latest.zip
+          unzip -q sqlcl.zip -d "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/sqlcl/bin" >> "$GITHUB_PATH"
+
+      - name: Validate oan-app-portal (offline)
+        run: |
+          printf 'apex validate -input "%s"\nexit\n' "$PWD/oan-app-portal" | sql /nolog | tee validate.log
+          grep -q 'Validation successful' validate.log

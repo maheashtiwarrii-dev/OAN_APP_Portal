@@ -1,0 +1,48 @@
+# Publishes the Kanban delivery board to GitHub Pages (board only, not the rest of the repo).
+name: Delivery board
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - docs/delivery-board.html
+      - docs/OAN-Delivery-Board-landscape.pdf
+      - .github/workflows/board.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build site
+        run: |
+          mkdir -p site
+          {
+            echo '<!doctype html><html lang="en"><head><meta charset="utf-8">'
+            echo '<meta name="viewport" content="width=device-width, initial-scale=1"></head><body>'
+            cat docs/delivery-board.html
+            echo '</body></html>'
+          } > site/index.html
+          cp docs/OAN-Delivery-Board-landscape.pdf site/
+          touch site/.nojekyll
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - id: deploy
+        uses: actions/deploy-pages@v4

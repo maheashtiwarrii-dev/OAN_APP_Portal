@@ -1,7 +1,8 @@
 --------------------------------------------------------------------------------
 -- oan_kpi_pkg (W2.5, S31): aggregate product KPIs. Daily counts only; no user id, session or
 -- query text is ever stored, so the table holds no personal data.
---   * bump: pages call it (DIRECTORY_SEARCH on page 21, DIRECTORY_PROFILE_OPEN on page 22).
+--   * bump: pages call it (DIRECTORY_SEARCH on page 21, DIRECTORY_PROFILE_OPEN on page 22, ARTICLE_VIEW on 31,
+--     EVENT_VIEW and EVENT_RETURN_VISIT on 33, EVENT_REGISTER from oan_event_pkg).
 --     Autonomous, so a page error never loses or duplicates the count and never blocks the page.
 --   * rollup (daily job KPI_ROLLUP): derived rates, e.g. SEARCH_TO_PROFILE_PCT for the last 7 days.
 --------------------------------------------------------------------------------
@@ -16,7 +17,8 @@ create or replace package body oan_kpi_pkg as
   procedure bump(p_code in varchar2) is
     pragma autonomous_transaction;
   begin
-    if p_code not in ('DIRECTORY_SEARCH','DIRECTORY_PROFILE_OPEN') then
+    if p_code not in ('DIRECTORY_SEARCH','DIRECTORY_PROFILE_OPEN','ARTICLE_VIEW','EVENT_VIEW','EVENT_REGISTER',
+                      'EVENT_RETURN_VISIT') then
       return;                                       -- only known counters; derived codes are rollup-only
     end if;
     merge into oan_kpi_daily k

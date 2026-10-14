@@ -19,7 +19,7 @@ create or replace package ut_oan_page_content as
   procedure devi_pages;
   --%test(Admin context: approval queue, moderation queue, appeals, chapter requests, members, audit)
   procedure admin_pages;
-  --%test(14 Oct: conversations, upcoming events, CV sections, introductions and recommendations (650 script))
+  --%test(14 Oct: conversations, insights, events, CV sections, introductions and recommendations (650/660 scripts))
   procedure conversations_events_w2;
 end ut_oan_page_content;
 /
@@ -102,6 +102,10 @@ create or replace package body ut_oan_page_content as
   procedure conversations_events_w2 is
   begin
     oan_ctx_pkg.set_test_viewer(uid('tester.asha@synthetic.oan.invalid'), 'MEMBER');
+    expect_rows(sys.odcivarchar2list('oan_insights_v', 'oan_my_saved_v', 'oan_my_articles_v', 'oan_events_v',
+                                     'oan_event_attendees_v'));
+    expect_rows(sys.odcivarchar2list('oan_events_v'), 'is_past = ''Y''');
+    expect_rows(sys.odcivarchar2list('oan_events_v'), 'my_status = ''GOING'' and is_past = ''N''');
     expect_rows(sys.odcivarchar2list('oan_my_threads_v', 'oan_thread_messages_v', 'oan_upcoming_events_v',
                                      'oan_my_cv_sections_v', 'oan_my_intro_requests_v', 'oan_message_contacts_v'));
     oan_ctx_pkg.set_test_viewer(uid('tester.chen@synthetic.oan.invalid'), 'MEMBER');

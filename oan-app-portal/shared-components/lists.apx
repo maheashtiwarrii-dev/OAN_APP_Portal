@@ -231,6 +231,9 @@ list navigation-menu (
         isCurrent {
             type: pages
             pages: [
+                30
+                31
+                301
                 34
                 35
                 36
@@ -238,7 +241,7 @@ list navigation-menu (
         }
         link {
             target: {
-                page: 34
+                page: 30
             }
         }
         security {
@@ -284,19 +287,24 @@ list navigation-menu (
         layout {
             sequence: 45
         }
+        isCurrent {
+            type: pages
+            pages: [
+                32
+                33
+                331
+            ]
+        }
         link {
             target: {
-                page: 10
+                page: 32
             }
         }
         security {
             authorizationScheme: @is-active
         }
-        config {
-            buildOption: @not-yet-built
-        }
         comments {
-            comments: Events pages arrive with W3.4; until then upcoming events show on Home. Hidden (R05).
+            comments: W3 Events (pages 32, 33, 331), 14 Oct 2026.
         }
     )
 

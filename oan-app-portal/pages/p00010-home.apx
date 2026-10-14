@@ -165,15 +165,17 @@ page 10 (
                 declare
                     l_html clob;
                 begin
-                    for e in (select title, venue, is_online, chapter_name, day_no, month_abbr, when_label
+                    for e in (select id, title, venue, is_online, chapter_name, day_no, month_abbr, when_label, my_status
                                 from oan_upcoming_events_v order by starts_at fetch first 6 rows only) loop
-                        l_html := l_html || '<div class="oan-event"><div class="oan-event-date" aria-hidden="true"><b>'
+                        l_html := l_html || '<a class="oan-event" href="' || apex_page.get_url(p_page => 33, p_items => 'P33_EVENT_ID', p_values => e.id)
+                            || '"><div class="oan-event-date" aria-hidden="true"><b>'
                             || e.day_no || '</b><span>' || e.month_abbr || '</span></div><div><div class="oan-event-title">'
                             || apex_escape.html(e.title) || '</div><div class="oan-event-meta">'
                             || apex_escape.html(e.when_label) || ' &middot; '
                             || case when e.is_online = 'Y' then 'Online' else apex_escape.html(e.venue) end
                             || case when e.chapter_name is not null then ' &middot; ' || apex_escape.html(e.chapter_name) end
-                            || '</div></div></div>';
+                            || case when e.my_status = 'GOING' then ' &middot; You are going' end
+                            || '</div></div></a>';
                     end loop;
                     return case when l_html is not null then '<div class="oan-events-strip">' || l_html || '</div>' end;
                 end;

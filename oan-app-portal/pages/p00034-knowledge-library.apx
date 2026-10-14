@@ -52,6 +52,7 @@ page 34 (
                        case is_featured when 'Y' then 'Featured' end featured,
                        helpful_count, view_count, published_at
                   from oan_library_v
+                 where item_type != 'ARTICLE'
                 ```
         }
         layout {

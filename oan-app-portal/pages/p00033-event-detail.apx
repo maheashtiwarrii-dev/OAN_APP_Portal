@@ -1,0 +1,673 @@
+page 33 (
+    name: Event Detail
+    alias: EVENT-DETAIL
+    title: Event
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    security {
+        authorizationScheme: @is-active
+        pageAccessProtection: unrestricted
+        formAutoComplete: false
+    }
+    comments {
+        comments: Build Pack W3 page 33 Event detail (FR-22; W3.4/W3.6). Register (GOING or WAITLIST when full), cancel, not going, Add to calendar (.ics with the joining link only for GOING members), attendee list (blocked or inactive members drop out), resources after the event, and check-in for managers. Notifications link here, so P33_EVENT_ID is unrestricted; OAN_EVENTS_V and OAN_EVENT_PKG decide access. Aggregate KPIs EVENT_VIEW and EVENT_RETURN_VISIT have no user id.
+    }
+
+    region r33_event (
+        name: Event
+        type: dynamicContent
+        source {
+            plsqlFunctionBody:
+                ```plsql
+                declare
+                    l_html clob;
+                begin
+                    for e in (select * from oan_events_v where id = to_number(:P33_EVENT_ID)) loop
+                        l_html := '<article class="oan-article"><div class="oan-dcard-top">'
+                            || '<span class="oan-event-date" aria-hidden="true"><b>' || e.day_no || '</b><span>' || e.month_abbr || '</span></span>'
+                            || '<div><h1 style="margin:0">' || apex_escape.html(e.title) || '</h1>'
+                            || '<p class="oan-article-meta">' || apex_escape.html(e.when_local)
+                            || case when e.ends_local is not null then '–' || e.ends_local end
+                            || ' (' || apex_escape.html(e.timezone) || ') &middot; '
+                            || case when e.is_online = 'Y' then 'Online' else apex_escape.html(e.venue) end
+                            || ' &middot; ' || apex_escape.html(nvl(e.chapter_name, 'All members')) || '</p></div></div>';
+                        if e.status = 'CANCELLED' then
+                            l_html := l_html || '<div class="t-Alert t-Alert--warning t-Alert--horizontal"><div class="t-Alert-body">'
+                                || 'This event was cancelled. ' || apex_escape.html(e.cancel_reason) || '</div></div>';
+                        end if;
+                        l_html := l_html || '<p class="oan-article-summary">' || apex_escape.html(e.summary) || '</p>';
+                        if e.details is not null then
+                            l_html := l_html || '<div class="oan-article-body"><p>'
+                                || replace(replace(apex_escape.html(e.details), chr(10) || chr(10), '</p><p>'), chr(10), '<br>') || '</p></div>';
+                        end if;
+                        l_html := l_html || '<p><strong>' || e.going_count || '</strong> going'
+                            || case when e.capacity is not null then ' of ' || e.capacity || ' places' end
+                            || case when e.waitlist_count > 0 then ' &middot; ' || e.waitlist_count || ' on the waitlist' end || '</p>';
+                        l_html := l_html || '<p><strong>Your status:</strong> '
+                            || case e.my_status when 'GOING' then 'You are going'
+                                                when 'WAITLIST' then 'You are on the waitlist; we will tell you if a place opens'
+                                                when 'NOT_GOING' then 'Not going'
+                                                when 'CANCELLED' then 'You cancelled'
+                                                else 'Not registered' end
+                            || case when e.my_attended = 'Y' then ' (attended)' end || '</p>';
+                        if e.online_url is not null then
+                            l_html := l_html || '<p><strong>Joining link:</strong> <a href="' || apex_escape.html_attribute(e.online_url)
+                                || '" target="_blank" rel="noopener noreferrer">' || apex_escape.html(e.online_url) || '</a></p>';
+                        elsif e.is_online = 'Y' and e.status = 'PUBLISHED' then
+                            l_html := l_html || '<p>The joining link appears here once you register.</p>';
+                        end if;
+                        if e.is_past = 'Y' and e.resources_url is not null then
+                            l_html := l_html || '<p><strong>Slides and recordings:</strong> <a href="' || apex_escape.html_attribute(e.resources_url)
+                                || '" target="_blank" rel="noopener noreferrer">' || apex_escape.html(e.resources_url) || '</a></p>';
+                        end if;
+                        l_html := l_html || '</article>';
+                    end loop;
+                    return nvl(l_html, '<p>This event is not available. It may be for another chapter or no longer listed.</p>');
+                end;
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--hideHeader js-addHiddenHeadingRoleDesc
+            ]
+        }
+    )
+
+    region r33_attendees (
+        name: Who is going
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select user_id, display_name, headline, primary_chapter
+                  from oan_event_attendees_v
+                 where event_id = to_number(:P33_EVENT_ID)
+                 order by registered_at
+                ```
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: Nobody has registered yet. Be the first.
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P33_EVENT_STATUS
+        }
+
+        column USER_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column DISPLAY_NAME (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Member
+            }
+            layout {
+                sequence: 2
+            }
+            link {
+                target: {
+                    page: 22
+                    items: {
+                        P22_USER_ID: \#USER_ID#\
+                    }
+                }
+                linkText: #DISPLAY_NAME#
+            }
+        )
+
+        column HEADLINE (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Headline
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column PRIMARY_CHAPTER (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Chapter
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+    )
+
+    region r33_checkin (
+        name: Check-in (event managers)
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select user_id, member_name, initcap(status) status_label, registered_at,
+                       case attended when 'Y' then 'Attended' when 'N' then 'Did not attend' else 'Not recorded' end attended_label,
+                       case when status = 'GOING' then 'Attended' end mark_in,
+                       case when status = 'GOING' then 'Absent' end mark_out
+                  from oan_manage_registrations_v
+                 where event_id = to_number(:P33_EVENT_ID)
+                 order by status, registered_at
+                ```
+        }
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            template: @/collapsible
+            templateOptions: [
+                #DEFAULT#
+                is-collapsed
+            ]
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: No registrations yet.
+        }
+        serverSideCondition {
+            type: item=value
+            item: P33_CAN_MANAGE
+            value: Y
+        }
+
+        column USER_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column MEMBER_NAME (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Member
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column STATUS_LABEL (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Status
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column REGISTERED_AT (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Registered
+            }
+            layout {
+                sequence: 4
+            }
+            appearance {
+                formatMask: DD-MON-YYYY HH24:MI
+            }
+        )
+
+        column ATTENDED_LABEL (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Attendance
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+        column MARK_IN (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Mark
+            }
+            layout {
+                sequence: 6
+            }
+            link {
+                target: {
+                    page: 33
+                    items: {
+                        P33_EVENT_ID: &P33_EVENT_ID.
+                        P33_USER_ID: \#USER_ID#\
+                    }
+                    request: ATTENDED
+                }
+                linkText: #MARK_IN#
+            }
+        )
+
+        column MARK_OUT (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Mark
+            }
+            layout {
+                sequence: 7
+            }
+            link {
+                target: {
+                    page: 33
+                    items: {
+                        P33_EVENT_ID: &P33_EVENT_ID.
+                        P33_USER_ID: \#USER_ID#\
+                    }
+                    request: ABSENT
+                }
+                linkText: #MARK_OUT#
+            }
+        )
+
+    )
+
+    pageItem P33_EVENT_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @r33_event
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: unrestricted
+        }
+    )
+
+    pageItem P33_USER_ID (
+        type: hidden
+        layout {
+            sequence: 20
+            region: @r33_event
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: unrestricted
+        }
+    )
+
+    pageItem P33_MY_STATUS (
+        type: hidden
+        layout {
+            sequence: 30
+            region: @r33_event
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P33_EVENT_STATUS (
+        type: hidden
+        layout {
+            sequence: 40
+            region: @r33_event
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P33_IS_PAST (
+        type: hidden
+        layout {
+            sequence: 50
+            region: @r33_event
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P33_CAN_MANAGE (
+        type: hidden
+        layout {
+            sequence: 60
+            region: @r33_event
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    button register (
+        buttonName: REGISTER
+        label: Register
+        layout {
+            sequence: 10
+            region: @r33_event
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: expression
+            language: plsql
+            plsqlExpression: :P33_EVENT_STATUS = 'PUBLISHED' and :P33_IS_PAST = 'N' and nvl(:P33_MY_STATUS, 'NONE') not in ('GOING','WAITLIST')
+        }
+    )
+
+    button cancel-registration (
+        buttonName: CANCEL_REGISTRATION
+        label: Cancel my registration
+        layout {
+            sequence: 20
+            region: @r33_event
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: expression
+            language: plsql
+            plsqlExpression: :P33_IS_PAST = 'N' and :P33_MY_STATUS in ('GOING','WAITLIST')
+        }
+    )
+
+    button not-going (
+        buttonName: NOT_GOING
+        label: Not going
+        layout {
+            sequence: 30
+            region: @r33_event
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--simple
+            ]
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: expression
+            language: plsql
+            plsqlExpression: :P33_EVENT_STATUS = 'PUBLISHED' and :P33_IS_PAST = 'N' and :P33_MY_STATUS is null
+        }
+    )
+
+    button add-to-calendar (
+        buttonName: ADD_TO_CALENDAR
+        label: Add to calendar
+        layout {
+            sequence: 40
+            region: @r33_event
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 33
+                items: {
+                    P33_EVENT_ID: &P33_EVENT_ID.
+                }
+                request: ICS
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: expression
+            language: plsql
+            plsqlExpression: :P33_EVENT_STATUS = 'PUBLISHED' and :P33_IS_PAST = 'N'
+        }
+    )
+
+    button edit (
+        buttonName: EDIT
+        label: Edit event
+        layout {
+            sequence: 50
+            region: @r33_event
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 331
+                clearCache: 331
+                items: {
+                    P331_ID: &P33_EVENT_ID.
+                }
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: item=value
+            item: P33_CAN_MANAGE
+            value: Y
+        }
+    )
+
+    button back (
+        buttonName: BACK
+        label: All events
+        layout {
+            sequence: 60
+            region: @r33_event
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--simple
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 32
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process ics (
+        name: Download calendar file
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare
+                    l_ics clob := oan_event_pkg.ics(to_number(:P33_EVENT_ID));
+                    l_pos pls_integer := 1;
+                begin
+                    sys.owa_util.mime_header('text/calendar', false, 'UTF-8');
+                    sys.htp.p('Content-Disposition: attachment; filename="oan-event-' || to_number(:P33_EVENT_ID) || '.ics"');
+                    sys.owa_util.http_header_close;
+                    while l_pos <= dbms_lob.getlength(l_ics) loop
+                        sys.htp.prn(dbms_lob.substr(l_ics, 8000, l_pos));
+                        l_pos := l_pos + 8000;
+                    end loop;
+                    apex_application.stop_apex_engine;
+                end;
+                ```
+        }
+        execution {
+            sequence: 5
+            point: beforeHeader
+        }
+        serverSideCondition {
+            type: request=Value
+            value: ICS
+        }
+    )
+
+    process attendance (
+        name: Record attendance
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                oan_event_pkg.set_attendance(to_number(:P33_EVENT_ID), to_number(:P33_USER_ID),
+                                             case :REQUEST when 'ATTENDED' then 'Y' else 'N' end);
+                apex_util.redirect_url(apex_page.get_url(p_page => 33, p_items => 'P33_EVENT_ID', p_values => :P33_EVENT_ID));
+                ```
+        }
+        execution {
+            sequence: 8
+            point: beforeHeader
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: ATTENDED,ABSENT
+        }
+    )
+
+    process load (
+        name: Load event state
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                :P33_MY_STATUS := null;
+                :P33_EVENT_STATUS := null;
+                :P33_IS_PAST := null;
+                :P33_CAN_MANAGE := 'N';
+                for e in (select my_status, status, is_past, can_manage from oan_events_v where id = to_number(:P33_EVENT_ID)) loop
+                    :P33_MY_STATUS    := e.my_status;
+                    :P33_EVENT_STATUS := e.status;
+                    :P33_IS_PAST      := e.is_past;
+                    :P33_CAN_MANAGE   := e.can_manage;
+                    oan_kpi_pkg.bump(case when e.my_status = 'GOING' then 'EVENT_RETURN_VISIT' else 'EVENT_VIEW' end);
+                end loop;
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+    )
+
+    process registration (
+        name: Register, cancel or not going
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare
+                    l_status varchar2(20);
+                begin
+                    case :REQUEST
+                        when 'REGISTER' then
+                            l_status := oan_event_pkg.register(to_number(:P33_EVENT_ID));
+                            apex_application.g_print_success_message :=
+                                case l_status when 'GOING' then 'You are registered. Add it to your calendar.'
+                                              else 'The event is full, so you are on the waitlist. We will tell you if a place opens.' end;
+                        when 'CANCEL_REGISTRATION' then
+                            oan_event_pkg.cancel_registration(to_number(:P33_EVENT_ID));
+                            apex_application.g_print_success_message := 'Your registration was cancelled.';
+                        when 'NOT_GOING' then
+                            oan_event_pkg.not_going(to_number(:P33_EVENT_ID));
+                    end case;
+                end;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: REGISTER,CANCEL_REGISTRATION,NOT_GOING
+        }
+    )
+
+    branch back-to-event (
+        name: Back to the event
+        behavior {
+            type: pageOrUrl
+            target: {
+                page: 33
+                items: {
+                    P33_EVENT_ID: &P33_EVENT_ID.
+                }
+            }
+        }
+        execution {
+            point: afterProcessing
+            sequence: 10
+        }
+    )
+
+)

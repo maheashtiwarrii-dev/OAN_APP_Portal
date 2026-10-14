@@ -179,7 +179,8 @@ create or replace package body oan_security_pkg as
     oan_auth_pkg.require_reauth;
     require_not_self(p_user_id);
     oan_util.assert(l_role in ('ADMIN','MODERATOR','CHAPTER_ADMIN','PRIVACY_OFFICER','EXPERT','TRAINER','MENTOR',
-                               'PARTNER_CONTACT','CUSTOMER_CONTACT','SUPPORT'), 'Unknown staff role.');
+                               'PARTNER_CONTACT','CUSTOMER_CONTACT','SUPPORT','CONTENT_EDITOR','EVENT_MANAGER'),
+                    'Unknown staff role.');
     oan_util.assert(l_scope in ('GLOBAL','CHAPTER','GROUP','ORG'), 'Unknown scope.');
     oan_util.assert((l_scope = 'GLOBAL') = (p_scope_id is null), 'Choose the chapter, group or organisation for this role.');
     oan_util.assert(l_role != 'CHAPTER_ADMIN' or l_scope = 'CHAPTER', 'Chapter Admins are granted for a chapter.');

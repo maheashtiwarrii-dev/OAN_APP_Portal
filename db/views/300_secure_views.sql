@@ -883,18 +883,109 @@ select c.user_id, c.display_name
   from oan_my_connections_v c
  where oan_message_pkg.can_message(c.user_id) = 'Y';
 
------------------------------------------------------------------- events (W3.3 first slice) --
--- Published upcoming events for the Home strip; chapter events only for that chapter's members
-create or replace view oan_upcoming_events_v as
-select e.id, e.title, e.summary, e.starts_at, e.ends_at, e.venue, e.is_online,
+------------------------------------------------------------------ events (W3.3/W3.4) --
+-- Published and cancelled events in the member's scope (chapter events: that chapter's members and
+-- the event's managers). Times are shown in the event's own time zone. The online link is given to
+-- GOING members only.
+create or replace view oan_events_v as
+select e.id, e.title, e.summary, e.details, e.starts_at, e.ends_at, e.timezone, e.venue, e.is_online,
+       case when r.status = 'GOING' and e.status = 'PUBLISHED' then e.online_url end online_url,
+       e.capacity, e.waitlist_enabled, e.status, e.cancel_reason, e.resources_url, e.chapter_id,
        ch.name chapter_name,
-       to_char(e.starts_at, 'DD') day_no, upper(to_char(e.starts_at, 'MON')) month_abbr,
-       to_char(e.starts_at, 'Dy HH24:MI') when_label
+       (select count(*) from oan_event_registrations g where g.event_id = e.id and g.status = 'GOING') going_count,
+       (select count(*) from oan_event_registrations g where g.event_id = e.id and g.status = 'WAITLIST') waitlist_count,
+       case when e.capacity is not null
+            then greatest(e.capacity - (select count(*) from oan_event_registrations g
+                                         where g.event_id = e.id and g.status = 'GOING'), 0) end places_left,
+       r.status my_status, r.attended my_attended,
+       case when e.starts_at < systimestamp then 'Y' else 'N' end is_past,
+       to_char(e.starts_at at time zone e.timezone, 'Dy DD Mon YYYY, HH24:MI') when_local,
+       to_char(e.ends_at at time zone e.timezone, 'HH24:MI') ends_local,
+       to_char(e.starts_at at time zone e.timezone, 'DD') day_no,
+       upper(to_char(e.starts_at at time zone e.timezone, 'MON')) month_abbr,
+       to_char(e.starts_at at time zone e.timezone, 'Dy HH24:MI') when_label,
+       oan_event_pkg.can_manage(e.chapter_id) can_manage
   from oan_events e
   left join oan_chapters ch on ch.id = e.chapter_id
- where e.status = 'PUBLISHED'
-   and e.starts_at >= systimestamp
+  left join oan_event_registrations r on r.event_id = e.id and r.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID'))
+ where e.status in ('PUBLISHED','CANCELLED')
    and sys_context('OAN_CTX','VIEWER_TYPE') = 'MEMBER'
    and (   e.chapter_id is null
         or exists (select 1 from oan_chapter_members m
                     where m.chapter_id = e.chapter_id and m.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID'))));
+
+-- Home strip: next published events
+create or replace view oan_upcoming_events_v as
+select v.id, v.title, v.summary, v.starts_at, v.ends_at, v.venue, v.is_online, v.chapter_name,
+       v.day_no, v.month_abbr, v.when_label, v.my_status
+  from oan_events_v v
+ where v.status = 'PUBLISHED' and v.is_past = 'N';
+
+-- Members going to an event (blocked or inactive members drop out through the card view)
+create or replace view oan_event_attendees_v as
+select r.event_id, c.user_id, c.display_name, c.headline, c.primary_chapter, r.registered_at
+  from oan_event_registrations r
+  join oan_events_v e on e.id = r.event_id
+  join oan_member_card_v c on c.user_id = r.user_id
+ where r.status = 'GOING';
+
+-- Event management (drafts included) for Platform Admins, Event Managers and the chapter's admins
+create or replace view oan_manage_events_v as
+select e.id, e.title, e.summary, e.details, e.starts_at, e.ends_at, e.timezone, e.venue, e.is_online, e.online_url,
+       e.capacity, e.waitlist_enabled, e.status, e.cancel_reason, e.resources_url, e.chapter_id, ch.name chapter_name,
+       e.row_version,
+       cast(e.starts_at at time zone e.timezone as date) starts_local,
+       cast(e.ends_at at time zone e.timezone as date) ends_local,
+       (select count(*) from oan_event_registrations g where g.event_id = e.id and g.status = 'GOING') going_count,
+       (select count(*) from oan_event_registrations g where g.event_id = e.id and g.status = 'WAITLIST') waitlist_count
+  from oan_events e
+  left join oan_chapters ch on ch.id = e.chapter_id
+ where sys_context('OAN_CTX','VIEWER_TYPE') = 'MEMBER'
+   and oan_event_pkg.can_manage(e.chapter_id) = 'Y';
+
+-- Registrations for check-in and attendance (managers only)
+create or replace view oan_manage_registrations_v as
+select r.event_id, r.user_id, p.first_name || ' ' || p.last_name member_name, u.email, r.status,
+       r.registered_at, r.attended
+  from oan_event_registrations r
+  join oan_manage_events_v e on e.id = r.event_id
+  join oan_users u on u.id = r.user_id
+  left join oan_profiles p on p.user_id = r.user_id;
+
+---------------------------------------------------------------- insights (W3.1/W3.2) --
+-- Published Insights and Perspectives the viewer may see (Library visibility rules apply)
+create or replace view oan_insights_v as
+select l.id, i.content_type,
+       case i.content_type when 'INSIGHT' then 'Insight' else 'Perspective' end type_label,
+       l.title, l.summary, l.url source_url, l.author_name, l.published_at, i.read_minutes, l.tags,
+       l.helpful_count, l.view_count, l.i_found_helpful, l.is_featured,
+       (select count(*) from oan_article_saves s
+         where s.item_id = l.id and s.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID'))) is_saved,
+       (select count(*) from oan_article_saves s where s.item_id = l.id) save_count
+  from oan_library_v l
+  join oan_library_items i on i.id = l.id
+ where i.item_type = 'ARTICLE';
+
+-- One article with its body (page 31)
+create or replace view oan_article_v as
+select v.*, i.body
+  from oan_insights_v v
+  join oan_library_items i on i.id = v.id;
+
+-- The viewer's saved articles, newest save first (page 30 "Saved")
+create or replace view oan_my_saved_v as
+select v.*, s.saved_at
+  from oan_article_saves s
+  join oan_insights_v v on v.id = s.item_id
+ where s.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID'));
+
+-- The viewer's own articles in any status (page 30 "My articles")
+create or replace view oan_my_articles_v as
+select i.id, i.title, i.content_type,
+       case i.content_type when 'INSIGHT' then 'Insight' else 'Perspective' end type_label,
+       case i.status when 'PUBLISHED' then 'Published' when 'REJECTED' then 'Not accepted'
+                     when 'HIDDEN' then 'Hidden' when 'REMOVED' then 'Removed' else 'Waiting for review' end status_label,
+       i.created_at, i.published_at
+  from oan_library_items i
+ where i.item_type = 'ARTICLE'
+   and i.author_id = to_number(sys_context('OAN_CTX','VIEWER_ID'));

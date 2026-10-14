@@ -235,3 +235,12 @@
 | I19-6 | Dev data | `dev/650_sample_conversations_events.sql` (synthetic conversations, announcements, 5 events, intro, recommendation, CV sections and share) |
 | I19-7 | Checks | 13 suites: 103/103 earlier run + `ut_oan_messaging` 6/6 + page content 7/7; local harness parses 83 queries and compiles 110 PL/SQL blocks as OAN_APP; links, base tables, brand and APEXLang validation pass; app 200 imported (52 pages). A live sign-in smoke test was not run (no test password is stored) |
 | I19-8 | Priority from the user | Waves in Build Pack order: W3 Insights and events (30–33), W4 Conversations, notifications and channel linking (40–43), W5 Opportunities, helpdesk and skills insights (50–56), W6 Community, experts, training and partner workspace (60–72), W7 Administration and hardening (100–113). Admin pages 121/128 move to W7 |
+
+## Iteration 20 — W3 Insights and events (14 Oct 2026)
+| Step | Action | Result |
+|---|---|---|
+| I20-1 | Database | `103_insights_events.sql` (articles, saves, views + 90-day rollup, event capacity/waitlist/registrations, CONTENT_EDITOR and EVENT_MANAGER roles, EVENT_UPDATE notifications), `oan_insight_pkg`, `oan_event_pkg`, search routes articles to page 31, hourly EVENT_REMINDERS and daily ARTICLE_VIEW_ROLLUP steps |
+| I20-2 | Pages | 30 Insights (Insights / Perspectives / Saved / My articles), 31 Article, 301 Write or curate, 32 Events (Upcoming / Past / My events), 33 Event detail (register, waitlist, cancel, not going, .ics, attendees, check-in), 331 Event editor; rail entries Insights and perspectives (30) and Events (32); Home events strip links to 33 |
+| I20-3 | Dev data | `dev/660_sample_insights_events.sql` (3 insights, 2 perspectives, saves, 7 events incl. past ones with resources, registrations) |
+| I20-4 | Checks | `ut_oan_w3` 11/11; all 14 suites pass (121 + content); harness 90 queries / 125 blocks; links, base tables, brand, APEXLang validation pass; app 200 imported (58 pages) |
+| I20-5 | User request | Company registration for CXOs, partner and other companies (gig and full-time work for OAN members), no third-party association names: next, pulled forward from W5.1 / W6.5 |

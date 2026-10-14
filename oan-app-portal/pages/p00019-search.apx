@@ -39,7 +39,8 @@ page 19 (
             type: sqlQuery
             sqlQuery:
                 ```sql
-                select case s.result_type when 'LIBRARY' then 'Insight'
+                select case s.result_type when 'LIBRARY' then 'Library'
+                                          when 'INSIGHT' then 'Insight'
                                           when 'POST'    then 'Discussion'
                                           else 'Member' end type_label,
                        s.title,
@@ -47,6 +48,7 @@ page 19 (
                        apex_page.get_url(
                            p_page   => s.link_page,
                            p_items  => case s.result_type when 'LIBRARY' then 'P35_ID'
+                                                          when 'INSIGHT' then 'P31_ID'
                                                           when 'POST'    then 'P62_ID'
                                                           else 'P22_USER_ID' end,
                            p_values => s.object_id) link_url

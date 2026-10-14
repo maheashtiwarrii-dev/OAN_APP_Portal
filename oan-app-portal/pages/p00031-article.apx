@@ -1,0 +1,374 @@
+page 31 (
+    name: Article
+    alias: ARTICLE
+    title: Article
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    security {
+        authorizationScheme: @is-active
+        pageAccessProtection: unrestricted
+        formAutoComplete: false
+    }
+    comments {
+        comments: Build Pack W3 page 31 Article detail (FR-43). Search results and notifications link here, so P31_ID is unrestricted; OAN_ARTICLE_V only returns articles the viewer may read. Text is escaped and paragraphs come from blank lines; Insight source links open the public original (rel noopener). A view is recorded once per member per day; the aggregate ARTICLE_VIEW KPI has no user id.
+    }
+
+    region r31_article (
+        name: Article
+        type: dynamicContent
+        source {
+            plsqlFunctionBody:
+                ```plsql
+                declare
+                    l_html clob;
+                    l_found boolean := false;
+                begin
+                    for a in (select * from oan_article_v where id = to_number(:P31_ID)) loop
+                        l_found := true;
+                        l_html := '<article class="oan-article"><div class="oan-article-type">' || apex_escape.html(a.type_label)
+                            || case when a.is_featured = 'Y' then ' &middot; Featured' end || '</div>'
+                            || '<h1>' || apex_escape.html(a.title) || '</h1>'
+                            || '<p class="oan-article-meta">' || apex_escape.html(coalesce(a.author_name, 'OAN editors'))
+                            || ' &middot; ' || to_char(a.published_at, 'DD Mon YYYY') || ' &middot; ' || nvl(a.read_minutes, 1) || ' min read'
+                            || ' &middot; ' || a.save_count || ' saved</p>'
+                            || '<p class="oan-article-summary">' || apex_escape.html(a.summary) || '</p>';
+                        if a.body is not null then
+                            l_html := l_html || '<div class="oan-article-body"><p>'
+                                || replace(replace(apex_escape.html(dbms_lob.substr(a.body, 32000, 1)),
+                                                   chr(10) || chr(10), '</p><p>'), chr(10), '<br>')
+                                || '</p></div>';
+                        end if;
+                        if a.source_url is not null then
+                            l_html := l_html || '<p class="oan-article-source">Source: <a href="' || apex_escape.html_attribute(a.source_url)
+                                || '" target="_blank" rel="noopener noreferrer nofollow">' || apex_escape.html(a.source_url) || '</a></p>';
+                        end if;
+                        if a.tags is not null then
+                            l_html := l_html || '<p class="oan-feed-kind">' || apex_escape.html(a.tags) || '</p>';
+                        end if;
+                        l_html := l_html || '</article>';
+                    end loop;
+                    if not l_found then
+                        return '<p>This article is not available. It may have been removed or is not shared with you.</p>';
+                    end if;
+                    return l_html;
+                end;
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--hideHeader js-addHiddenHeadingRoleDesc
+            ]
+        }
+    )
+
+    region r31_related (
+        name: More to read
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select r.id, r.title, r.type_label, nvl(r.read_minutes, 1) || ' min' read_time
+                  from oan_insights_v r
+                 where r.id != to_number(:P31_ID)
+                   and r.content_type = (select a.content_type from oan_insights_v a where a.id = to_number(:P31_ID))
+                 order by r.published_at desc
+                 fetch first 4 rows only
+                ```
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: Nothing else yet.
+        }
+
+        column ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column TITLE (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Title
+            }
+            layout {
+                sequence: 2
+            }
+            link {
+                target: {
+                    page: 31
+                    items: {
+                        P31_ID: \#ID#\
+                    }
+                }
+                linkText: #TITLE#
+            }
+        )
+
+        column TYPE_LABEL (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Type
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column READ_TIME (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Read
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+    )
+
+    pageItem P31_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @r31_article
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: unrestricted
+        }
+    )
+
+    pageItem P31_SAVED (
+        type: hidden
+        layout {
+            sequence: 20
+            region: @r31_article
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    button save (
+        buttonName: SAVE_TOGGLE
+        label: Save
+        layout {
+            sequence: 10
+            region: @r31_article
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: item=value
+            item: P31_SAVED
+            value: N
+        }
+    )
+
+    button unsave (
+        buttonName: UNSAVE
+        label: Saved - remove
+        layout {
+            sequence: 20
+            region: @r31_article
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: item=value
+            item: P31_SAVED
+            value: Y
+        }
+    )
+
+    button helpful (
+        buttonName: HELPFUL
+        label: Helpful
+        layout {
+            sequence: 30
+            region: @r31_article
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--simple
+            ]
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P31_SAVED
+        }
+    )
+
+    button report (
+        buttonName: REPORT
+        label: Report
+        layout {
+            sequence: 40
+            region: @r31_article
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--simple
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 80
+                clearCache: 80
+                items: {
+                    P80_OBJECT_TYPE: LIBRARY_ITEM
+                    P80_OBJECT_ID: &P31_ID.
+                }
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P31_SAVED
+        }
+    )
+
+    button back (
+        buttonName: BACK
+        label: All insights
+        layout {
+            sequence: 50
+            region: @r31_article
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--simple
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 30
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process load (
+        name: Load article state and record the view
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                :P31_SAVED := null;
+                for a in (select is_saved from oan_insights_v where id = to_number(:P31_ID)) loop
+                    :P31_SAVED := case when a.is_saved > 0 then 'Y' else 'N' end;
+                    oan_insight_pkg.record_view(to_number(:P31_ID));
+                    oan_kpi_pkg.bump('ARTICLE_VIEW');
+                end loop;
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+    )
+
+    process actions (
+        name: Save, unsave or mark helpful
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare
+                    l_state varchar2(1);
+                begin
+                    if :REQUEST in ('SAVE_TOGGLE','UNSAVE') then
+                        l_state := oan_insight_pkg.toggle_save(to_number(:P31_ID));
+                    else
+                        oan_library_pkg.toggle_helpful(to_number(:P31_ID));
+                    end if;
+                end;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: SAVE_TOGGLE,UNSAVE,HELPFUL
+        }
+    )
+
+    branch back-to-article (
+        name: Back to the article
+        behavior {
+            type: pageOrUrl
+            target: {
+                page: 31
+                items: {
+                    P31_ID: &P31_ID.
+                }
+            }
+        }
+        execution {
+            point: afterProcessing
+            sequence: 10
+        }
+    )
+
+)

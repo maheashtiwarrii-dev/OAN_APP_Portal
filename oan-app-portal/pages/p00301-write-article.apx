@@ -1,0 +1,279 @@
+page 301 (
+    name: Write Article
+    alias: WRITE-ARTICLE
+    title: Write an article
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: true
+    }
+    security {
+        authorizationScheme: @is-active
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: W3 (FR-43) editor from page 30. Members write Perspectives in their own words; Content Editors curate Insights (own-words summary plus https source link, never copied text). Everything goes through OAN_INSIGHT_PKG.WRITE_ARTICLE, so attestation, screening and pre-moderation (pages 107/81) apply.
+    }
+
+    region r301_article (
+        name: Your article
+        type: staticContent
+        source {
+            htmlCode: <p>Write in your own words. Do not include Oracle-confidential, customer-confidential or third-party material. A moderator reviews every article before it is published; you will get a notification with the decision.</p>
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P301_TYPE (
+        type: radioGroup
+        label {
+            label: Type
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:Perspective (my own view);PERSPECTIVE,Insight (curated summary with a source link);INSIGHT
+            displayExtraValues: false
+        }
+        default {
+            type: static
+            staticValue: PERSPECTIVE
+        }
+        layout {
+            sequence: 10
+            region: @r301_article
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: expression
+            language: plsql
+            plsqlExpression: oan_security_pkg.authz('CONTENT_EDITOR') = 'Y'
+        }
+    )
+
+    pageItem P301_TITLE (
+        type: textField
+        label {
+            label: Title
+        }
+        layout {
+            sequence: 20
+            region: @r301_article
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+            maxLength: 300
+        }
+    )
+
+    pageItem P301_SUMMARY (
+        type: textarea
+        label {
+            label: Summary (shown on the card)
+        }
+        layout {
+            sequence: 30
+            region: @r301_article
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+            maxLength: 1000
+        }
+    )
+
+    pageItem P301_BODY (
+        type: textarea
+        label {
+            label: Article (leave a blank line between paragraphs)
+        }
+        layout {
+            sequence: 40
+            region: @r301_article
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 30000
+        }
+    )
+
+    pageItem P301_SOURCE_URL (
+        type: textField
+        label {
+            label: Source link (https://, required for Insights)
+        }
+        layout {
+            sequence: 50
+            region: @r301_article
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 1000
+        }
+    )
+
+    pageItem P301_TAGS (
+        type: selectMany
+        label {
+            label: Tags
+        }
+        lov {
+            type: sharedComponent
+            lov: @oan-tags
+        }
+        layout {
+            sequence: 60
+            region: @r301_article
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P301_ATTEST (
+        type: checkbox
+        label {
+            label: I confirm this contains no Oracle-confidential, customer-confidential or third-party proprietary material
+        }
+        settings {
+            useDefaults: false
+            checkedValue: Y
+            uncheckedValue: N
+        }
+        layout {
+            sequence: 70
+            region: @r301_article
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    button submit (
+        buttonName: SUBMIT
+        label: Send for review
+        layout {
+            sequence: 10
+            region: @r301_article
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button cancel (
+        buttonName: CANCEL
+        label: Cancel
+        layout {
+            sequence: 20
+            region: @r301_article
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--simple
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 30
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process submit (
+        name: Send article for review
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare
+                    l_id number;
+                begin
+                    l_id := oan_insight_pkg.write_article(
+                        p_content_type => nvl(:P301_TYPE, 'PERSPECTIVE'),
+                        p_title        => :P301_TITLE,
+                        p_summary      => :P301_SUMMARY,
+                        p_body         => :P301_BODY,
+                        p_source_url   => :P301_SOURCE_URL,
+                        p_tag_ids      => :P301_TAGS,
+                        p_attested     => nvl(:P301_ATTEST, 'N'));
+                end;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        serverSideCondition {
+            whenButtonPressed: @submit
+        }
+        successMessage {
+            successMessage: Thanks. Your article was sent for review.
+        }
+    )
+
+    branch to-my-articles (
+        name: To my articles
+        behavior {
+            type: pageOrUrl
+            target: {
+                page: 30
+                items: {
+                    P30_TAB: MINE
+                }
+            }
+        }
+        execution {
+            point: afterProcessing
+            sequence: 10
+        }
+        serverSideCondition {
+            whenButtonPressed: @submit
+        }
+    )
+
+)

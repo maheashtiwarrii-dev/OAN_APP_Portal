@@ -335,12 +335,12 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 ### W3 — Insights, events, knowledge (S6)
 | ID | Page(s) / task | Delivers | Est | Status |
 |---|---|---|---|---|
-| W3.1 | Library `ARTICLE`/`INSIGHT` rules; saves; views aggregated at 90 days (purge + test) | FR-43, R24 | 2 | [ ] |
-| W3.2 | 20, 21, 22 (download fixed for 26.2), 23 Saved; **tag follow** (v2 3.15, S01) | FR-19/43/23 | 3 | [A] 20–22 |
-| W3.3 | Events DDL + `oan_event_pkg` (capacity, waitlist, `.ics`, attendance) | FR-22 | 3 | [~] 14 Oct: first slice `102_events.sql` (oan_events) + `oan_upcoming_events_v` feeding the Home strip; registration, capacity, waitlist, .ics, attendance open |
-| W3.4 | 24 Events; 25 Event detail; **aggregate return-visit events** (S31) | FR-22, R25 | 3 | [ ] |
-| W3.5 | 1027, 1060/1061, 1028 (+ check-in export) | FR-19/22, R14 | 5 | [ ] |
-| W3.6 | Event reminders (local 07:00); set `live_yn` for this wave | FR-22 | 0.75 | [ ] |
+| W3.1 | Library `ARTICLE`/`INSIGHT` rules; saves; views aggregated at 90 days (purge + test) | FR-43, R24 | 2 | [A] 14 Oct: `103_insights_events.sql` (ARTICLE type, INSIGHT/PERSPECTIVE, body, read time, saves, views once per member per day, 90-day rollup to daily counts), `oan_insight_pkg` (Insights curated by CONTENT_EDITOR with an https source, Perspectives by members, both pre-moderated), daily ARTICLE_VIEW_ROLLUP step |
+| W3.2 | 20, 21, 22 (download fixed for 26.2), 23 Saved; **tag follow** (v2 3.15, S01) | FR-19/43/23 | 3 | [A] 14 Oct: page 30 Insights / Perspectives / Saved / My articles, page 31 Article detail (save, helpful, report, related), page 301 write or curate; library list keeps non-article items; search sends articles to 31 |
+| W3.3 | Events DDL + `oan_event_pkg` (capacity, waitlist, `.ics`, attendance) | FR-22 | 3 | [A] 14 Oct: events extended (details, time zone, capacity, waitlist, online link for GOING only, resources, cancel reason) + `oan_event_registrations`; `oan_event_pkg` (managers: admin, EVENT_MANAGER, chapter admin; register/waitlist/promotion, cancel, not going, attendance, .ics) |
+| W3.4 | 24 Events; 25 Event detail; **aggregate return-visit events** (S31) | FR-22, R25 | 3 | [A] 14 Oct: page 32 Events (Upcoming / Past / My events, manager list), page 33 Event detail (register, cancel, not going, Add to calendar .ics, attendees, resources, check-in); KPIs EVENT_VIEW / EVENT_RETURN_VISIT / EVENT_REGISTER |
+| W3.5 | 1027, 1060/1061, 1028 (+ check-in export) | FR-19/22, R14 | 5 | [~] 14 Oct: event editor page 331 and check-in on page 33 for managers; admin library review stays on 107; check-in export with W7 |
+| W3.6 | Event reminders (local 07:00); set `live_yn` for this wave | FR-22 | 0.75 | [A] 14 Oct: hourly EVENT_REMINDERS step (07:00 local on the event day, once); suite `ut_oan_w3` 11/11 |
 
 ### W4 — Conversations, notifications, channels, introductions (S6–S7)
 | ID | Page(s) / task | Delivers | Est | Status |

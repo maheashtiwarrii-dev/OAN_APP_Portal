@@ -1,0 +1,603 @@
+page 331 (
+    name: Event Editor
+    alias: EVENT-EDITOR
+    title: Event
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: true
+    }
+    security {
+        authorizationScheme: @is-active
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: W3.3/W3.5 event editor for Platform Admins, Event Managers and the chapter's admins (FR-22). Times are entered in the event's time zone. New events are drafts until published; changes to a published event notify registered members; cancelling asks for a reason and notifies them. All checks are in OAN_EVENT_PKG.
+    }
+
+    region r331_event (
+        name: Event details
+        type: staticContent
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region r331_cancel (
+        name: Cancel this event
+        type: staticContent
+        source {
+            htmlCode: <p>Registered members are told immediately, with your reason.</p>
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/collapsible
+            templateOptions: [
+                #DEFAULT#
+                is-collapsed
+            ]
+        }
+        serverSideCondition {
+            type: expression
+            language: plsql
+            plsqlExpression: :P331_STATUS in ('DRAFT','PUBLISHED')
+        }
+    )
+
+    pageItem P331_ID (
+        type: hidden
+        layout {
+            sequence: 1
+            region: @r331_event
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P331_ROW_VERSION (
+        type: hidden
+        layout {
+            sequence: 2
+            region: @r331_event
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P331_STATUS (
+        type: hidden
+        layout {
+            sequence: 3
+            region: @r331_event
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P331_TITLE (
+        type: textField
+        label {
+            label: Title
+        }
+        layout {
+            sequence: 10
+            region: @r331_event
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+            maxLength: 200
+        }
+    )
+
+    pageItem P331_SUMMARY (
+        type: textarea
+        label {
+            label: Summary (shown on the card)
+        }
+        layout {
+            sequence: 20
+            region: @r331_event
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 1000
+        }
+    )
+
+    pageItem P331_DETAILS (
+        type: textarea
+        label {
+            label: Details and agenda
+        }
+        layout {
+            sequence: 30
+            region: @r331_event
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 4000
+        }
+    )
+
+    pageItem P331_DATE (
+        type: datePicker
+        label {
+            label: Date
+        }
+        layout {
+            sequence: 40
+            region: @r331_event
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+        }
+    )
+
+    pageItem P331_START_TIME (
+        type: selectList
+        label {
+            label: Starts
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:07:00;0700,07:30;0730,08:00;0800,08:30;0830,09:00;0900,09:30;0930,10:00;1000,10:30;1030,11:00;1100,11:30;1130,12:00;1200,12:30;1230,13:00;1300,13:30;1330,14:00;1400,14:30;1430,15:00;1500,15:30;1530,16:00;1600,16:30;1630,17:00;1700,17:30;1730,18:00;1800,18:30;1830,19:00;1900,19:30;1930,20:00;2000,20:30;2030,21:00;2100
+            displayExtraValues: false
+            displayNullValue: false
+        }
+        default {
+            type: static
+            staticValue: 1800
+        }
+        layout {
+            sequence: 50
+            region: @r331_event
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P331_DURATION (
+        type: selectList
+        label {
+            label: Duration
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:30 minutes;30,1 hour;60,1.5 hours;90,2 hours;120,3 hours;180,4 hours;240,Full day;480
+            displayExtraValues: false
+            displayNullValue: false
+        }
+        default {
+            type: static
+            staticValue: 120
+        }
+        layout {
+            sequence: 60
+            region: @r331_event
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P331_TIMEZONE (
+        type: selectList
+        label {
+            label: Time zone
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:India (Asia/Kolkata);Asia/Kolkata,UAE (Asia/Dubai);Asia/Dubai,Singapore (Asia/Singapore);Asia/Singapore,UK (Europe/London);Europe/London,Central Europe (Europe/Berlin);Europe/Berlin,US Eastern (America/New_York);America/New_York,US Pacific (America/Los_Angeles);America/Los_Angeles,Australia East (Australia/Sydney);Australia/Sydney,UTC;UTC
+            displayExtraValues: false
+            displayNullValue: false
+        }
+        default {
+            type: static
+            staticValue: Asia/Kolkata
+        }
+        layout {
+            sequence: 70
+            region: @r331_event
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P331_IS_ONLINE (
+        type: switch
+        label {
+            label: Online event
+        }
+        layout {
+            sequence: 80
+            region: @r331_event
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P331_VENUE (
+        type: textField
+        label {
+            label: Venue (for in-person events)
+        }
+        layout {
+            sequence: 90
+            region: @r331_event
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 300
+        }
+    )
+
+    pageItem P331_ONLINE_URL (
+        type: textField
+        label {
+            label: Joining link (https://, shown to registered members only)
+        }
+        layout {
+            sequence: 100
+            region: @r331_event
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 500
+        }
+    )
+
+    pageItem P331_CHAPTER_ID (
+        type: selectList
+        label {
+            label: Chapter (empty = all members)
+        }
+        lov {
+            type: sharedComponent
+            lov: @oan-chapters
+            displayNullValue: true
+        }
+        layout {
+            sequence: 110
+            region: @r331_event
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P331_CAPACITY (
+        type: numberField
+        label {
+            label: Capacity (empty = unlimited)
+        }
+        layout {
+            sequence: 120
+            region: @r331_event
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P331_WAITLIST (
+        type: switch
+        label {
+            label: Waitlist when full
+        }
+        default {
+            type: static
+            staticValue: Y
+        }
+        layout {
+            sequence: 130
+            region: @r331_event
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P331_RESOURCES_URL (
+        type: textField
+        label {
+            label: Slides or recording after the event (https://)
+        }
+        layout {
+            sequence: 140
+            region: @r331_event
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 500
+        }
+    )
+
+    pageItem P331_CANCEL_REASON (
+        type: textarea
+        label {
+            label: Reason
+        }
+        layout {
+            sequence: 10
+            region: @r331_cancel
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 500
+        }
+    )
+
+    button save (
+        buttonName: SAVE
+        label: Save
+        layout {
+            sequence: 10
+            region: @r331_event
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button publish (
+        buttonName: PUBLISH
+        label: Publish
+        layout {
+            sequence: 20
+            region: @r331_event
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: item=value
+            item: P331_STATUS
+            value: DRAFT
+        }
+    )
+
+    button back (
+        buttonName: BACK
+        label: Back to events
+        layout {
+            sequence: 30
+            region: @r331_event
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--simple
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 32
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button cancel-event (
+        buttonName: CANCEL_EVENT
+        label: Cancel event
+        layout {
+            sequence: 10
+            region: @r331_cancel
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--danger
+            ]
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process load (
+        name: Load event
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                for e in (select * from oan_manage_events_v where id = :P331_ID) loop
+                    :P331_ROW_VERSION  := e.row_version;
+                    :P331_STATUS       := e.status;
+                    :P331_TITLE        := e.title;
+                    :P331_SUMMARY      := e.summary;
+                    :P331_DETAILS      := e.details;
+                    :P331_DATE         := to_char(trunc(e.starts_local));
+                    :P331_START_TIME   := to_char(e.starts_local, 'HH24MI');
+                    :P331_DURATION     := nvl(round((e.ends_local - e.starts_local) * 1440), 120);
+                    :P331_TIMEZONE     := e.timezone;
+                    :P331_IS_ONLINE    := e.is_online;
+                    :P331_VENUE        := e.venue;
+                    :P331_ONLINE_URL   := e.online_url;
+                    :P331_CHAPTER_ID   := e.chapter_id;
+                    :P331_CAPACITY     := e.capacity;
+                    :P331_WAITLIST     := e.waitlist_enabled;
+                    :P331_RESOURCES_URL := e.resources_url;
+                end loop;
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P331_ID
+        }
+    )
+
+    process save (
+        name: Save event
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare
+                    l_id     number := :P331_ID;
+                    l_start  date := to_date(:P331_DATE) + (to_number(substr(:P331_START_TIME, 1, 2)) * 60
+                                                            + to_number(substr(:P331_START_TIME, 3, 2))) / 1440;
+                begin
+                    oan_event_pkg.save_event(
+                        p_id            => l_id,
+                        p_title         => :P331_TITLE,
+                        p_summary       => :P331_SUMMARY,
+                        p_details       => :P331_DETAILS,
+                        p_starts_local  => l_start,
+                        p_ends_local    => l_start + to_number(:P331_DURATION) / 1440,
+                        p_timezone      => :P331_TIMEZONE,
+                        p_venue         => :P331_VENUE,
+                        p_is_online     => nvl(:P331_IS_ONLINE, 'N'),
+                        p_online_url    => :P331_ONLINE_URL,
+                        p_chapter_id    => :P331_CHAPTER_ID,
+                        p_capacity      => :P331_CAPACITY,
+                        p_waitlist      => nvl(:P331_WAITLIST, 'Y'),
+                        p_resources_url => :P331_RESOURCES_URL,
+                        p_row_version   => nvl(:P331_ROW_VERSION, 0));
+                    if :REQUEST = 'PUBLISH' then
+                        oan_event_pkg.publish_event(l_id);
+                    end if;
+                    :P331_ID := l_id;
+                end;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: SAVE,PUBLISH
+        }
+        successMessage {
+            successMessage: Event saved.
+        }
+    )
+
+    process cancel-event (
+        name: Cancel event
+        type: executeCode
+        source {
+            plsqlCode: oan_event_pkg.cancel_event(:P331_ID, :P331_CANCEL_REASON);
+        }
+        execution {
+            sequence: 20
+        }
+        serverSideCondition {
+            whenButtonPressed: @cancel-event
+        }
+        successMessage {
+            successMessage: The event was cancelled and registered members were told.
+        }
+    )
+
+    branch to-event (
+        name: To the event
+        behavior {
+            type: pageOrUrl
+            target: {
+                page: 32
+                items: {
+                    P32_TAB: UPCOMING
+                }
+            }
+        }
+        execution {
+            point: afterProcessing
+            sequence: 10
+        }
+    )
+
+)

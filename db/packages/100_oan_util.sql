@@ -32,9 +32,9 @@ create or replace package oan_util authid definer as
   -- move time. Only utPLSQL packages can move it; it resets with the session.
   function now return timestamp with time zone;
   procedure set_test_clock(p_now in timestamp with time zone)
-    accessible by (package ut_oan_platform, package ut_oan_w2);
+    accessible by (package ut_oan_platform, package ut_oan_w2, package ut_oan_w3);
   procedure reset_test_clock
-    accessible by (package ut_oan_platform, package ut_oan_w2);
+    accessible by (package ut_oan_platform, package ut_oan_w2, package ut_oan_w3);
 
   -- 1.37 Feature options (S03): live only when the APEX Build Option is INCLUDE, the DPIA is signed
   -- (when required) and the gate is open. option_ready ignores the Build Option (usable outside APEX).
@@ -163,13 +163,13 @@ create or replace package body oan_util as
   end now;
 
   procedure set_test_clock(p_now in timestamp with time zone)
-    accessible by (package ut_oan_platform, package ut_oan_w2) is
+    accessible by (package ut_oan_platform, package ut_oan_w2, package ut_oan_w3) is
   begin
     g_clock_offset := p_now - systimestamp;
   end set_test_clock;
 
   procedure reset_test_clock
-    accessible by (package ut_oan_platform, package ut_oan_w2) is
+    accessible by (package ut_oan_platform, package ut_oan_w2, package ut_oan_w3) is
   begin
     g_clock_offset := interval '0' second;
   end reset_test_clock;

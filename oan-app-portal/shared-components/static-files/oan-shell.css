@@ -96,7 +96,7 @@
 
 /* Upcoming events strip */
 .oan-events-strip { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
-.oan-event { display: flex; gap: 12px; padding: 12px; background: var(--oan-surface); border: 1px solid var(--oan-border); border-radius: var(--oan-radius); }
+.oan-event { color: inherit; text-decoration: none; display: flex; gap: 12px; padding: 12px; background: var(--oan-surface); border: 1px solid var(--oan-border); border-radius: var(--oan-radius); }
 .oan-event-date { flex: 0 0 52px; text-align: center; border-radius: 6px; background: var(--oan-ink); color: #fff; padding: 6px 0; }
 .oan-event-date b { display: block; font-size: 20px; line-height: 1.1; }
 .oan-event-date span { font-size: 11px; letter-spacing: .06em; }
@@ -173,3 +173,14 @@
     .oan-cv, .oan-cv * { visibility: visible; }
     .oan-cv { position: absolute; left: 0; top: 0; border: 0; max-width: none; width: 100%; }
 }
+
+/* ------------------------------------------------ insights and events (W3) -- */
+.oan-tabs-wide { max-width: 560px; margin: 0 0 12px; }
+.oan-article { max-width: 760px; }
+.oan-article h1 { font-size: 26px; margin: 4px 0 6px; }
+.oan-article-type { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--oan-accent); font-weight: 600; }
+.oan-article-meta { font-size: 13px; color: var(--oan-muted); }
+.oan-article-summary { font-size: 16px; line-height: 1.5; }
+.oan-article-body p { font-size: 15px; line-height: 1.65; margin: 0 0 14px; }
+.oan-article-source a { color: var(--oan-link); overflow-wrap: anywhere; }
+a.oan-event:hover { border-color: var(--oan-accent); }

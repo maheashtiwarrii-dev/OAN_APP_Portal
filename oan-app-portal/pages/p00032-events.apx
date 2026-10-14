@@ -1,0 +1,311 @@
+page 32 (
+    name: Events
+    alias: EVENTS
+    title: Events
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    security {
+        authorizationScheme: @is-active
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: Build Pack W3 page 32 Events (FR-22). Upcoming / Past / My events over OAN_EVENTS_V (published and cancelled events in the member's chapter scope; times in each event's own time zone). Event managers also see drafts and a New event button (page 331).
+    }
+
+    region r32_tabs (
+        name: Event tabs
+        type: dynamicContent
+        source {
+            plsqlFunctionBody:
+                ```plsql
+                declare
+                    l_tab varchar2(20) := nvl(:P32_TAB, 'UPCOMING');
+                    function tab(p_code in varchar2, p_label in varchar2) return varchar2 is
+                    begin
+                        return '<a href="' || apex_page.get_url(p_page => 32, p_items => 'P32_TAB', p_values => p_code) || '"'
+                            || case when l_tab = p_code then ' aria-current="page"' end || '>' || p_label || '</a>';
+                    end tab;
+                begin
+                    return '<nav class="oan-tabs oan-tabs-wide" aria-label="Events">'
+                        || tab('UPCOMING', 'Upcoming') || tab('PAST', 'Past') || tab('MINE', 'My events') || '</nav>';
+                end;
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region r32_actions (
+        name: Event actions
+        type: staticContent
+        layout {
+            sequence: 15
+            slot: body
+        }
+        appearance {
+            template: @/buttons-container
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region r32_events (
+        name: Events
+        type: cards
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select e.id, e.title, e.summary, e.day_no, e.month_abbr,
+                       e.when_local || case when e.ends_local is not null then '–' || e.ends_local end
+                         || ' (' || e.timezone || ')' when_text,
+                       case when e.is_online = 'Y' then 'Online' else e.venue end where_text,
+                       case when e.status = 'CANCELLED' then 'Cancelled'
+                            when e.my_status = 'GOING' then 'You are going'
+                            when e.my_status = 'WAITLIST' then 'On the waitlist'
+                            when e.places_left = 0 and e.is_past = 'N' then 'Full - waitlist open'
+                            when e.places_left is not null and e.is_past = 'N' then e.places_left || ' places left'
+                            else e.going_count || ' going' end status_text,
+                       nvl(e.chapter_name, 'All members') audience,
+                       e.starts_at
+                  from oan_events_v e
+                 where (nvl(:P32_TAB, 'UPCOMING') = 'UPCOMING' and e.is_past = 'N')
+                    or (:P32_TAB = 'PAST' and e.is_past = 'Y')
+                    or (:P32_TAB = 'MINE' and e.my_status in ('GOING','WAITLIST'))
+                 order by case when nvl(:P32_TAB, 'UPCOMING') = 'PAST' then 0 else 1 end,
+                          case when nvl(:P32_TAB, 'UPCOMING') = 'PAST' then e.starts_at end desc,
+                          e.starts_at
+                ```
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/cards-container
+            templateOptions: #DEFAULT#
+        }
+        card {
+            primaryKeyColumn1: ID
+        }
+        title {
+            advancedFormatting: true
+            htmlExpression:
+                ```html
+                <span class="oan-dcard-top"><span class="oan-event-date" aria-hidden="true"><b>&DAY_NO!HTML.</b><span>&MONTH_ABBR!HTML.</span></span><span><span class="oan-dcard-name" style="display:block">&TITLE!HTML.</span><span class="oan-dcard-line" style="display:block">&WHEN_TEXT!HTML.</span><span class="oan-dcard-loc" style="display:block">&WHERE_TEXT!HTML. · &AUDIENCE!HTML.</span></span></span>
+                ```
+        }
+        body {
+            advancedFormatting: false
+            column: SUMMARY
+        }
+        secondaryBody {
+            advancedFormatting: false
+            column: STATUS_TEXT
+        }
+        messages {
+            whenNoDataFound: No events here yet.
+        }
+        componentAppearance {
+            layout: grid
+            gridColumns: 3
+        }
+
+        action open-event (
+            type: fullCard
+            layout {
+                sequence: 10
+            }
+            behavior {
+                type: redirectThisApp
+                target: {
+                    page: 33
+                    items: {
+                        P33_EVENT_ID: &ID.
+                    }
+                    clearCache: 33
+                }
+            }
+        )
+    )
+
+    region r32_manage (
+        name: Events you manage
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select id, title, initcap(status) status_label,
+                       to_char(starts_local, 'DD-MON-YYYY HH24:MI') || ' ' || timezone starts_text,
+                       going_count, waitlist_count, 'Edit' edit_label
+                  from oan_manage_events_v
+                 order by starts_at desc
+                ```
+        }
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            template: @/collapsible
+            templateOptions: [
+                #DEFAULT#
+                is-collapsed
+            ]
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: You have not created an event yet.
+        }
+        serverSideCondition {
+            type: expression
+            language: plsql
+            plsqlExpression: oan_event_pkg.is_any_manager = 'Y'
+        }
+
+        column ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column TITLE (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Event
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column STATUS_LABEL (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Status
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column STARTS_TEXT (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Starts
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column GOING_COUNT (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Going
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+        column WAITLIST_COUNT (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Waitlist
+            }
+            layout {
+                sequence: 6
+            }
+        )
+
+        column EDIT_LABEL (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Edit
+            }
+            layout {
+                sequence: 7
+            }
+            link {
+                target: {
+                    page: 331
+                    items: {
+                        P331_ID: \#ID#\
+                    }
+                    clearCache: 331
+                }
+                linkText: #EDIT_LABEL#
+            }
+        )
+
+    )
+
+    pageItem P32_TAB (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @r32_tabs
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: unrestricted
+        }
+    )
+
+    button new-event (
+        buttonName: NEW_EVENT
+        label: New event
+        layout {
+            sequence: 10
+            region: @r32_actions
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 331
+                clearCache: 331
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: expression
+            language: plsql
+            plsqlExpression: oan_event_pkg.is_any_manager = 'Y'
+        }
+    )
+
+)

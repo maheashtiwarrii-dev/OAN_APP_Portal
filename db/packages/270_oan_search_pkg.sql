@@ -49,13 +49,15 @@ create or replace package body oan_search_pkg as
     end if;
 
     -- Library (only rows present in the secure view are returned)
-    for r in (select v.id, v.title, substr(v.summary, 1, 300) snippet, score(1) sc
+    -- Insights and Perspectives (ARTICLE) open on page 31, other items on page 35
+    for r in (select v.id, v.title, substr(v.summary, 1, 300) snippet, score(1) sc, i.item_type
                 from oan_library_items i
                 join oan_library_v v on v.id = i.id
                where contains(i.title, l_expr, 1) > 0
                order by score(1) desc
                fetch first p_max_rows rows only) loop
-      pipe row (oan_search_row('LIBRARY', r.id, r.title, r.snippet, 35, r.sc));
+      pipe row (oan_search_row(case when r.item_type = 'ARTICLE' then 'INSIGHT' else 'LIBRARY' end, r.id, r.title,
+                               r.snippet, case when r.item_type = 'ARTICLE' then 31 else 35 end, r.sc));
     end loop;
 
     -- Group posts: only OPEN-group posts carry search_body (R20); the secure view re-checks

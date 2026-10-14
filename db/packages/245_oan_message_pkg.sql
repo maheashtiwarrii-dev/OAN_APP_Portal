@@ -18,6 +18,10 @@ create or replace package oan_message_pkg authid definer as
   procedure join_announcements;                                         -- page 40 before header
   function post_announcement(p_body in varchar2) return number;        -- Platform Admin
   procedure close_direct(p_a in number, p_b in number);                -- called on block
+  -- S16: search inside the viewer's own conversations only (never global search, R20)
+  function search(p_query in varchar2, p_max_rows in number default 50) return oan_search_tab pipelined;
+  -- Page 40 polling: changes whenever a message arrives in any of the viewer's conversations
+  function poll_stamp return varchar2;
 end oan_message_pkg;
 /
 
@@ -233,6 +237,36 @@ create or replace package body oan_message_pkg as
   begin
     update oan_msg_threads set status = 'CLOSED' where direct_key = l_key and status = 'OPEN';
   end close_direct;
+
+  function search(p_query in varchar2, p_max_rows in number default 50) return oan_search_tab pipelined is
+    l_expr varchar2(4000) := oan_search_pkg.to_contains(p_query);
+  begin
+    if l_expr is null or sys_context('OAN_CTX','VIEWER_TYPE') != 'MEMBER' then
+      return;
+    end if;
+    for r in (select v.id, v.thread_id, t.title, substr(v.body, 1, 200) snippet, score(1) sc
+                from oan_messages m
+                join oan_thread_messages_v v on v.id = m.id
+                join oan_my_threads_v t on t.thread_id = v.thread_id
+               where contains(m.body, l_expr, 1) > 0
+               order by score(1) desc, m.created_at desc
+               fetch first p_max_rows rows only) loop
+      pipe row (oan_search_row('MESSAGE', r.thread_id, r.title, r.snippet, 40, r.sc));
+    end loop;
+    return;
+  end search;
+
+  function poll_stamp return varchar2 is
+    l_max number;
+    l_unr number;
+  begin
+    select nvl(max(m.id), 0) into l_max
+      from oan_messages m
+      join oan_msg_participants p on p.thread_id = m.thread_id
+     where p.user_id = oan_util.viewer_id and p.left_at is null;
+    select nvl(sum(unread_count), 0) into l_unr from oan_my_threads_v;
+    return l_max || ':' || l_unr;
+  end poll_stamp;
 
 end oan_message_pkg;
 /

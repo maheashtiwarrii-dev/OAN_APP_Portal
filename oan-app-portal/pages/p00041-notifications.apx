@@ -161,6 +161,54 @@ page 41 (
         }
     )
 
+    button settings (
+        buttonName: SETTINGS
+        label: Notification settings
+        layout {
+            sequence: 20
+            region: @notifications
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--simple
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 42
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button channels (
+        buttonName: CHANNELS
+        label: Slack and WhatsApp
+        layout {
+            sequence: 30
+            region: @notifications
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--simple
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 43
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
     process open-notification (
         name: Open notification
         type: executeCode

@@ -6,7 +6,7 @@
  *   3. Global search box: opens search results (page 19) with the typed terms.
  *   4. Carousel (Home leadership letters): auto-advance, pause on hover/focus, pagination dots,
  *      keyboard arrows, and no auto-advance when the user prefers reduced motion.
- *   5. Conversations: thread-list filter and scroll to the newest message.
+ *   5. Conversations: thread-list filter, scroll to the newest message, new-message polling (20s).
  * No Oracle branding (Q30).
  */
 (function (apex, $) {
@@ -118,11 +118,35 @@
         start();
     }
 
-    /* 5. Conversations (page 40): filter the thread list, show the newest message ----------- */
+    /* 5. Conversations (page 40): filter the thread list, show the newest message, poll ---- */
+    var POLL_MS = 20000;
+
+    function pollConversations($chat) {
+        if (document.hidden) {
+            return;
+        }
+        apex.server.process("OAN_CHAT_POLL", {}, { dataType: "json" }).done(function (data) {
+            if (!data || !data.stamp || data.stamp === $chat.attr("data-stamp")) {
+                return;
+            }
+            var draft = $("#P40_BODY").val();
+            if (!draft) {
+                window.location.reload();          // nothing typed: show the new messages
+            } else if (!$("#oan-chat-new").length) {
+                $chat.before('<p id="oan-chat-new" class="t-Alert t-Alert--info" role="status">New messages arrived. ' +
+                             'They will show after you send or reload.</p>');
+            }
+        });
+    }
+
     function initConversations() {
-        var body = document.getElementById("oan-chat-body");
+        var body = document.getElementById("oan-chat-body"),
+            $chat = $(".oan-chat[data-stamp]");
         if (body) {
             body.scrollTop = body.scrollHeight;
+        }
+        if ($chat.length) {
+            window.setInterval(function () { pollConversations($chat); }, POLL_MS);
         }
         $("#oan-chat-filter").on("input", function () {
             var q = $.trim(this.value).toLowerCase();

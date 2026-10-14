@@ -255,3 +255,12 @@ select o.id, o.name, o.org_type, o.verified, o.status, o.created_at, o.verified_
        (select count(*) from oan_org_contacts c where c.org_id = o.id) contacts
   from oan_organisations o
  where sys_context('OAN_CTX','IS_ADMIN') = 'Y';
+
+-- Channel health for admins (page 123 area): counts only, no message text or addresses
+create or replace view oan_admin_channel_stats_v as
+select metric, value from (
+select 'Linked identities' metric, count(*) value from oan_channel_identities where status = 'LINKED' union all
+select 'Queued messages', count(*) from oan_channel_messages where status = 'QUEUED' union all
+select 'Failed messages (7 days)', count(*) from oan_channel_messages where status = 'FAILED' and created_at > systimestamp - interval '7' day union all
+select 'Inbound events ignored (7 days)', count(*) from oan_channel_events where status = 'IGNORED' and received_at > systimestamp - interval '7' day)
+ where sys_context('OAN_CTX','IS_ADMIN') = 'Y';

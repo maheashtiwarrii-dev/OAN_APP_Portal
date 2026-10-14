@@ -17,7 +17,7 @@ create or replace package oan_ctx_pkg authid definer as
   -- utPLSQL only: impersonate a viewer without an APEX session (never reachable from OAN_APP)
   procedure set_test_viewer(p_user_id in number, p_type in varchar2, p_is_admin in varchar2 default 'N',
                             p_roles in varchar2 default null)
-    accessible by (package ut_oan_vis, package ut_oan_registry, package ut_oan_auth, package ut_oan_chat, package ut_oan_bp_api, package ut_oan_directory, package ut_oan_career, package ut_oan_network, package ut_oan_page_content, package ut_oan_platform, package ut_oan_w2, package ut_oan_messaging, package ut_oan_w3, package ut_oan_orgs);
+    accessible by (package ut_oan_vis, package ut_oan_registry, package ut_oan_auth, package ut_oan_chat, package ut_oan_bp_api, package ut_oan_directory, package ut_oan_career, package ut_oan_network, package ut_oan_page_content, package ut_oan_platform, package ut_oan_w2, package ut_oan_messaging, package ut_oan_w3, package ut_oan_orgs, package ut_oan_w4);
   function  has_role(p_username in varchar2, p_role in varchar2) return boolean;
   -- 'Y' when the current viewer holds p_role (from the ROLES attribute; usable in SQL)
   function  viewer_has_role(p_role in varchar2) return varchar2;
@@ -156,7 +156,7 @@ create or replace package body oan_ctx_pkg as
 
   procedure set_test_viewer(p_user_id in number, p_type in varchar2, p_is_admin in varchar2 default 'N',
                             p_roles in varchar2 default null)
-    accessible by (package ut_oan_vis, package ut_oan_registry, package ut_oan_auth, package ut_oan_chat, package ut_oan_bp_api, package ut_oan_directory, package ut_oan_career, package ut_oan_network, package ut_oan_page_content, package ut_oan_platform, package ut_oan_w2, package ut_oan_messaging, package ut_oan_w3, package ut_oan_orgs) is
+    accessible by (package ut_oan_vis, package ut_oan_registry, package ut_oan_auth, package ut_oan_chat, package ut_oan_bp_api, package ut_oan_directory, package ut_oan_career, package ut_oan_network, package ut_oan_page_content, package ut_oan_platform, package ut_oan_w2, package ut_oan_messaging, package ut_oan_w3, package ut_oan_orgs, package ut_oan_w4) is
   begin
     clear_viewer;
     if p_user_id is not null then

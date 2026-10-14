@@ -83,12 +83,20 @@ select n.id, n.notif_type, n.title, n.body, n.link_page, n.link_params, n.is_rea
   from oan_notifications n
  where n.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID'));
 
+-- Per-type settings (page 42): in-app is always on; email Instant / Daily digest / Off; channel On / Off.
+-- Types of later phases are listed once their phase is current.
 create or replace view oan_my_notif_prefs_v as
 select t.code notif_type, t.description, t.mandatory, t.phase,
-       case when t.mandatory = 'Y' then 'INSTANT' else coalesce(p.email_mode, t.default_mode) end email_mode
+       initcap(replace(t.code, '_', ' ')) type_label,
+       case when t.mandatory = 'Y' then 'INSTANT' else coalesce(p.email_mode, t.default_mode) end email_mode,
+       case when t.mandatory = 'Y' then 'Instant (required)'
+            else case coalesce(p.email_mode, t.default_mode) when 'INSTANT' then 'Instant' when 'DIGEST' then 'Daily digest'
+                                                             else 'Off' end end email_label,
+       coalesce(p.channel_mode, 'OFF') channel_mode
   from oan_notif_types t
   left join oan_notif_prefs p on p.notif_type = t.code and p.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID'))
- where sys_context('OAN_CTX','VIEWER_ID') is not null;
+ where sys_context('OAN_CTX','VIEWER_ID') is not null
+   and t.phase <= nvl((select to_number(c.config_value) from oan_config c where c.config_key = 'CURRENT_PHASE'), 1) + 1;
 
 create or replace view oan_my_consents_v as
 select c.consent_type,
@@ -1018,3 +1026,55 @@ select oc.user_id, p.first_name || ' ' || p.last_name contact_name, oc.designati
   from oan_org_contacts oc
   join oan_profiles p on p.user_id = oc.user_id
  where oc.org_id = oan_org_pkg.my_org_id;
+
+-------------------------------------------------------------- channels (W4.4, page 43) --
+-- The viewer's Slack / WhatsApp links (masked label only; never the full number or Slack id)
+create or replace view oan_my_channels_v as
+select c.channel, initcap(c.channel) channel_label, c.status,
+       case c.status when 'LINKED' then 'Linked' when 'PENDING' then 'Waiting for the code' else 'Not linked' end status_label,
+       c.external_label, c.linked_at, c.opt_in_outbound, c.opt_in_at, c.reverify_due_at, c.code_expires_at
+  from oan_channel_identities c
+ where c.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID'))
+   and c.status in ('PENDING','LINKED')
+   and sys_context('OAN_CTX','VIEWER_TYPE') = 'MEMBER';
+
+-- Recent channel deliveries for the viewer (FR-48 AC5: every message logged with its status)
+create or replace view oan_my_channel_messages_v as
+select m.id, initcap(m.channel) channel_label, m.body, initcap(m.status) status_label, m.created_at, m.sent_at
+  from oan_channel_messages m
+ where m.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID'));
+
+------------------------------------------------------------ Help Me Connect (W4.5, page 29) --
+-- Open and recent requests the viewer may see: members only; chapter-scoped requests for that chapter's
+-- members; requester shown through the card view, so blocked or inactive members drop out
+create or replace view oan_help_requests_v as
+select r.id, r.title, r.description, r.target_org, r.status,
+       case r.status when 'OPEN' then 'Open' when 'RESOLVED' then 'Resolved' when 'EXPIRED' then 'Expired' else 'Hidden' end status_label,
+       r.created_at, r.expires_at, r.resolved_at, r.chapter_id, ch.name chapter_name,
+       c.user_id requester_id, c.display_name requester_name, c.headline requester_headline,
+       (select listagg(t.name, ', ') within group (order by t.name) from oan_taxonomy_terms t
+         where instr(':' || r.skill_ids || ':', ':' || t.id || ':') > 0) skills,
+       (select count(*) from oan_help_responses x where x.request_id = r.id and x.status = 'VISIBLE') response_count,
+       case when r.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID')) then 'Y' else 'N' end is_mine
+  from oan_help_requests r
+  join oan_member_card_v c on c.user_id = r.user_id
+  left join oan_chapters ch on ch.id = r.chapter_id
+ where sys_context('OAN_CTX','VIEWER_TYPE') = 'MEMBER'
+   and r.status != 'HIDDEN'
+   and (   r.chapter_id is null
+        or r.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID'))
+        or exists (select 1 from oan_chapter_members m
+                    where m.chapter_id = r.chapter_id and m.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID'))));
+
+-- Public responses on visible requests (private replies live in Conversations)
+create or replace view oan_help_responses_v as
+select x.id, x.request_id, x.response_type,
+       case x.response_type when 'CONNECT' then 'Can connect you' when 'INTRODUCE' then 'Offers an introduction'
+                            when 'POINT' then 'Points you to' else 'Replied privately' end type_label,
+       x.body, c.user_id responder_id, c.display_name responder_name,
+       x.pointed_user_id, (select pc.display_name from oan_member_card_v pc where pc.user_id = x.pointed_user_id) pointed_name,
+       x.thanked, x.created_at, r.is_mine
+  from oan_help_responses x
+  join oan_help_requests_v r on r.id = x.request_id
+  join oan_member_card_v c on c.user_id = x.responder_id
+ where x.status = 'VISIBLE';

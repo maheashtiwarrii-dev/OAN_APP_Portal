@@ -1,0 +1,113 @@
+page 44 (
+    name: Unsubscribe
+    alias: UNSUBSCRIBE
+    title: Unsubscribe
+    appearance {
+        pageTemplate: @/login
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    security {
+        authentication: public
+        pageAccessProtection: unrestricted
+        formAutoComplete: false
+    }
+    comments {
+        comments: One-click unsubscribe (FR-23, P30; Build Pack page 44). Every OAN email links here with the member id, the notification type and an HMAC token (OAN_NOTIFY_PKG.UNSUBSCRIBE_URL). The token is checked server-side; a valid link turns email for that type Off without sign-in. Required types (security, account) cannot be switched off. The items are unrestricted because they arrive from email links; the HMAC token is the protection.
+    }
+
+    region r44_result (
+        name: Email preferences
+        type: dynamicContent
+        source {
+            plsqlFunctionBody:
+                ```plsql
+                return case :P44_RESULT
+                         when 'OK' then '<p>Done. You will no longer get these emails. You can still see these notifications under the bell, and change any email setting after signing in (Notification settings).</p>'
+                         else '<p>This link is not valid, has already been used for a required notification, or has been changed. Sign in and open Notification settings to change your emails.</p>'
+                       end;
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P44_U (
+        type: hidden
+        layout {
+            sequence: 1
+            region: @r44_result
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: unrestricted
+        }
+    )
+
+    pageItem P44_T (
+        type: hidden
+        layout {
+            sequence: 2
+            region: @r44_result
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: unrestricted
+        }
+    )
+
+    pageItem P44_K (
+        type: hidden
+        layout {
+            sequence: 3
+            region: @r44_result
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: unrestricted
+        }
+    )
+
+    pageItem P44_RESULT (
+        type: hidden
+        layout {
+            sequence: 4
+            region: @r44_result
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    process apply (
+        name: Apply the unsubscribe link
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                :P44_RESULT := 'NO';
+                if regexp_like(:P44_U, '^[0-9]{1,12}$') and :P44_T is not null and :P44_K is not null then
+                    if oan_notify_pkg.apply_unsubscribe(to_number(:P44_U), upper(substr(:P44_T, 1, 40)), substr(:P44_K, 1, 128)) then
+                        :P44_RESULT := 'OK';
+                    end if;
+                end if;
+                -- one use per request: do not keep the token in session state
+                :P44_K := null;
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+    )
+
+)

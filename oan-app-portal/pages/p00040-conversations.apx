@@ -15,7 +15,7 @@ page 40 (
         formAutoComplete: false
     }
     comments {
-        comments: Build Pack Messages / Conversations (FR-18, R08, R27; W4.1/W4.2 first slice, 14 Oct 2026). Two panes: All / Unread / Groups with Announcements, Pinned and Conversations; the open thread with its messages and a reply box. Everything is read through OAN_MY_THREADS_V and OAN_THREAD_MESSAGES_V (participants only) and changed through OAN_MESSAGE_PKG, which checks messaging permission, blocks and the daily limit. The URL items are unprotected because notifications link here; the views and the package decide access. Bodies are escaped. Polling, attachments and message search follow in W4.
+        comments: Build Pack Messages / Conversations (FR-18, R08, R27; W4.1/W4.2 first slice, 14 Oct 2026). Two panes: All / Unread / Groups with Announcements, Pinned and Conversations; the open thread with its messages and a reply box. Everything is read through OAN_MY_THREADS_V and OAN_THREAD_MESSAGES_V (participants only) and changed through OAN_MESSAGE_PKG, which checks messaging permission, blocks and the daily limit. The URL items are unprotected because notifications link here; the views and the package decide access. Bodies are escaped. New messages are checked every 20 seconds (OAN_CHAT_POLL); search covers the viewer's own conversations only (OAN_MSG_TEXT_IX, S16). Attachments follow.
     }
 
     region r40_chat (
@@ -52,7 +52,8 @@ page 40 (
                     end avatar;
                 begin
                     select count(*) into l_unread from oan_my_threads_v where unread_count > 0;
-                    l_html := '<div class="oan-chat' || case when l_thread is not null then ' has-thread' end || '">'
+                    l_html := '<div class="oan-chat' || case when l_thread is not null then ' has-thread' end
+                        || '" data-stamp="' || apex_escape.html_attribute(oan_message_pkg.poll_stamp) || '">'
                         || '<nav class="oan-chat-list" aria-label="Conversations"><h2>Conversations</h2>'
                         || '<div class="oan-tabs" role="tablist">' || tab('ALL', 'All')
                         || tab('UNREAD', 'Unread' || case when l_unread > 0 then ' (' || l_unread || ')' end)
@@ -188,6 +189,97 @@ page 40 (
         }
     )
 
+    region r40_search (
+        name: Search messages
+        type: staticContent
+        layout {
+            sequence: 40
+            slot: body
+        }
+        appearance {
+            template: @/collapsible
+            templateOptions: [
+                #DEFAULT#
+                is-collapsed
+            ]
+        }
+    )
+
+    region r40_results (
+        name: Messages found
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select s.object_id thread_id, s.title, s.snippet
+                  from table(oan_message_pkg.search(:P40_MQ)) s
+                ```
+        }
+        layout {
+            sequence: 45
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: No messages match. New messages can take two minutes to become searchable.
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P40_MQ
+        }
+
+        column THREAD_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column TITLE (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Conversation
+            }
+            layout {
+                sequence: 2
+            }
+            link {
+                target: {
+                    page: 40
+                    items: {
+                        P40_THREAD_ID: \#THREAD_ID#\
+                    }
+                }
+                linkText: #TITLE#
+            }
+        )
+
+        column SNIPPET (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Message
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+    )
+
     pageItem P40_THREAD_ID (
         type: hidden
         comments {
@@ -291,6 +383,59 @@ page 40 (
         appearance {
             template: @/optional-floating
             templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P40_MQ (
+        type: textField
+        label {
+            label: Search your conversations
+        }
+        layout {
+            sequence: 10
+            region: @r40_search
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 200
+        }
+    )
+
+    button search (
+        buttonName: SEARCH
+        label: Search
+        layout {
+            sequence: 10
+            region: @r40_search
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process poll (
+        name: OAN_CHAT_POLL
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                apex_json.open_object;
+                apex_json.write('stamp', oan_message_pkg.poll_stamp);
+                apex_json.close_object;
+                ```
+        }
+        execution {
+            sequence: 10
+            point: ajaxCallback
         }
     )
 
@@ -471,6 +616,7 @@ page 40 (
                 items: {
                     P40_THREAD_ID: &P40_THREAD_ID.
                     P40_TAB: &P40_TAB.
+                    P40_MQ: &P40_MQ.
                 }
             }
         }

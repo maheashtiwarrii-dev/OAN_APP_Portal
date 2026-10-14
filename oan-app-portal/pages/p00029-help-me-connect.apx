@@ -1,0 +1,719 @@
+page 29 (
+    name: Help Me Connect
+    alias: HELP-ME-CONNECT
+    title: Help Me Connect
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    security {
+        authorizationScheme: @is-active
+        pageAccessProtection: unrestricted
+        formAutoComplete: false
+    }
+    comments {
+        comments: Help Me Connect (FR-04, W4.5; PRD-only page 29). Ask the network for help reaching someone; members respond with an offer to connect, an introduction, a pointer to another member, or a private reply that opens a conversation (page 40). Contact details are masked in public responses (AC1); requests expire after 30 days (AC2). Notifications link here, so P29_ID is unrestricted; OAN_HELP_REQUESTS_V and OAN_HELP_PKG decide access.
+    }
+
+    region r29_detail (
+        name: Request
+        type: dynamicContent
+        source {
+            plsqlFunctionBody:
+                ```plsql
+                declare
+                    l_html clob;
+                begin
+                    for r in (select * from oan_help_requests_v where id = to_number(:P29_ID)) loop
+                        l_html := '<article class="oan-article"><div class="oan-article-type">' || apex_escape.html(r.status_label) || '</div>'
+                            || '<h1 style="font-size:22px">' || apex_escape.html(r.title) || '</h1>'
+                            || '<p class="oan-article-meta">' || apex_escape.html(r.requester_name)
+                            || case when r.requester_headline is not null then ' &middot; ' || apex_escape.html(r.requester_headline) end
+                            || ' &middot; ' || to_char(r.created_at, 'DD Mon YYYY')
+                            || case when r.status = 'OPEN' then ' &middot; open until ' || to_char(r.expires_at, 'DD Mon') end || '</p>'
+                            || '<div class="oan-article-body"><p>' || replace(apex_escape.html(r.description), chr(10), '<br>') || '</p></div>'
+                            || case when r.target_org is not null then '<p><strong>Organisation:</strong> ' || apex_escape.html(r.target_org) || '</p>' end
+                            || case when r.skills is not null then '<p><strong>Skills:</strong> ' || apex_escape.html(r.skills) || '</p>' end
+                            || '</article>';
+                    end loop;
+                    return nvl(l_html, '<p>This request is not available.</p>');
+                end;
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--hideHeader js-addHiddenHeadingRoleDesc
+            ]
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P29_ID
+        }
+    )
+
+    region r29_responses (
+        name: Responses
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select id, responder_name, type_label, pointed_name, body, created_at,
+                       case when is_mine = 'Y' and thanked = 'N' then 'Say thanks' when thanked = 'Y' then 'Thanked' end thank_label
+                  from oan_help_responses_v
+                 where request_id = to_number(:P29_ID)
+                 order by created_at
+                ```
+        }
+        layout {
+            sequence: 15
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: No responses yet.
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P29_ID
+        }
+
+        column ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column RESPONDER_NAME (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Member
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column TYPE_LABEL (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Offer
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column POINTED_NAME (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Points to
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column BODY (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Message
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+        column CREATED_AT (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: When
+            }
+            layout {
+                sequence: 6
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+        column THANK_LABEL (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Thanks
+            }
+            layout {
+                sequence: 7
+            }
+            link {
+                target: {
+                    page: 29
+                    items: {
+                        P29_ID: &P29_ID.
+                        P29_RESPONSE_ID: \#ID#\
+                    }
+                    request: THANK
+                }
+                linkText: #THANK_LABEL#
+            }
+        )
+
+    )
+
+    region r29_respond (
+        name: Can you help?
+        type: staticContent
+        source {
+            htmlCode: <p>Offer to connect, introduce, or point to a member. Do not share email addresses or phone numbers here - they are hidden automatically. For anything personal, reply privately.</p>
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery: select 1 from oan_help_requests_v where id = to_number(:P29_ID) and status = 'OPEN' and is_mine = 'N'
+        }
+    )
+
+    region r29_ask (
+        name: Ask the network
+        type: staticContent
+        source {
+            htmlCode: <p>Looking for someone at a company, with a skill, or who has done something before? Describe what you need. Your contact details are never shown; people reply here or privately in Conversations.</p>
+        }
+        layout {
+            sequence: 25
+            slot: body
+        }
+        appearance {
+            template: @/collapsible
+            templateOptions: [
+                #DEFAULT#
+                is-collapsed
+            ]
+        }
+    )
+
+    region r29_requests (
+        name: Requests from the network
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select id, title, requester_name, nvl(skills, target_org) about, chapter_name, response_count, status_label, created_at,
+                       'Open' open_label
+                  from oan_help_requests_v
+                 where (nvl(:P29_SHOW, 'OPEN') = 'OPEN' and status = 'OPEN')
+                    or (:P29_SHOW = 'MINE' and is_mine = 'Y')
+                 order by created_at desc
+                ```
+        }
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: No requests here yet. Ask the network for help with the form above.
+        }
+
+        column ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column TITLE (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Request
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column REQUESTER_NAME (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: From
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column ABOUT (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: About
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column CHAPTER_NAME (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Chapter
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+        column RESPONSE_COUNT (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Responses
+            }
+            layout {
+                sequence: 6
+            }
+        )
+
+        column STATUS_LABEL (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: Status
+            }
+            layout {
+                sequence: 7
+            }
+        )
+
+        column CREATED_AT (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            heading {
+                heading: Posted
+            }
+            layout {
+                sequence: 8
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+        column OPEN_LABEL (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Open
+            }
+            layout {
+                sequence: 9
+            }
+            link {
+                target: {
+                    page: 29
+                    items: {
+                        P29_ID: \#ID#\
+                        P29_SHOW: &P29_SHOW.
+                    }
+                }
+                linkText: #OPEN_LABEL#
+            }
+        )
+
+    )
+
+    pageItem P29_ID (
+        type: hidden
+        layout {
+            sequence: 1
+            region: @r29_requests
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: unrestricted
+        }
+    )
+
+    pageItem P29_RESPONSE_ID (
+        type: hidden
+        layout {
+            sequence: 2
+            region: @r29_requests
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: unrestricted
+        }
+    )
+
+    pageItem P29_SHOW (
+        type: selectList
+        label {
+            label: Show
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:Open requests;OPEN,My requests;MINE
+            displayExtraValues: false
+            displayNullValue: false
+        }
+        default {
+            type: static
+            staticValue: OPEN
+        }
+        layout {
+            sequence: 3
+            region: @r29_requests
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        security {
+            sessionStateProtection: unrestricted
+        }
+    )
+
+    pageItem P29_TYPE (
+        type: radioGroup
+        label {
+            label: How can you help?
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:I can connect you;CONNECT,I can introduce you;INTRODUCE,Talk to this member;POINT,Reply privately;PRIVATE
+            displayExtraValues: false
+        }
+        default {
+            type: static
+            staticValue: CONNECT
+        }
+        layout {
+            sequence: 10
+            region: @r29_respond
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P29_POINTED (
+        type: popupLov
+        label {
+            label: Member (for "Talk to this member")
+        }
+        lov {
+            type: sharedComponent
+            lov: @oan-members
+        }
+        layout {
+            sequence: 20
+            region: @r29_respond
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P29_BODY (
+        type: textarea
+        label {
+            label: Message
+        }
+        layout {
+            sequence: 30
+            region: @r29_respond
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 1000
+        }
+    )
+
+    pageItem P29_TITLE (
+        type: textField
+        label {
+            label: What do you need?
+        }
+        layout {
+            sequence: 10
+            region: @r29_ask
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 200
+        }
+    )
+
+    pageItem P29_DESCRIPTION (
+        type: textarea
+        label {
+            label: Details
+        }
+        layout {
+            sequence: 20
+            region: @r29_ask
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 2000
+        }
+    )
+
+    pageItem P29_TARGET_ORG (
+        type: textField
+        label {
+            label: Organisation (optional)
+        }
+        layout {
+            sequence: 30
+            region: @r29_ask
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 200
+        }
+    )
+
+    pageItem P29_SKILLS (
+        type: selectMany
+        label {
+            label: Skills (optional)
+        }
+        lov {
+            type: sharedComponent
+            lov: @oan-skills
+        }
+        layout {
+            sequence: 40
+            region: @r29_ask
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    button refresh (
+        buttonName: REFRESH
+        label: Show
+        layout {
+            sequence: 5
+            region: @r29_requests
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button respond (
+        buttonName: RESPOND
+        label: Send
+        layout {
+            sequence: 10
+            region: @r29_respond
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button resolve (
+        buttonName: RESOLVE
+        label: Mark as resolved
+        layout {
+            sequence: 10
+            region: @r29_detail
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery: select 1 from oan_help_requests_v where id = to_number(:P29_ID) and status = 'OPEN' and is_mine = 'Y'
+        }
+    )
+
+    button post (
+        buttonName: POST
+        label: Post request
+        layout {
+            sequence: 10
+            region: @r29_ask
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process thank (
+        name: Thank a responder
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                oan_help_pkg.thank(to_number(:P29_RESPONSE_ID));
+                apex_util.redirect_url(apex_page.get_url(p_page => 29, p_items => 'P29_ID', p_values => :P29_ID));
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        serverSideCondition {
+            type: request=Value
+            value: THANK
+        }
+    )
+
+    process actions (
+        name: Post, respond or resolve
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare
+                    l_id     number;
+                    l_masked varchar2(1);
+                begin
+                    case :REQUEST
+                        when 'POST' then
+                            :P29_ID := oan_help_pkg.post_request(:P29_TITLE, :P29_DESCRIPTION, :P29_TARGET_ORG, :P29_SKILLS);
+                            :P29_TITLE := null; :P29_DESCRIPTION := null; :P29_TARGET_ORG := null; :P29_SKILLS := null;
+                            apex_application.g_print_success_message := 'Your request is posted.';
+                        when 'RESPOND' then
+                            l_id := oan_help_pkg.respond(to_number(:P29_ID), :P29_TYPE, :P29_BODY, to_number(:P29_POINTED), l_masked);
+                            :P29_BODY := null; :P29_POINTED := null;
+                            apex_application.g_print_success_message :=
+                                case when :P29_TYPE = 'PRIVATE' then 'Sent privately. Continue in Conversations.'
+                                     when l_masked = 'Y' then 'Sent. Contact details were hidden - continue privately if needed.'
+                                     else 'Thanks for helping.' end;
+                        when 'RESOLVE' then
+                            oan_help_pkg.resolve(to_number(:P29_ID));
+                            apex_application.g_print_success_message := 'Marked as resolved.';
+                    end case;
+                end;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: POST,RESPOND,RESOLVE
+        }
+    )
+
+    branch back (
+        name: Back to the request
+        behavior {
+            type: pageOrUrl
+            target: {
+                page: 29
+                items: {
+                    P29_ID: &P29_ID.
+                    P29_SHOW: &P29_SHOW.
+                }
+            }
+        }
+        execution {
+            point: afterProcessing
+            sequence: 10
+        }
+    )
+
+)

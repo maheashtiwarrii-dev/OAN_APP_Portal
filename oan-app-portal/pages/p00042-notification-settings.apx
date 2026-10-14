@@ -1,0 +1,309 @@
+page 42 (
+    name: Notification Settings
+    alias: NOTIFICATION-SETTINGS
+    title: Notification settings
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    security {
+        authorizationScheme: @is-signed-in
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: Build Pack W4 page 42 (FR-23, W4.3). Per notification type - in-app is always on; email Instant / Daily digest / Off (required types stay Instant); Slack/WhatsApp On / Off once a channel is linked and CHANNELS is live (page 43). Saved through OAN_NOTIFY_PKG.SET_PREF. Every email also has a one-click unsubscribe link (page 44).
+    }
+
+    region r42_types (
+        name: Notification types
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select notif_type, type_label, description, email_label,
+                       case channel_mode when 'ON' then 'On' else 'Off' end channel_label,
+                       case when mandatory = 'Y' then null else 'Change' end change_label
+                  from oan_my_notif_prefs_v
+                 order by mandatory desc, type_label
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: No notification types.
+        }
+
+        column NOTIF_TYPE (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column TYPE_LABEL (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Type
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column DESCRIPTION (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: When
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column EMAIL_LABEL (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Email
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column CHANNEL_LABEL (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Slack / WhatsApp
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+        column CHANGE_LABEL (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Change
+            }
+            layout {
+                sequence: 6
+            }
+            link {
+                target: {
+                    page: 42
+                    items: {
+                        P42_TYPE: \#NOTIF_TYPE#\
+                    }
+                }
+                linkText: #CHANGE_LABEL#
+            }
+        )
+
+    )
+
+    region r42_edit (
+        name: Change a notification type
+        type: staticContent
+        source {
+            htmlCode: <p>In-app notifications always appear under the bell. Choose how you also want to hear about <strong>&P42_TYPE_LABEL.</strong>.</p>
+        }
+        layout {
+            sequence: 5
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P42_TYPE
+        }
+    )
+
+    pageItem P42_TYPE (
+        type: hidden
+        layout {
+            sequence: 1
+            region: @r42_edit
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P42_TYPE_LABEL (
+        type: hidden
+        layout {
+            sequence: 2
+            region: @r42_edit
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P42_EMAIL (
+        type: radioGroup
+        label {
+            label: Email
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:Instant;INSTANT,Daily digest;DIGEST,Off;OFF
+            displayExtraValues: false
+        }
+        layout {
+            sequence: 10
+            region: @r42_edit
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P42_CHANNEL (
+        type: switch
+        label {
+            label: Also send a short alert to my linked Slack / WhatsApp
+        }
+        layout {
+            sequence: 20
+            region: @r42_edit
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    button save (
+        buttonName: SAVE
+        label: Save
+        layout {
+            sequence: 10
+            region: @r42_edit
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button channels (
+        buttonName: CHANNELS
+        label: Link Slack or WhatsApp
+        layout {
+            sequence: 10
+            region: @r42_types
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--simple
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 43
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process load (
+        name: Load the chosen type
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                for t in (select * from oan_my_notif_prefs_v where notif_type = :P42_TYPE and mandatory = 'N') loop
+                    :P42_TYPE_LABEL := t.type_label;
+                    :P42_EMAIL      := t.email_mode;
+                    :P42_CHANNEL    := case t.channel_mode when 'ON' then 'Y' else 'N' end;
+                end loop;
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P42_TYPE
+        }
+    )
+
+    process save (
+        name: Save the setting
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                oan_notify_pkg.set_pref(:P42_TYPE, :P42_EMAIL, case :P42_CHANNEL when 'Y' then 'ON' else 'OFF' end);
+                :P42_TYPE := null;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        serverSideCondition {
+            whenButtonPressed: @save
+        }
+        successMessage {
+            successMessage: Saved.
+        }
+    )
+
+    branch back (
+        name: Back to the list
+        behavior {
+            type: pageOrUrl
+            target: {
+                page: 42
+            }
+        }
+        execution {
+            point: afterProcessing
+            sequence: 10
+        }
+    )
+
+)

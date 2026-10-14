@@ -220,6 +220,33 @@ list navigation-menu (
         }
     )
 
+    entry help-me-connect (
+        label: Help Me Connect
+        icon {
+            imageIconCssClasses: fa-handshake-o
+        }
+        layout {
+            sequence: 25
+        }
+        isCurrent {
+            type: pages
+            pages: [
+                29
+            ]
+        }
+        link {
+            target: {
+                page: 29
+            }
+        }
+        security {
+            authorizationScheme: @is-active
+        }
+        comments {
+            comments: FR-04 Help Me Connect (W4.5).
+        }
+    )
+
     entry library (
         label: Insights and perspectives
         icon {

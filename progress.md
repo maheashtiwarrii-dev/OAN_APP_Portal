@@ -253,3 +253,11 @@
 | I21-3 | Pages | 76 Register your company (public; areas of interest, ways to work with members, name, email, designation, company, type, website, industry, country, size, LinkedIn, initiatives, terms), 112 Company registrations (admin review), 70 Company workspace (organisation page group, ORG viewer); login page link; rail entries; Home routes company accounts to 70 |
 | I21-4 | Privacy | Companies see only what members choose to share (Members+Partners profile sections, CVs shared with them or sent with an application, R13); no export, print or REST of member data (FR-20) |
 | I21-5 | Checks | `ut_oan_orgs` 6/6 with auth, registry, platform and API suites (39 tests); harness 95 queries / 131 blocks; links, base tables, brand, validation pass; app 200 imported (61 pages) |
+
+## Iteration 22 — W4 notifications, channels (built but off) and Help Me Connect (15 Oct 2026)
+| Step | Action | Result |
+|---|---|---|
+| I22-1 | Database | `105_channels_notifications.sql` (per-type channel setting, channel identities/events/outbound queue, message Text index, 180-day read-notification retention), `106_help_requests.sql`; `oan_channel_pkg` + `oan_channel_send`, `oan_help_pkg`; message search and polling stamp; notify queues title + link to linked channels; unsubscribe moves to page 44; CHANNEL_DISPATCH (15 min), CHANNEL_HOUSEKEEPING and HELP_REQUESTS_EXPIRE (daily) job steps |
+| I22-2 | Pages | 29 Help Me Connect, 40 (message search + 20s polling), 41 (links), 42 Notification settings, 43 Slack and WhatsApp (linking forms appear when CHANNELS is live), 44 Unsubscribe (public, HMAC) |
+| I22-3 | Gate G-CH | Slack/WhatsApp are built but off: no Slack app, WhatsApp Business number, DPAs or DPIA annex yet. Inbound events with a bad signature or while off are logged and ignored; outbound is skipped |
+| I22-4 | Checks | `ut_oan_w4` 11/11 plus 10 other suites (94 tests); harness 101 queries / 141 blocks; links, base tables, brand, APEXLang validation pass; app 200 imported (65 pages) |

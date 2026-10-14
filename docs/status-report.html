@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OAN Portal Status Report</title>
+<style>
+:root {
+  --bg: #ffffff; --fg: #1f1d1b; --muted: #625b54; --line: #d9d3cb; --sunk: #f4f1ed;
+  --accent: #9a3f2c; --ok: #2f6b46; --ok-bg: #e2efe6; --warn: #8a5a00; --warn-bg: #f7ebd2;
+  --bad: #9c2b2b; --bad-bg: #f6dfdf; --info: #2c5a85; --info-bg: #dfe9f3;
+  --font: "Segoe UI", system-ui, -apple-system, sans-serif;
+  --mono: "Cascadia Mono", Consolas, ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1b1917; --fg: #ece7e1; --muted: #a59d94; --line: #403a35; --sunk: #252220;
+    --accent: #e08a72; --ok: #8fcfa3; --ok-bg: #1f3427; --warn: #e6bd66; --warn-bg: #3a2e14;
+    --bad: #ef9a9a; --bad-bg: #3d2020; --info: #92bce6; --info-bg: #1d2c3b;
+  }
+}
+@page { size: A4; margin: 14mm 14mm 16mm; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 10.5pt/1.45 var(--font); }
+main { max-width: 900px; margin: 0 auto; padding: 24px 16px 40px; }
+h1 { font-size: 20pt; margin: 0 0 2px; letter-spacing: -0.01em; }
+h2 { font-size: 13pt; margin: 22px 0 8px; padding-bottom: 4px; border-bottom: 2px solid var(--accent); }
+h3 { font-size: 11pt; margin: 14px 0 6px; }
+p { margin: 6px 0; }
+.eyebrow { color: var(--muted); font-size: 9pt; text-transform: uppercase; letter-spacing: 0.08em; }
+.sub { color: var(--muted); margin: 0 0 14px; }
+a { color: var(--info); }
+.kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 12px 0; }
+.kpi { background: var(--sunk); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; }
+.kpi b { display: block; font-size: 17pt; line-height: 1.1; }
+.kpi span { color: var(--muted); font-size: 8.5pt; }
+table { width: 100%; border-collapse: collapse; margin: 6px 0 10px; font-size: 9.5pt; }
+th, td { text-align: left; padding: 5px 7px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { background: var(--sunk); font-weight: 600; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.pill { display: inline-block; padding: 1px 7px; border-radius: 10px; font-size: 8.5pt; font-weight: 600; white-space: nowrap; }
+.done { background: var(--ok-bg); color: var(--ok); }
+.prog { background: var(--info-bg); color: var(--info); }
+.wait { background: var(--warn-bg); color: var(--warn); }
+.block { background: var(--bad-bg); color: var(--bad); }
+.idle { background: var(--sunk); color: var(--muted); }
+.bar { display: flex; height: 14px; border-radius: 4px; overflow: hidden; border: 1px solid var(--line); margin: 6px 0 4px; }
+.bar i { display: block; height: 100%; }
+.legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 8.5pt; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
+.pipeline { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 8px 0; }
+.stage { border: 1px solid var(--line); border-radius: 6px; padding: 8px; background: var(--sunk); }
+.stage b { display: block; font-size: 9.5pt; margin-bottom: 3px; }
+.stage ul { margin: 0; padding-left: 16px; font-size: 8.5pt; }
+code { font: 8.8pt var(--mono); background: var(--sunk); padding: 0 3px; border-radius: 3px; }
+ul.tight { margin: 4px 0; padding-left: 18px; }
+ul.tight li { margin: 2px 0; }
+.foot { margin-top: 24px; color: var(--muted); font-size: 8.5pt; border-top: 1px solid var(--line); padding-top: 6px; }
+.avoid { break-inside: avoid; }
+@media (max-width: 640px) { .kpis, .pipeline { grid-template-columns: repeat(2, 1fr); } }
+@media print { main { padding: 0; max-width: none; } h2 { break-after: avoid; } }
+</style>
+</head>
+<body>
+<main>
+  <div class="eyebrow">Project status report · 14 October 2026</div>
+  <h1>OAN Portal (Oracle Alumni Network)</h1>
+  <p class="sub">Oracle APEX application 200 on Autonomous Database · Plan v3.2 · APEX Build Pack v1.1 · development environment only</p>
+
+  <h2>Summary</h2>
+  <p>The portal is ahead of plan. Sprint S0 formally starts on 19 October, yet the database, the sign-in and onboarding pages, the app shell and most of wave W2 (profiles, directory, CV, connections, privacy) already run on the dev environment. Every change is validated, tested on the database and pushed to GitHub.</p>
+  <div class="kpis">
+    <div class="kpi"><b>51</b><span>APEX pages live on dev</span></div>
+    <div class="kpi"><b>47 / 47</b><span>database tests passing</span></div>
+    <div class="kpi"><b>61 / 320</b><span>person-days of plan done (19%)</span></div>
+    <div class="kpi"><b>3</b><span>blocked items, all waiting on OAN decisions</span></div>
+  </div>
+  <p><strong>Main risk:</strong> admin pages cannot be tested because staff roles need Google or LinkedIn sign-in (NFR-01) and Google sign-in is set aside (Q33). Email delivery (task 0.7) is also not set up, so sign-up email confirmation cannot complete on dev.</p>
+
+  <h2>Kanban dashboard</h2>
+  <p>Live board: <a href="https://maheashtiwarrii-dev.github.io/OAN_APP_Portal/">maheashtiwarrii-dev.github.io/OAN_APP_Portal</a> · printable copy: <code>docs/OAN-Delivery-Board-landscape.pdf</code>. 154 tasks across 16 sprints (S0–S15) and 11 gates.</p>
+  <div class="bar" role="img" aria-label="Tasks by status: 30 done, 20 in progress, 9 authored, 6 blocked or gated, 89 not started">
+    <i style="width:19.5%;background:var(--ok)"></i>
+    <i style="width:13%;background:var(--info)"></i>
+    <i style="width:5.8%;background:var(--warn)"></i>
+    <i style="width:3.9%;background:var(--bad)"></i>
+    <i style="width:57.8%;background:var(--line)"></i>
+  </div>
+  <div class="legend">
+    <span><i style="background:var(--ok)"></i>Done 30</span>
+    <span><i style="background:var(--info)"></i>In progress 20</span>
+    <span><i style="background:var(--warn)"></i>Authored, untested 9</span>
+    <span><i style="background:var(--bad)"></i>Blocked 3 · gated 3</span>
+    <span><i style="background:var(--line)"></i>Not started 89</span>
+  </div>
+
+  <h3>Progress by workstream</h3>
+  <table>
+    <thead><tr><th>Workstream</th><th>Status</th><th>What is in place</th></tr></thead>
+    <tbody>
+      <tr><td>Environment (WS0)</td><td><span class="pill prog">11 of 23 done</span></td><td>Dev ADB on APEX 26.1.5, ADMIN bootstrap, utPLSQL, spikes (two-schema, PBKDF2, Oracle Text). Blocked: Google client, social sign-in spike.</td></tr>
+      <tr><td>Database (WS1)</td><td><span class="pill prog">8 of 20 done</span></td><td>65 tables, 84 views, 27 packages, personal-data registry, seed data, grants with no table access for the app.</td></tr>
+      <tr><td>W0 Auth &amp; admin</td><td><span class="pill prog">9 of 22 done</span></td><td>Sign-in, registration, onboarding chat, legal, identity confirmation; admin pages built but untested (no admin login).</td></tr>
+      <tr><td>W1 Shell</td><td><span class="pill prog">2 of 3 done</span></td><td>Global page, search results (19), notifications (41); Home with letters and What's new.</td></tr>
+      <tr><td>W2 Profile &amp; directory</td><td><span class="pill prog">8 of 11 in progress</span></td><td>Directory and faceted results, member profile, my profile with entry dialogs, My CV, work profile, connections, account settings, privacy centre.</td></tr>
+      <tr><td>W3–W7, quality, release</td><td><span class="pill idle">not started</span></td><td>Library and discussions pages exist from earlier waves; events, messaging, jobs, partners and reporting follow the plan.</td></tr>
+    </tbody>
+  </table>
+
+  <h2 class="avoid">Delivered on dev (app 200)</h2>
+  <table>
+    <thead><tr><th>Area</th><th>Pages</th></tr></thead>
+    <tbody>
+      <tr><td>Sign-in and onboarding</td><td>1 Login · 2 Onboarding conversation · 3 Create account · 4 Access denied · 5 Application status · 6 Membership application · 7 Confirm email · 8 Reset password · 9 Link account · 11 Welcome · 12 Legal · 13 Report a concern · 14 Accept terms · 15 Confirm identity</td></tr>
+      <tr><td>Shell</td><td>0 Global page · 10 Home · 19 Search · 41 Notifications</td></tr>
+      <tr><td>Profile and directory</td><td>20 Directory · 21 Results · 22 Member profile · 23 My profile · 24 My CV · 25 Work profile · 26 Account settings · 27 Privacy centre · 28 My network · 90 Suggest a term · 91 Request a chapter · 231–234 entry dialogs</td></tr>
+      <tr><td>Content and community</td><td>34 Knowledge library · 35 Item · 36 Submit · 60 Discussions · 62 Post · 73 New post · 80 Report · 81 My decisions</td></tr>
+      <tr><td>Administration (untested)</td><td>101 Members · 106 Taxonomy · 107 Moderation · 110 Audit log · 114 Approvals · 115 Review · 116 Member detail · 117 Chapters · 118 Chapter requests · 119 Appeals</td></tr>
+    </tbody>
+  </table>
+  <p>Test data on dev is synthetic only (decision Q12): 265 alumni, 6 test accounts, 23 CV-based personas with logins and sample CVs, plus sample insights, posts, announcements and moderation cases.</p>
+
+  <h2 class="avoid">CI/CD pipeline</h2>
+  <div class="pipeline avoid">
+    <div class="stage"><b>1 · Every push and pull request</b><ul><li>Brand check (no Oracle logos)</li><li>Link check (no 404 pages)</li><li>Base-table check (NFR-03)</li><li>Dev-script guard</li><li>Secret scan (gitleaks)</li></ul></div>
+    <div class="stage"><b>2 · Build</b><ul><li>Offline APEXLang validation with SQLcl</li><li>No database or secrets needed</li></ul></div>
+    <div class="stage"><b>3 · Deploy to dev (manual)</b><ul><li>Validate again</li><li>Import app 200</li><li>Run utPLSQL suites</li><li>Smoke-test sign-in page</li></ul></div>
+    <div class="stage"><b>4 · Publish board</b><ul><li>Kanban board and PDF to GitHub Pages</li></ul></div>
+  </div>
+  <table>
+    <thead><tr><th>Item</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td>Check scripts (<code>ci/</code>)</td><td><span class="pill done">Live in repo</span> all pass on the current code</td></tr>
+      <tr><td>Board on GitHub Pages</td><td><span class="pill done">Live</span> updates on every push</td></tr>
+      <tr><td>Workflows <code>ci.yml</code>, <code>deploy-dev.yml</code>, <code>board.yml</code></td><td><span class="pill wait">Ready, not pushed</span> needs the GitHub <code>workflow</code> permission</td></tr>
+      <tr><td>Dev deploy secrets</td><td><span class="pill wait">Waiting</span> wallet and passwords to be added by the owner in environment <code>dev</code></td></tr>
+      <tr><td>Production deployment</td><td><span class="pill idle">Not automated</span> requires go-live gate 8.0</td></tr>
+    </tbody>
+  </table>
+
+  <h2 class="avoid">Decisions and actions needed</h2>
+  <table class="avoid">
+    <thead><tr><th>Item</th><th>Impact</th><th>Owner</th></tr></thead>
+    <tbody>
+      <tr><td>Google OAuth client, or a dev-only admin login</td><td><span class="pill block">Blocks</span> testing of all admin pages (NFR-01)</td><td>OAN / product owner</td></tr>
+      <tr><td>OCI Email Delivery for dev (task 0.7)</td><td><span class="pill wait">Limits</span> sign-up confirmation and password reset</td><td>OAN</td></tr>
+      <tr><td>Real member CVs (consent via Google Forms)</td><td><span class="pill wait">Open</span> self-service upload, or an explicit permission plus a private location; never the public repo</td><td>Product owner</td></tr>
+      <tr><td>GitHub permissions: <code>workflow</code> and <code>project</code></td><td><span class="pill wait">Open</span> push the pipeline and maintain the GitHub Project</td><td>Repo owner</td></tr>
+      <tr><td>PBKDF2 cost (≈1.9 s per sign-in at 210k iterations)</td><td><span class="pill wait">Change request</span> NFR-01 vs login performance</td><td>Product owner</td></tr>
+      <tr><td>Staffing decision (G0)</td><td><span class="pill wait">Open</span> one vs two developers sets the end date</td><td>Sponsor</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Next steps</h2>
+  <ul class="tight">
+    <li>Finish W2: CV sharing per application (W2.7), profile-update reminder job (W2.11), directory index for 100k members (W2.3).</li>
+    <li>Turn on the CI/CD workflows once permissions are granted; add the authorisation negative test and page-registry check.</li>
+    <li>Prepare the product-owner demo of W0–W2 (task 9.2a).</li>
+    <li>Start W3: events and the knowledge library rules.</li>
+  </ul>
+
+  <p class="foot">Source: <code>task_plan.md</code>, <code>progress.md</code> and the delivery board in github.com/maheashtiwarrii-dev/OAN_APP_Portal. OAN is an independent alumni community; this report uses no Oracle logos.</p>
+</main>
+</body>
+</html>

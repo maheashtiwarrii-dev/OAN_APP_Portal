@@ -160,7 +160,7 @@ table.gtable { border-collapse: collapse; width: 100%; font-size: 0.86rem; }
 
 <div class="wrap">
   <header>
-    <div class="eyebrow">OAN Portal v1 · Plan v3.2 · APEX Build Pack v1.1 (Q31) · APEX 26.1.5 (Q32) · updated 15 Oct 2026 · iteration 23</div>
+    <div class="eyebrow">OAN Portal v1 · Plan v3.2 · APEX Build Pack v1.1 (Q31) · APEX 26.1.5 (Q32) · updated 15 Oct 2026 · iteration 25</div>
     <h1>OAN Portal Delivery Board</h1>
     <p class="sub">The 16 sprints and 11 gates of the merged FSD scope, built in APEX Build Pack wave order with Build Pack page numbers (Q31; no Oracle HR brokering, Q29; no Oracle logos, Q30), from the S0 setup through the S14 pilot and S15 hypercare. Card status comes from <span class="mono">task_plan.md</span> in the GitHub repository.</p>
   </header>
@@ -236,7 +236,7 @@ const SPRINT_FOCUS = {
 };
 // [id, name, sprint, status(x done|p in progress|b blocked|n not started), condition]
 const GATES = [
-  ["G0","S0","p","Done: toolchain, dev ADB aiatp on APEX 26.1.5 (Q32), ADMIN bootstrap, install, utPLSQL, spikes (13 Oct); app 200 live on dev with 51 pages (14 Oct). Open: Google OAuth set aside (Q33), staffing decision."],
+  ["G0","S0","p","Done: toolchain, dev ADB aiatp on APEX 26.1.5 (Q32), ADMIN bootstrap, install, utPLSQL, spikes (13 Oct); app 200 live on dev with 88 pages and W0-W7 built (15 Oct). Open: Google OAuth set aside (Q33), staffing decision."],
   ["G1","S2","n","Content inventory + owner; product owner signs off the Must/Should/Could AC list."],
   ["G-RB","S2","n","Re-baseline: S1–S2 velocity and offline-rework actuals vs plan; invoke descope lane if < 20 pd/sprint."],
   ["G-AI","S3","n","AI_ASSISTANT DPIA annex + GenAI DPA signed."],
@@ -338,7 +338,7 @@ const T = [
  ["W2.7","CV share/revoke, last 3 versions","S5","W2","x",1,"P1","Share with a connection (30 days, revocable, audited); shared with me"],
  ["W2.8","Connections: connect, follow, block","S5","W2","x",3.5,"P1","Page 28: connections, introductions inbox, recommendations"],
  ["W2.9","Account settings + privacy centre","S5","W2","p",5,"P0","Pages 26, 27 on dev · 14 Oct"],
- ["W2.10","Profile update + privacy request admin","S5","W2","p",2.5,"P0","Views ready; admin pages move to W7"],
+ ["W2.10","Profile update + privacy request admin","S5","W2","x",2.5,"P0","Pages 128 (profile update requests) and 121 (privacy requests)"],
  ["W2.11","Profile-update nudge (08:00 local)","S5","W2","x",0.75,"P1","oan_nudge_pkg: 08:00 local requests and reminders"],
  ["5.3a","100k directory smoke test","S5","WS5","n",1,"P1",""],
  ["5.4a","First WCAG 2.2 pass","S5","WS5","n",0.5,"P1",""],
@@ -347,7 +347,7 @@ const T = [
  ["W3.2","Library, item, submit, saved, tag follow","S6","W3","x",3,"P1","Pages 30, 31, 301 + library 34-36"],
  ["W3.3","Events package: capacity, waitlist, .ics","S6","W3","x",3,"P1","oan_event_pkg: capacity, waitlist, promotion, attendance, .ics"],
  ["W3.4","Events + event detail","S6","W3","x",3,"P1","Pages 32, 33 (register, cancel, add to calendar, attendees) + 331 editor"],
- ["W3.5","Library moderation, import, events admin","S6","W3","p",5,"P1","Event editor 331 + check-in on 33; library import/admin pages with W7"],
+ ["W3.5","Library moderation, import, events admin","S6","W3","x",5,"P1","Event editor 331, check-in + CSV on 33, library import 120"],
  ["W3.6","Event reminders (07:00 local)","S6","W3","x",0.75,"P1","EVENT_REMINDERS hourly step, 07:00 local, once"],
  ["W4.1","Messaging package + message search index","S6","W4","x",6,"P1","oan_message_pkg + OAN_MSG_TEXT_IX search (own conversations only)"],
  ["W4.2","Conversations (two-pane, polling)","S6","W4","x",3,"P1","Page 40 to the mockup: two panes, groups, pin, search, 20s polling"],
@@ -356,7 +356,7 @@ const T = [
  ["W4.4a","Slack channel","S7","W4","g",6,"P4","Built but off: Slack linking, signed inbound, queue (G-CH)"],
  ["W4.4b","WhatsApp channel + channel settings","S7","W4","g",6,"P4","Built but off: WhatsApp code, opt-in, page 43 (G-CH)"],
  ["W4.5","Introductions + Help-Me-Connect","S7","W4","x",4.25,"P1","Page 29 Help Me Connect + introductions (W2.8)"],
- ["W5.1","Organisations: application, verification","S7","W5","p",4.5,"P2","Pages 76 (public registration, any company), 112 (verification), 70 (workspace)"],
+ ["W5.1","Organisations: application, verification","S7","W5","p",4.5,"P2","Pages 76, 112, 70 (invite/remove contacts); onboarding-to-draft application (S30) open"],
  ["W5.2","Jobs, opportunity feed, applications","S8","W5","x",7,"P2","Pages 50-53, 71 + job review on 107; apply with optional CV share (R13)"],
  ["W5.3","Referral request","S8","W5","x",2.5,"P2","Page 54: suggested referrers, 5/week, 14-day expiry"],
  ["W5.4","Helpdesk; HR documents signpost only","S8","W5","x",3,"P2","Page 55 helpdesk: reference, consent, sensitive-data check, no HR documents (Q29)"],
@@ -364,21 +364,22 @@ const T = [
  ["W5.6","Hourly SLA job","S8","W5","x",0.5,"P2","Hourly SLA check"],
  ["W5.7","Careers deep-links (feed gated)","S8","W5","p",0.75,"P2","Oracle roles as Careers links; feed waits for G-CF"],
  ["9.2b","Product-owner demo: W3–W5","S8","WS9","n",1,"",""],
- ["W6.1","Groups governance, reactions, stories, private search","S9","W6","p",5,"P1","Pages 60, 62, 73 on dev with sample posts"],
- ["W6.5","Partner workspace: talent requests, feedback","S9","W6","n",6,"P3","Page 70 · J-09..J-19 · Must"],
- ["W6.2","Experts + expert requests","S8","W6","n",4.5,"P3","Page 63 · J-14"],
+ ["W6.1","Groups governance, reactions, stories, private search","S9","W6","x",5,"P1","Page 61 groups (join/request/invite/roles/propose), reactions on 62, stories"],
+ ["W6.5","Partner workspace: talent requests, feedback","S9","W6","x",6,"P3","Pages 69 (members) and 72 (company): 11 need types, responses, feedback, close"],
+ ["W6.2","Experts + expert requests","S8","W6","x",4.5,"P3","Page 63: expert/trainer applications, Ask an expert (J-14)"],
  ["5.3b","Full load test on temporary ADB","S9","WS5","n",3,"",""],
- ["W6.3","Mentoring + sessions","S9","W6","n",4,"P3","Page 65 · J-05"],
- ["W6.4","Training, enrolment, mock projects","S10","W6","n",4.5,"P3","Page 67 · J-06, J-13"],
- ["W6.6","Chapters pages","S10","W6","n",1.5,"P3","Page 74"],
- ["W6.8","Initiatives + success stories","S10","W6","n",6.25,"P3","Pages 77, 78 · J-07"],
+ ["W6.3","Mentoring + sessions","S9","W6","x",4,"P3","Page 65: capacity, requests, sessions, private feedback (J-05)"],
+ ["W6.4","Training, enrolment, mock projects","S10","W6","x",4.5,"P3","Page 67: seats + waitlist, certificates, trainer roster (J-06, J-13)"],
+ ["W6.6","Chapters pages","S10","W6","x",1.5,"P3","Page 74: browse, join, leave"],
+ ["W6.8","Initiatives + success stories","S10","W6","x",6.25,"P3","Pages 77, 78; W6 journeys live (J-07)"],
  ["9.2c","Product-owner demo: W6","S10","WS9","n",1,"",""],
  ["6.8","≥ 3 partner orgs verified for pilot","S10","WS6","n",0,"","OAN-owned"],
- ["W7.1","Admin dashboard with 6 goal KPIs","S11","W7","n",2,"P2","Page 100"],
- ["W7.2","Reports & analytics, exports","S11","W7","n",4,"P2","Page 1085"],
- ["W7.3","Config + job runs","S11","W7","n",1.5,"P2","Pages 122, 123"],
- ["W6.7","Marketplace (descope lane)","S11","W6","n",2,"P4","Page 75 · Could"],
- ["W6.9","Recognition and badges (descope lane)","S11","W6","n",3,"P4","Could"],
+ ["W7.1","Admin dashboard with 6 goal KPIs","S11","W7","x",2,"P2","Page 100: KPI tiles, queues, job health, usage, channel counts"],
+ ["W7.2","Reports & analytics, exports","S11","W7","x",4,"P2","Page 100: 11 aggregate CSV reports, small counts suppressed, logged"],
+ ["W7.3","Config + job runs","S11","W7","x",1.5,"P2","Pages 122 settings (re-auth, locked keys, audited), 123 job runs"],
+ ["W7.4","Hardening: page-security check in CI","S11","W7","x",0.5,"P2","ci/check-page-security.py: reviewed public/deep-link pages, admin schemes"],
+ ["W6.7","Marketplace (descope lane)","S11","W6","n",2,"P4","Could; descope lane"],
+ ["W6.9","Recognition and badges (descope lane)","S11","W6","p",3,"P4","Endorsements on page 22; badges and contribution scores descoped"],
  ["5.2","Security test (ZAP, bypass, leaks)","S11","WS5","n",3,"",""],
  ["5.7","Security and privacy test matrix","S11","WS5","n",8,"","Rows written in each sprint"],
  ["5.8","Test identities per role and context","S11","WS5","n",1,"",""],

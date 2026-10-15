@@ -289,3 +289,4 @@
 | I25-3 | Hardening | `ci/check-page-security.py` added to CI: public pages, deep-link pages and unrestricted items must be on reviewed lists; admin pages must use admin schemes |
 | I25-4 | Checks | `ut_oan_w7` 4/4; harness 148 queries / 189 blocks; links, base tables, brand, page security, APEXLang validation pass |
 | I25-5 | Not built | XLSX/PDF report formats (CSV only); W6.7 Marketplace and W6.9 badges stay in the descope lane |
+| I25-6 | Project status (user request) | Board data, status report and both PDFs updated to iteration 25 (74 of 155 tasks done, 205 of 320 pd); GitHub Project #1 reloaded with a status update: ready for UAT, not yet for go-live (gate 8.0) |

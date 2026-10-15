@@ -120,7 +120,8 @@ using (select 'ORG_APPLICATION' c, 2 ph, 'INSTANT' m, 'N' mand,
 merge into oan_config c
 using (select 'ORG_APPLICATIONS_PER_HOUR' k, '30' v, 'NUMBER' t,
               'Company registrations accepted per hour across the site (abuse guard, page 76)' d from dual union all
-       select 'ORG_INVITE_DAYS', '7', 'NUMBER', 'Days a company owner''s set-password link stays valid' from dual) s
+       select 'ORG_INVITE_DAYS', '7', 'NUMBER', 'Days a company owner''s set-password link stays valid' from dual union all
+       select 'ORG_MAX_CONTACTS', '5', 'NUMBER', 'Colleagues a company owner can add besides themselves (FR-20)' from dual) s
    on (c.config_key = s.k)
  when not matched then insert (config_key, config_value, value_type, description) values (s.k, s.v, s.t, s.d);
 

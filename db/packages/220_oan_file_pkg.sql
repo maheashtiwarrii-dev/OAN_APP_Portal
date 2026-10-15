@@ -32,6 +32,11 @@ create or replace package body oan_file_pkg as
       oan_util.assert(l_ext in ('png','jpg','jpeg'), 'Profile photos must be PNG or JPG.');
     elsif p_object_type = 'CV' then
       oan_util.assert(l_ext in ('pdf','docx'), 'Your CV must be a PDF or Word (.docx) file.');
+    elsif p_object_type = 'IMPORT_BATCH' then
+      -- W3.5 library import (admins only): a UTF-8 CSV with a header row; text, so no magic bytes
+      oan_util.assert(l_ext = 'csv', 'Upload the library import as a .csv file.');
+      oan_util.assert(dbms_lob.instr(p_blob, hextoraw('00')) = 0, 'The CSV file must be plain text.');
+      return;
     else
       oan_util.assert(l_ext in ('pdf','docx','pptx','xlsx','png','jpg','jpeg'),
                       'Allowed file types: pdf, docx, pptx, xlsx, png, jpg.');
@@ -74,6 +79,10 @@ create or replace package body oan_file_pkg as
       oan_util.assert(l_quota + dbms_lob.getlength(p_blob)
                         <= oan_util.get_config_num('UPLOAD_QUOTA_MB', 500) * 1024 * 1024,
                       'Upload quota reached (500 MB).');
+    end if;
+    if p_object_type = 'IMPORT_BATCH' then
+      oan_security_pkg.require_admin;
+      validate(p_blob, p_filename, p_object_type);
     end if;
     l_mime := coalesce(p_mime, mime_of(ext_of(p_filename)));
     insert into oan_files (owner_id, filename, mime_type, file_size, sha256, content, object_type)

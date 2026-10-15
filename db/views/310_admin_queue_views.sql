@@ -275,3 +275,30 @@ select j.id, j.title, j.company_name, j.job_type, j.engagement_type, j.descripti
  where j.status = 'PENDING_REVIEW'
    and (sys_context('OAN_CTX','IS_MODERATOR') = 'Y' or sys_context('OAN_CTX','IS_ADMIN') = 'Y')
    and nvl(j.posted_by, -1) != to_number(sys_context('OAN_CTX','VIEWER_ID'));
+
+-- W6 reviews for moderators (page 107): group proposals, trainings and partner needs; never their own
+create or replace view oan_w6_review_queue_v as
+select 'GROUP' item_type, 'Group proposal' type_label, p.id, p.name title, p.description summary, p.created_at,
+       (select x.first_name || ' ' || x.last_name from oan_profiles x where x.user_id = p.proposer_id) submitted_by
+  from oan_group_proposals p
+ where p.status = 'PROPOSED' and p.proposer_id != to_number(sys_context('OAN_CTX','VIEWER_ID'))
+   and (sys_context('OAN_CTX','IS_MODERATOR') = 'Y' or sys_context('OAN_CTX','IS_ADMIN') = 'Y')
+union all
+select 'TRAINING', 'Training', t.id, t.title, substr(t.summary, 1, 400), t.created_at,
+       (select x.first_name || ' ' || x.last_name from oan_profiles x where x.user_id = t.trainer_id)
+  from oan_trainings t
+ where t.status = 'PENDING_REVIEW' and nvl(t.trainer_id, -1) != to_number(sys_context('OAN_CTX','VIEWER_ID'))
+   and (sys_context('OAN_CTX','IS_MODERATOR') = 'Y' or sys_context('OAN_CTX','IS_ADMIN') = 'Y')
+union all
+select 'NEED', 'Partner need', r.id, r.title, substr(r.description, 1, 400), r.created_at,
+       (select o.name from oan_organisations o where o.id = r.org_id)
+  from oan_talent_requests r
+ where r.status = 'PENDING_REVIEW' and nvl(r.posted_by, -1) != to_number(sys_context('OAN_CTX','VIEWER_ID'))
+   and (sys_context('OAN_CTX','IS_MODERATOR') = 'Y' or sys_context('OAN_CTX','IS_ADMIN') = 'Y');
+
+-- Mentoring feedback for Platform Admins (P25: private, never public ratings)
+create or replace view oan_admin_mentoring_feedback_v as
+select s.id mentorship_id, (select p.first_name || ' ' || p.last_name from oan_profiles p where p.user_id = s.mentor_id) mentor_name,
+       f.feedback, f.created_at
+  from oan_mentoring_feedback f join oan_mentorships s on s.id = f.mentorship_id
+ where sys_context('OAN_CTX','IS_ADMIN') = 'Y';

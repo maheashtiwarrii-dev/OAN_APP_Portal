@@ -626,6 +626,183 @@ page 107 (
         }
     )
 
+    region r107_w6 (
+        name: Groups, trainings and partner needs waiting for review
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select item_type, id, type_label, title, summary, submitted_by, created_at, 'Approve' approve_label, 'Reject' reject_label
+                  from oan_w6_review_queue_v
+                 order by created_at
+                ```
+        }
+        layout {
+            sequence: 95
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: Nothing waiting.
+        }
+
+        column ITEM_TYPE (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column ID (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 2
+            }
+        )
+
+        column TYPE_LABEL (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Type
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column TITLE (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Title
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column SUMMARY (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Summary
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+        column SUBMITTED_BY (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: From
+            }
+            layout {
+                sequence: 6
+            }
+        )
+
+        column CREATED_AT (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: Received
+            }
+            layout {
+                sequence: 7
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+        column APPROVE_LABEL (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Approve
+            }
+            layout {
+                sequence: 8
+            }
+            link {
+                target: {
+                    page: 107
+                    items: {
+                        P107_W6_TYPE: \#ITEM_TYPE#\
+                        P107_W6_ID: \#ID#\
+                    }
+                    request: W6_APPROVE
+                }
+                linkText: #APPROVE_LABEL#
+            }
+        )
+
+        column REJECT_LABEL (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Reject
+            }
+            layout {
+                sequence: 9
+            }
+            link {
+                target: {
+                    page: 107
+                    items: {
+                        P107_W6_TYPE: \#ITEM_TYPE#\
+                        P107_W6_ID: \#ID#\
+                    }
+                    request: W6_REJECT
+                }
+                linkText: #REJECT_LABEL#
+            }
+        )
+
+    )
+
+    pageItem P107_W6_TYPE (
+        type: hidden
+        layout {
+            sequence: 91
+            region: @r107_w6
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P107_W6_ID (
+        type: hidden
+        layout {
+            sequence: 92
+            region: @r107_w6
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
     button submit-decision (
         buttonName: SUBMIT_DECISION
         label: Submit decision
@@ -663,6 +840,34 @@ page 107 (
                 clearCache: 107
             }
             warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process w6-review (
+        name: Approve or reject a group proposal, training or partner need (W6)
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare
+                    l_yn varchar2(1) := case :REQUEST when 'W6_APPROVE' then 'Y' else 'N' end;
+                begin
+                    case :P107_W6_TYPE
+                        when 'GROUP'    then oan_community_pkg.decide_proposal(to_number(:P107_W6_ID), l_yn);
+                        when 'TRAINING' then oan_training_pkg.review(to_number(:P107_W6_ID), l_yn);
+                        when 'NEED'     then oan_talent_pkg.review_need(to_number(:P107_W6_ID), l_yn);
+                    end case;
+                    apex_util.redirect_url(apex_page.get_url(p_page => 107));
+                end;
+                ```
+        }
+        execution {
+            sequence: 6
+            point: beforeHeader
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: W6_APPROVE,W6_REJECT
         }
     )
 

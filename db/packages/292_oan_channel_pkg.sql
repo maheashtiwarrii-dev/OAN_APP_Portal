@@ -28,6 +28,7 @@ create or replace package oan_channel_pkg authid definer as
   -- inbound (ORDS handlers)
   function verify_slack_signature(p_body in clob, p_timestamp in varchar2, p_signature in varchar2) return boolean;
   function verify_whatsapp_signature(p_body in clob, p_signature in varchar2) return boolean;
+  function verify_whatsapp_token(p_token in varchar2) return boolean;   -- hub verification (GET)
   procedure handle_inbound(p_channel in varchar2, p_event_key in varchar2, p_external_id in varchar2,
                            p_text in varchar2, p_payload in clob, p_signature_ok in varchar2);
   -- jobs
@@ -235,6 +236,13 @@ create or replace package body oan_channel_pkg as
   exception
     when others then return false;
   end verify_whatsapp_signature;
+
+  function verify_whatsapp_token(p_token in varchar2) return boolean is
+  begin
+    return const_eq(lower(rawtohex(oan_util.get_secret('WHATSAPP_VERIFY_TOKEN'))), lower(p_token));
+  exception
+    when others then return false;
+  end verify_whatsapp_token;
 
   procedure handle_inbound(p_channel in varchar2, p_event_key in varchar2, p_external_id in varchar2,
                            p_text in varchar2, p_payload in clob, p_signature_ok in varchar2) is

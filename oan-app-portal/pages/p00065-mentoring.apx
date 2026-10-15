@@ -1,0 +1,854 @@
+page 65 (
+    name: Mentoring
+    alias: MENTORING
+    title: Mentoring
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    security {
+        authorizationScheme: @is-active
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: W6.3 Mentoring (FR-39, R17; journey J-05). Find a mentor or coach with free capacity and send a goal (5 requests a week); become a mentor (capacity, listing pause); accept or decline requests (blocked when full - accepting opens a conversation); log sessions with private notes; complete; mentees leave private feedback visible to the mentor and Platform Admins only (no public ratings).
+    }
+
+    region r65_mentors (
+        name: Mentors and coaches
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select user_id, display_name, type_label, headline, areas, about, availability, slots_left
+                  from oan_mentors_v
+                 where slots_left > 0
+                 order by display_name
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: No mentors are taking new mentees right now.
+        }
+
+        column USER_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column DISPLAY_NAME (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Name
+            }
+            layout {
+                sequence: 2
+            }
+            link {
+                target: {
+                    page: 22
+                    items: {
+                        P22_USER_ID: \#USER_ID#\
+                    }
+                }
+                linkText: #DISPLAY_NAME#
+            }
+        )
+
+        column TYPE_LABEL (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Type
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column HEADLINE (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Headline
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column AREAS (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Areas
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+        column ABOUT (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: About
+            }
+            layout {
+                sequence: 6
+            }
+        )
+
+        column AVAILABILITY (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: Availability
+            }
+            layout {
+                sequence: 7
+            }
+        )
+
+        column SLOTS_LEFT (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            heading {
+                heading: Places
+            }
+            layout {
+                sequence: 8
+            }
+        )
+
+    )
+
+    region r65_request (
+        name: Ask for mentoring
+        type: staticContent
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/collapsible
+            templateOptions: [
+                #DEFAULT#
+                is-collapsed
+            ]
+        }
+    )
+
+    region r65_mine (
+        name: My mentorships
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select id, case my_side when 'MENTOR' then 'I mentor' else 'My mentor' end side_label, other_name, goal, status_label, sessions, minutes,
+                       feedback_for_me, created_at,
+                       case when my_side = 'MENTOR' and status = 'REQUESTED' then 'Accept' end accept_label,
+                       case when my_side = 'MENTOR' and status = 'REQUESTED' then 'Decline' end decline_label,
+                       case when status = 'ACTIVE' then 'Complete' end complete_label,
+                       case when status = 'ACTIVE' then 'Select' end select_label
+                  from oan_my_mentorships_v
+                 order by case status when 'REQUESTED' then 0 when 'ACTIVE' then 1 else 2 end, created_at desc
+                ```
+        }
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: No mentorships yet.
+        }
+
+        column ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column SIDE_LABEL (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Role
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column OTHER_NAME (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: With
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column GOAL (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Goal
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column STATUS_LABEL (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Status
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+        column SESSIONS (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Sessions
+            }
+            layout {
+                sequence: 6
+            }
+        )
+
+        column MINUTES (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: Minutes
+            }
+            layout {
+                sequence: 7
+            }
+        )
+
+        column FEEDBACK_FOR_ME (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            heading {
+                heading: Mentee feedback
+            }
+            layout {
+                sequence: 8
+            }
+        )
+
+        column CREATED_AT (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            heading {
+                heading: Since
+            }
+            layout {
+                sequence: 9
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+        column ACCEPT_LABEL (
+            reportColumnQueryId: 10
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Accept
+            }
+            layout {
+                sequence: 10
+            }
+            link {
+                target: {
+                    page: 65
+                    items: {
+                        P65_MS_ID: \#ID#\
+                    }
+                    request: ACCEPT
+                }
+                linkText: #ACCEPT_LABEL#
+            }
+        )
+
+        column DECLINE_LABEL (
+            reportColumnQueryId: 11
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Decline
+            }
+            layout {
+                sequence: 11
+            }
+            link {
+                target: {
+                    page: 65
+                    items: {
+                        P65_MS_ID: \#ID#\
+                    }
+                    request: DECLINE
+                }
+                linkText: #DECLINE_LABEL#
+            }
+        )
+
+        column COMPLETE_LABEL (
+            reportColumnQueryId: 12
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Complete
+            }
+            layout {
+                sequence: 12
+            }
+            link {
+                target: {
+                    page: 65
+                    items: {
+                        P65_MS_ID: \#ID#\
+                    }
+                    request: COMPLETE
+                }
+                linkText: #COMPLETE_LABEL#
+            }
+        )
+
+        column SELECT_LABEL (
+            reportColumnQueryId: 13
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Log or feedback
+            }
+            layout {
+                sequence: 13
+            }
+            link {
+                target: {
+                    page: 65
+                    items: {
+                        P65_MS_ID: \#ID#\
+                    }
+                }
+                linkText: #SELECT_LABEL#
+            }
+        )
+
+    )
+
+    region r65_session (
+        name: Log a session or leave feedback
+        type: staticContent
+        source {
+            htmlCode: <p>Session notes are private to you and your mentor or mentee. Feedback (mentees) is seen by the mentor and Platform Admins only.</p>
+        }
+        layout {
+            sequence: 40
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P65_MS_ID
+        }
+    )
+
+    region r65_profile (
+        name: Become a mentor
+        type: staticContent
+        layout {
+            sequence: 50
+            slot: body
+        }
+        appearance {
+            template: @/collapsible
+            templateOptions: [
+                #DEFAULT#
+                is-collapsed
+            ]
+        }
+    )
+
+    pageItem P65_MS_ID (
+        type: hidden
+        layout {
+            sequence: 1
+            region: @r65_mine
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P65_MENTOR (
+        type: selectList
+        label {
+            label: Mentor
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select display_name || ' - ' || type_label d, user_id r from oan_mentors_v where slots_left > 0 order by 1
+                ```
+            displayExtraValues: false
+            displayNullValue: true
+        }
+        layout {
+            sequence: 10
+            region: @r65_request
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P65_GOAL (
+        type: textarea
+        label {
+            label: Your goal
+        }
+        layout {
+            sequence: 20
+            region: @r65_request
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 1000
+        }
+    )
+
+    pageItem P65_DATE (
+        type: datePicker
+        label {
+            label: Session date
+        }
+        layout {
+            sequence: 10
+            region: @r65_session
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P65_MINUTES (
+        type: numberField
+        label {
+            label: Minutes
+        }
+        layout {
+            sequence: 20
+            region: @r65_session
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P65_MODE (
+        type: selectList
+        label {
+            label: Mode
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:Online;ONLINE,In person;IN_PERSON,Phone;PHONE
+            displayExtraValues: false
+            displayNullValue: false
+        }
+        layout {
+            sequence: 30
+            region: @r65_session
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P65_NOTES (
+        type: textarea
+        label {
+            label: Private notes
+        }
+        layout {
+            sequence: 40
+            region: @r65_session
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 2000
+        }
+    )
+
+    pageItem P65_FEEDBACK (
+        type: textarea
+        label {
+            label: Feedback for your mentor (mentees)
+        }
+        layout {
+            sequence: 50
+            region: @r65_session
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 2000
+        }
+    )
+
+    pageItem P65_TYPE (
+        type: selectList
+        label {
+            label: I offer
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:Mentoring;MENTOR,Coaching;COACH
+            displayExtraValues: false
+            displayNullValue: false
+        }
+        layout {
+            sequence: 10
+            region: @r65_profile
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P65_CAPACITY (
+        type: numberField
+        label {
+            label: Mentees at a time
+        }
+        layout {
+            sequence: 20
+            region: @r65_profile
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P65_AREAS (
+        type: selectMany
+        label {
+            label: Areas
+        }
+        lov {
+            type: sharedComponent
+            lov: @oan-skills
+        }
+        layout {
+            sequence: 30
+            region: @r65_profile
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P65_ABOUT (
+        type: textarea
+        label {
+            label: About your mentoring
+        }
+        layout {
+            sequence: 40
+            region: @r65_profile
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 1000
+        }
+    )
+
+    pageItem P65_AVAILABILITY (
+        type: textField
+        label {
+            label: Availability (for example, two evenings a month)
+        }
+        layout {
+            sequence: 50
+            region: @r65_profile
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 200
+        }
+    )
+
+    pageItem P65_LISTED (
+        type: switch
+        label {
+            label: List me for new mentees
+        }
+        layout {
+            sequence: 60
+            region: @r65_profile
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    button request (
+        buttonName: REQUEST_MENTOR
+        label: Send request
+        layout {
+            sequence: 10
+            region: @r65_request
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button log (
+        buttonName: LOG_SESSION
+        label: Log session
+        layout {
+            sequence: 10
+            region: @r65_session
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button feedback (
+        buttonName: SAVE_FEEDBACK
+        label: Save feedback
+        layout {
+            sequence: 20
+            region: @r65_session
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button save-profile (
+        buttonName: SAVE_PROFILE
+        label: Save my mentor profile
+        layout {
+            sequence: 10
+            region: @r65_profile
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process load (
+        name: Load my mentor profile
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                for m in (select * from oan_my_mentor_profile_v) loop
+                    :P65_TYPE := m.mentor_type; :P65_CAPACITY := m.capacity; :P65_AREAS := m.area_ids; :P65_ABOUT := m.about;
+                    :P65_AVAILABILITY := m.availability; :P65_LISTED := m.listed;
+                end loop;
+                ```
+        }
+        execution {
+            sequence: 5
+            point: beforeHeader
+        }
+    )
+
+    process row-actions (
+        name: Accept, decline or complete
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                case :REQUEST
+                    when 'ACCEPT'   then oan_expert_pkg.decide_mentoring(to_number(:P65_MS_ID), 'Y');
+                    when 'DECLINE'  then oan_expert_pkg.decide_mentoring(to_number(:P65_MS_ID), 'N');
+                    when 'COMPLETE' then oan_expert_pkg.complete_mentoring(to_number(:P65_MS_ID));
+                end case;
+                apex_util.redirect_url(apex_page.get_url(p_page => 65));
+                ```
+        }
+        execution {
+            sequence: 6
+            point: beforeHeader
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: ACCEPT,DECLINE,COMPLETE
+        }
+    )
+
+    process actions (
+        name: Mentoring actions
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare
+                    l_id number;
+                begin
+                    case :REQUEST
+                        when 'REQUEST_MENTOR' then
+                            l_id := oan_expert_pkg.request_mentoring(to_number(:P65_MENTOR), :P65_GOAL);
+                            :P65_GOAL := null;
+                            apex_application.g_print_success_message := 'Your request was sent.';
+                        when 'LOG_SESSION' then
+                            oan_expert_pkg.log_session(to_number(:P65_MS_ID), to_date(:P65_DATE), to_number(:P65_MINUTES), :P65_MODE, :P65_NOTES);
+                            :P65_NOTES := null;
+                            apex_application.g_print_success_message := 'Session logged.';
+                        when 'SAVE_FEEDBACK' then
+                            oan_expert_pkg.leave_feedback(to_number(:P65_MS_ID), :P65_FEEDBACK);
+                            apex_application.g_print_success_message := 'Thanks for your feedback.';
+                        when 'SAVE_PROFILE' then
+                            oan_expert_pkg.save_mentor_profile(:P65_TYPE, :P65_AREAS, :P65_ABOUT, :P65_AVAILABILITY, to_number(:P65_CAPACITY), nvl(:P65_LISTED, 'Y'));
+                            apex_application.g_print_success_message := 'Your mentor profile was saved.';
+                    end case;
+                end;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: REQUEST_MENTOR,LOG_SESSION,SAVE_FEEDBACK,SAVE_PROFILE
+        }
+    )
+
+    branch back (
+        name: Back to this page
+        behavior {
+            type: pageOrUrl
+            target: {
+                page: 65
+                items: {
+                    P65_MS_ID: &P65_MS_ID.
+                }
+            }
+        }
+        execution {
+            point: afterProcessing
+            sequence: 10
+        }
+    )
+
+)

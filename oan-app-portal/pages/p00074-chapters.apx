@@ -1,0 +1,230 @@
+page 74 (
+    name: Chapters
+    alias: CHAPTERS
+    title: Chapters
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    security {
+        authorizationScheme: @is-active
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: W6.6 Chapters for members (FR-16): browse active chapters with member counts and upcoming events, join or leave (the primary chapter is kept on My profile), and request a new chapter (page 91).
+    }
+
+    region r74_chapters (
+        name: Chapters
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select id, name, path, initcap(chapter_level) level_label, member_count, upcoming_events, my_status,
+                       case when my_status is null then 'Join' end join_label,
+                       case when my_status = 'Member' then 'Leave' end leave_label
+                  from oan_chapters_dir_v
+                 order by path
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: No chapters yet.
+        }
+
+        column ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column NAME (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Chapter
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column PATH (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 3
+            }
+        )
+
+        column LEVEL_LABEL (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Level
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column MEMBER_COUNT (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Members
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+        column UPCOMING_EVENTS (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Upcoming events
+            }
+            layout {
+                sequence: 6
+            }
+        )
+
+        column MY_STATUS (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: You
+            }
+            layout {
+                sequence: 7
+            }
+        )
+
+        column JOIN_LABEL (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Join
+            }
+            layout {
+                sequence: 8
+            }
+            link {
+                target: {
+                    page: 74
+                    items: {
+                        P74_ID: \#ID#\
+                    }
+                    request: JOIN
+                }
+                linkText: #JOIN_LABEL#
+            }
+        )
+
+        column LEAVE_LABEL (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Leave
+            }
+            layout {
+                sequence: 9
+            }
+            link {
+                target: {
+                    page: 74
+                    items: {
+                        P74_ID: \#ID#\
+                    }
+                    request: LEAVE
+                }
+                linkText: #LEAVE_LABEL#
+            }
+        )
+
+    )
+
+    pageItem P74_ID (
+        type: hidden
+        layout {
+            sequence: 1
+            region: @r74_chapters
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    button request (
+        buttonName: REQUEST
+        label: Request a new chapter
+        layout {
+            sequence: 10
+            region: @r74_chapters
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--simple
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 91
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process row-actions (
+        name: Join or leave
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                case :REQUEST
+                    when 'JOIN'  then oan_chapter_pkg.join_chapter(to_number(:P74_ID));
+                    when 'LEAVE' then oan_chapter_pkg.leave_chapter(to_number(:P74_ID));
+                end case;
+                apex_util.redirect_url(apex_page.get_url(p_page => 74));
+                ```
+        }
+        execution {
+            sequence: 5
+            point: beforeHeader
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: JOIN,LEAVE
+        }
+    )
+
+)

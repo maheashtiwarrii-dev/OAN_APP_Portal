@@ -1,0 +1,1038 @@
+page 63 (
+    name: Experts
+    alias: EXPERTS
+    title: Experts and trainers
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    security {
+        authorizationScheme: @is-active
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: W6.2 Experts (FR-07/13/21; journeys J-05, J-14). Verified experts and trainers who accept messages; Ask an expert (5 a week; accepting opens a conversation); requests to me; apply as an expert or trainer (decided by a Chapter Admin of your chapter tree or a Platform Admin, never yourself; reviewed every 24 months); decision queue for those who may decide.
+    }
+
+    region r63_experts (
+        name: Experts and trainers
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select user_id, display_name, role_label, headline, areas, years, offerings, statement, primary_chapter
+                  from oan_experts_v
+                 where :P63_AREA is null or instr(upper(areas), upper(:P63_AREA)) > 0
+                 order by display_name
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: No experts yet. Apply below if you can help others.
+        }
+
+        column USER_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column DISPLAY_NAME (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Name
+            }
+            layout {
+                sequence: 2
+            }
+            link {
+                target: {
+                    page: 22
+                    items: {
+                        P22_USER_ID: \#USER_ID#\
+                    }
+                }
+                linkText: #DISPLAY_NAME#
+            }
+        )
+
+        column ROLE_LABEL (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Role
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column HEADLINE (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Headline
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column AREAS (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Areas
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+        column YEARS (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Years
+            }
+            layout {
+                sequence: 6
+            }
+        )
+
+        column OFFERINGS (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: Offers
+            }
+            layout {
+                sequence: 7
+            }
+        )
+
+        column STATEMENT (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            heading {
+                heading: How they help
+            }
+            layout {
+                sequence: 8
+            }
+        )
+
+        column PRIMARY_CHAPTER (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            heading {
+                heading: Chapter
+            }
+            layout {
+                sequence: 9
+            }
+        )
+
+    )
+
+    region r63_ask (
+        name: Ask an expert
+        type: staticContent
+        source {
+            htmlCode: <p>Ask one expert a focused question. If they accept, a conversation opens with them.</p>
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/collapsible
+            templateOptions: [
+                #DEFAULT#
+                is-collapsed
+            ]
+        }
+    )
+
+    region r63_requests (
+        name: Requests
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select id, case direction when 'TO_ME' then 'To me' else 'By me' end direction_label, other_name, topic, question, status_label, created_at,
+                       case when direction = 'TO_ME' and status = 'OPEN' then 'Accept' end accept_label,
+                       case when direction = 'TO_ME' and status = 'OPEN' then 'Decline' end decline_label
+                  from oan_expert_requests_v
+                 order by created_at desc
+                ```
+        }
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery: select 1 from oan_expert_requests_v
+        }
+        messages {
+            whenNoDataFound: No requests.
+        }
+
+        column ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column DIRECTION_LABEL (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Direction
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column OTHER_NAME (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: With
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column TOPIC (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Topic
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column QUESTION (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Question
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+        column STATUS_LABEL (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Status
+            }
+            layout {
+                sequence: 6
+            }
+        )
+
+        column CREATED_AT (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: Asked
+            }
+            layout {
+                sequence: 7
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+        column ACCEPT_LABEL (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Accept
+            }
+            layout {
+                sequence: 8
+            }
+            link {
+                target: {
+                    page: 63
+                    items: {
+                        P63_REQ_ID: \#ID#\
+                    }
+                    request: ACCEPT_REQ
+                }
+                linkText: #ACCEPT_LABEL#
+            }
+        )
+
+        column DECLINE_LABEL (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Decline
+            }
+            layout {
+                sequence: 9
+            }
+            link {
+                target: {
+                    page: 63
+                    items: {
+                        P63_REQ_ID: \#ID#\
+                    }
+                    request: DECLINE_REQ
+                }
+                linkText: #DECLINE_LABEL#
+            }
+        )
+
+    )
+
+    region r63_apply (
+        name: Apply as an expert or trainer
+        type: staticContent
+        source {
+            htmlCode: <p>Share your areas, experience and how you can help. A Chapter Admin or Platform Admin reviews it; you can never approve your own application.</p>
+        }
+        layout {
+            sequence: 40
+            slot: body
+        }
+        appearance {
+            template: @/collapsible
+            templateOptions: [
+                #DEFAULT#
+                is-collapsed
+            ]
+        }
+    )
+
+    region r63_mine (
+        name: My applications
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select id, role_label, status_label, decision_note, created_at, decided_at, review_due_at
+                  from oan_my_expert_applications_v
+                 order by created_at desc
+                ```
+        }
+        layout {
+            sequence: 50
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery: select 1 from oan_my_expert_applications_v
+        }
+        messages {
+            whenNoDataFound: No applications.
+        }
+
+        column ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column ROLE_LABEL (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Role
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column STATUS_LABEL (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Status
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column DECISION_NOTE (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Note
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column CREATED_AT (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Applied
+            }
+            layout {
+                sequence: 5
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+        column DECIDED_AT (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Decided
+            }
+            layout {
+                sequence: 6
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+        column REVIEW_DUE_AT (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: Review due
+            }
+            layout {
+                sequence: 7
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+    )
+
+    region r63_queue (
+        name: Applications to decide
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select id, role_label, applicant_name, headline, areas, years, statement, evidence_url, status_label, created_at,
+                       'Approve' approve_label, 'Reject' reject_label
+                  from oan_expert_app_queue_v
+                 order by created_at
+                ```
+        }
+        layout {
+            sequence: 60
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery: select 1 from oan_expert_app_queue_v
+        }
+        messages {
+            whenNoDataFound: Nothing to decide.
+        }
+
+        column ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column ROLE_LABEL (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Role
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column APPLICANT_NAME (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Applicant
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column HEADLINE (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Headline
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column AREAS (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Areas
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+        column YEARS (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Years
+            }
+            layout {
+                sequence: 6
+            }
+        )
+
+        column STATEMENT (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: Statement
+            }
+            layout {
+                sequence: 7
+            }
+        )
+
+        column EVIDENCE_URL (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            heading {
+                heading: Evidence
+            }
+            layout {
+                sequence: 8
+            }
+        )
+
+        column STATUS_LABEL (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            heading {
+                heading: Status
+            }
+            layout {
+                sequence: 9
+            }
+        )
+
+        column CREATED_AT (
+            reportColumnQueryId: 10
+            derivedColumn: N
+            heading {
+                heading: Applied
+            }
+            layout {
+                sequence: 10
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+        column APPROVE_LABEL (
+            reportColumnQueryId: 11
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Approve
+            }
+            layout {
+                sequence: 11
+            }
+            link {
+                target: {
+                    page: 63
+                    items: {
+                        P63_APP_ID: \#ID#\
+                    }
+                    request: APPROVE_APP
+                }
+                linkText: #APPROVE_LABEL#
+            }
+        )
+
+        column REJECT_LABEL (
+            reportColumnQueryId: 12
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Reject
+            }
+            layout {
+                sequence: 12
+            }
+            link {
+                target: {
+                    page: 63
+                    items: {
+                        P63_APP_ID: \#ID#\
+                    }
+                    request: REJECT_APP
+                }
+                linkText: #REJECT_LABEL#
+            }
+        )
+
+    )
+
+    pageItem P63_AREA (
+        type: textField
+        label {
+            label: Filter by area
+        }
+        layout {
+            sequence: 1
+            region: @r63_experts
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 100
+        }
+    )
+
+    pageItem P63_REQ_ID (
+        type: hidden
+        layout {
+            sequence: 1
+            region: @r63_requests
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P63_APP_ID (
+        type: hidden
+        layout {
+            sequence: 1
+            region: @r63_queue
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P63_EXPERT (
+        type: selectList
+        label {
+            label: Expert
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select display_name || ' - ' || role_label d, user_id r from oan_experts_v order by 1
+                ```
+            displayExtraValues: false
+            displayNullValue: true
+        }
+        layout {
+            sequence: 10
+            region: @r63_ask
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P63_TOPIC (
+        type: textField
+        label {
+            label: Topic
+        }
+        layout {
+            sequence: 20
+            region: @r63_ask
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 200
+        }
+    )
+
+    pageItem P63_QUESTION (
+        type: textarea
+        label {
+            label: Your question
+        }
+        layout {
+            sequence: 30
+            region: @r63_ask
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 2000
+        }
+    )
+
+    pageItem P63_ROLE (
+        type: selectList
+        label {
+            label: Apply as
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:Expert;EXPERT,Trainer;TRAINER
+            displayExtraValues: false
+            displayNullValue: false
+        }
+        layout {
+            sequence: 10
+            region: @r63_apply
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P63_AREAS (
+        type: selectMany
+        label {
+            label: Areas of expertise
+        }
+        lov {
+            type: sharedComponent
+            lov: @oan-skills
+        }
+        layout {
+            sequence: 20
+            region: @r63_apply
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P63_YEARS (
+        type: numberField
+        label {
+            label: Years of experience
+        }
+        layout {
+            sequence: 30
+            region: @r63_apply
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P63_OFFERINGS (
+        type: checkboxGroup
+        label {
+            label: I can offer
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:Ask-the-expert answers;ASK_THE_EXPERT,Office hours;OFFICE_HOURS,Talks;TALKS,Reviews;REVIEWS,Training;TRAINING
+            displayExtraValues: false
+        }
+        layout {
+            sequence: 40
+            region: @r63_apply
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P63_STATEMENT (
+        type: textarea
+        label {
+            label: How you can help
+        }
+        layout {
+            sequence: 50
+            region: @r63_apply
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 2000
+        }
+    )
+
+    pageItem P63_EVIDENCE (
+        type: textField
+        label {
+            label: Evidence link (https://, optional)
+        }
+        layout {
+            sequence: 60
+            region: @r63_apply
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 500
+        }
+    )
+
+    button filter (
+        buttonName: FILTER
+        label: Filter
+        layout {
+            sequence: 5
+            region: @r63_experts
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button ask (
+        buttonName: ASK
+        label: Send question
+        layout {
+            sequence: 10
+            region: @r63_ask
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button apply (
+        buttonName: APPLY
+        label: Send application
+        layout {
+            sequence: 10
+            region: @r63_apply
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button mentoring (
+        buttonName: MENTORING
+        label: Mentoring
+        layout {
+            sequence: 20
+            region: @r63_experts
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--simple
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 65
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process row-actions (
+        name: Accept or decline a request; decide an application
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                case :REQUEST
+                    when 'ACCEPT_REQ'  then oan_expert_pkg.decide_request(to_number(:P63_REQ_ID), 'Y');
+                    when 'DECLINE_REQ' then oan_expert_pkg.decide_request(to_number(:P63_REQ_ID), 'N');
+                    when 'APPROVE_APP' then oan_expert_pkg.decide_application(to_number(:P63_APP_ID), 'APPROVE', null);
+                    when 'REJECT_APP'  then oan_expert_pkg.decide_application(to_number(:P63_APP_ID), 'REJECT',
+                                                'Thank you for applying. We could not verify the expertise from the details given; you are welcome to apply again with more evidence.');
+                end case;
+                apex_util.redirect_url(apex_page.get_url(p_page => 63));
+                ```
+        }
+        execution {
+            sequence: 5
+            point: beforeHeader
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: ACCEPT_REQ,DECLINE_REQ,APPROVE_APP,REJECT_APP
+        }
+    )
+
+    process actions (
+        name: Ask or apply
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare
+                    l_id number;
+                begin
+                    if :REQUEST = 'ASK' then
+                        l_id := oan_expert_pkg.ask_expert(to_number(:P63_EXPERT), :P63_TOPIC, :P63_QUESTION);
+                        :P63_TOPIC := null; :P63_QUESTION := null;
+                        apex_application.g_print_success_message := 'Your question was sent.';
+                    else
+                        l_id := oan_expert_pkg.apply(:P63_ROLE, :P63_AREAS, to_number(:P63_YEARS), :P63_OFFERINGS, :P63_STATEMENT, :P63_EVIDENCE);
+                        apex_application.g_print_success_message := 'Thanks. Your application was sent for review.';
+                    end if;
+                end;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: ASK,APPLY
+        }
+    )
+
+    branch back (
+        name: Back to this page
+        behavior {
+            type: pageOrUrl
+            target: {
+                page: 63
+            }
+        }
+        execution {
+            point: afterProcessing
+            sequence: 10
+        }
+    )
+
+)

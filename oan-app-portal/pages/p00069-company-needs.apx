@@ -1,0 +1,408 @@
+page 69 (
+    name: Company Needs
+    alias: COMPANY-NEEDS
+    title: Company needs
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    security {
+        authorizationScheme: @is-active
+        pageAccessProtection: unrestricted
+        formAutoComplete: false
+    }
+    comments {
+        comments: W6.5 member view (FR-42; journeys J-09..J-19, J-18). Open needs from verified companies - talent, bids, problems, team training, domain experts, rollouts, expansion, solution interest, non-Oracle partners and funded work - best skills match first. Respond with a note; only the posting company sees responses (R11). Shareable feedback companies left for you. Notifications link here, so P69_ID is unrestricted.
+    }
+
+    region r69_needs (
+        name: Open needs
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select id, title, type_label, org_name, org_type_label, skills, location, budget_label, match_pct,
+                       case when my_status is not null then initcap(my_status) end my_label, published_at, 'Open' open_label
+                  from oan_partner_needs_v
+                 order by match_pct desc, published_at desc
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: No open needs right now.
+        }
+
+        column ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column TITLE (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Need
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column TYPE_LABEL (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Type
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column ORG_NAME (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Company
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column ORG_TYPE_LABEL (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Company type
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+        column SKILLS (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Skills
+            }
+            layout {
+                sequence: 6
+            }
+        )
+
+        column LOCATION (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: Location
+            }
+            layout {
+                sequence: 7
+            }
+        )
+
+        column BUDGET_LABEL (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            heading {
+                heading: Budget
+            }
+            layout {
+                sequence: 8
+            }
+        )
+
+        column MATCH_PCT (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            heading {
+                heading: Match %
+            }
+            layout {
+                sequence: 9
+            }
+        )
+
+        column MY_LABEL (
+            reportColumnQueryId: 10
+            derivedColumn: N
+            heading {
+                heading: You
+            }
+            layout {
+                sequence: 10
+            }
+        )
+
+        column PUBLISHED_AT (
+            reportColumnQueryId: 11
+            derivedColumn: N
+            heading {
+                heading: Posted
+            }
+            layout {
+                sequence: 11
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+        column OPEN_LABEL (
+            reportColumnQueryId: 12
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Open
+            }
+            layout {
+                sequence: 12
+            }
+            link {
+                target: {
+                    page: 69
+                    items: {
+                        P69_ID: \#ID#\
+                    }
+                }
+                linkText: #OPEN_LABEL#
+            }
+        )
+
+    )
+
+    region r69_detail (
+        name: Need
+        type: dynamicContent
+        source {
+            plsqlFunctionBody:
+                ```plsql
+                declare
+                    l_html clob;
+                begin
+                    for n in (select * from oan_partner_needs_v where id = to_number(:P69_ID)) loop
+                        l_html := '<h3 style="margin-top:0">' || apex_escape.html(n.title) || '</h3>'
+                            || '<p class="oan-article-meta">' || apex_escape.html(n.type_label) || ' &middot; ' || apex_escape.html(n.org_name)
+                            || ' (' || apex_escape.html(n.org_type_label) || ', verified)'
+                            || case when n.location is not null then ' &middot; ' || apex_escape.html(n.location) end
+                            || case when n.budget_label is not null then ' &middot; budget ' || n.budget_label end || '</p>'
+                            || '<p>' || replace(apex_escape.html(n.description), chr(10), '<br>') || '</p>'
+                            || case when n.skills is not null then '<p><strong>Skills:</strong> ' || apex_escape.html(n.skills) || '</p>' end
+                            || case when n.my_status is not null then '<p><strong>Your response:</strong> ' || initcap(n.my_status) || '</p>' end;
+                    end loop;
+                    return nvl(l_html, '<p>This need is closed.</p>');
+                end;
+                ```
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P69_ID
+        }
+    )
+
+    region r69_feedback (
+        name: Feedback companies shared with you
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select org_name, title, feedback, created_at from oan_my_feedback_v order by created_at desc
+                ```
+        }
+        layout {
+            sequence: 40
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery: select 1 from oan_my_feedback_v
+        }
+        messages {
+            whenNoDataFound: No feedback.
+        }
+
+        column ORG_NAME (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: Company
+            }
+            layout {
+                sequence: 1
+            }
+        )
+
+        column TITLE (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Need
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column FEEDBACK (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Feedback
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column CREATED_AT (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Date
+            }
+            layout {
+                sequence: 4
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+    )
+
+    pageItem P69_ID (
+        type: hidden
+        layout {
+            sequence: 1
+            region: @r69_detail
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: unrestricted
+        }
+    )
+
+    pageItem P69_NOTE (
+        type: textarea
+        label {
+            label: How you can help
+        }
+        layout {
+            sequence: 10
+            region: @r69_detail
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 2000
+        }
+    )
+
+    button respond (
+        buttonName: RESPOND
+        label: Respond
+        layout {
+            sequence: 10
+            region: @r69_detail
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery: select 1 from oan_partner_needs_v where id = to_number(:P69_ID) and my_status is null
+        }
+    )
+
+    process respond (
+        name: Respond to a need
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare
+                    l_id number;
+                begin
+                    l_id := oan_talent_pkg.respond(to_number(:P69_ID), :P69_NOTE);
+                    :P69_NOTE := null;
+                end;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        serverSideCondition {
+            whenButtonPressed: @respond
+        }
+        successMessage {
+            successMessage: Sent. Only this company sees your response.
+        }
+    )
+
+    branch back (
+        name: Back to this page
+        behavior {
+            type: pageOrUrl
+            target: {
+                page: 69
+                items: {
+                    P69_ID: &P69_ID.
+                }
+            }
+        }
+        execution {
+            point: afterProcessing
+            sequence: 10
+        }
+    )
+
+)

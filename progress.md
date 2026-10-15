@@ -269,3 +269,14 @@
 | I23-2 | Database | `107_opportunities_helpdesk.sql` (jobs, skills, applications + history, referrals, service requests + notes, skill demand, job Text index, retention rules), `oan_job_pkg`, `oan_helpdesk_pkg`, `oan_profile_pkg.add_skill`; CV download for APPLICATION shares (posting company only); job steps SERVICE_SLA (hourly), REFERRALS_EXPIRE and JOBS_CLOSE_EXPIRED (daily), SKILL_DEMAND (analytics) |
 | I23-3 | Pages | 50 Opportunities, 51 Opportunity (apply, Oracle Careers, referrals, applicants), 52 My applications, 53 Post an opportunity, 54 Referrals, 55 Helpdesk, 56 Skills in demand, 71 Company opportunities; job review on 107; Careers and Helpdesk in the rail; company workspace links |
 | I23-4 | Checks | `ut_oan_w5` 9/9 (+ related suites, 39 and 29 tests); harness 115 queries / 153 blocks; links, base tables, brand, validation pass; app 200 imported (73 pages) |
+
+## Iteration 24 — W2/W3 leftovers and W6 community, experts, training, partner needs (15 Oct 2026)
+| Step | Action | Result |
+|---|---|---|
+| I24-1 | User request | Complete anything pending in W2, W3, W4, W5, W6 and W7 |
+| I24-2 | Leftovers | 128 Profile update requests, 121 Privacy requests, 120 Library import (W2.10/W3.5 admin pages), event check-in CSV on 33, company contacts invite/remove on 70, Home role offers (company registration, experts, mentoring); automations are imported disabled, so `ci/post-import.sql` enables them (deploy workflow runs it); ORDS module for Slack/WhatsApp webhooks kept outside `install.sql` until G-CH |
+| I24-3 | Database | `108_community_w6.sql` (group proposals, reactions, expert applications and requests, mentor profiles, mentorships, sessions, feedback, trainings and enrolments, partner needs, responses, candidate feedback with 12-month purge, initiatives, endorsements), `oan_community_pkg`, `oan_expert_pkg`, `oan_training_pkg`, `oan_talent_pkg`, 25 secure views and the W6 moderation queue |
+| I24-4 | Pages | 61 Groups, 63 Experts, 65 Mentoring, 67 Training, 69 Company needs, 72 Our needs (organisation workspace), 74 Chapters, 77 Initiatives, 78 Success stories; reactions on 62, endorsements on 22, W6 review on 107; rail entries Experts and learning, Company needs |
+| I24-5 | Dev data | `dev/700_sample_community.sql` (synthetic expert/trainer, mentorship with a session, open workshop, partner needs with a response, initiative, group proposal, story, reactions, endorsements) |
+| I24-6 | Checks | 17 suites, 156/156 pass (`ut_oan_w6` 9/9); harness 141 queries / 183 blocks; links, base tables, brand, APEXLang validation pass; app 200 imported (85 pages), five automations enabled |
+| I24-7 | Not built (descope lane) | W6.7 Marketplace (Could), W6.9 badges and contribution scores (Could) |

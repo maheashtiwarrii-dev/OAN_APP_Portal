@@ -141,6 +141,7 @@ create or replace package body oan_jobs_pkg as
     run_step('HELP_REQUESTS_EXPIRE',    'oan_help_pkg.close_expired');     -- FR-04 AC2
     run_step('REFERRALS_EXPIRE',        'oan_job_pkg.expire_referrals');   -- FR-37: 14 days
     run_step('JOBS_CLOSE_EXPIRED',      'oan_job_pkg.close_expired_jobs');
+    run_step('EXPERT_REVIEW_REMIND',    'oan_expert_pkg.remind_reviews');   -- FR-21 24-month review
   end run_daily;
 
   -- Daily 03:00: aggregate analytics roll-ups (W2.5 search KPI and later waves). Steps are added per wave.

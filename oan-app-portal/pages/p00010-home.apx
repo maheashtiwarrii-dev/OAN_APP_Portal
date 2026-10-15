@@ -195,6 +195,46 @@ page 10 (
         }
     )
 
+    region r10_role_offers (
+        name: You told us you can help
+        type: dynamicContent
+        source {
+            plsqlFunctionBody:
+                ```plsql
+                -- S30: optional onboarding role answers become offers to apply (company registration now;
+                -- expert, trainer and mentor applications on page 63)
+                declare
+                    l_html clob;
+                begin
+                    for r in (select role_code from oan_my_onboarding_roles_v) loop
+                        l_html := l_html || case r.role_code
+                            when 'PARTNER_CONTACT' then '<li>You represent a partner organisation: <a href="'
+                                || apex_page.get_url(p_page => 76, p_items => 'P76_ORG_TYPE', p_values => 'PARTNER') || '">register your company</a> to post roles and gigs for members.</li>'
+                            when 'CUSTOMER_CONTACT' then '<li>You represent a customer organisation: <a href="'
+                                || apex_page.get_url(p_page => 76, p_items => 'P76_ORG_TYPE', p_values => 'CUSTOMER') || '">register your company</a>.</li>'
+                            when 'EXPERT' then '<li>You can share expertise: <a href="' || apex_page.get_url(p_page => 63) || '">apply as an expert</a>.</li>'
+                            when 'TRAINER' then '<li>You can train others: <a href="' || apex_page.get_url(p_page => 63) || '">apply as a trainer</a>.</li>'
+                            when 'MENTOR' then '<li>You can mentor others: <a href="' || apex_page.get_url(p_page => 65) || '">become a mentor</a>.</li>'
+                            end;
+                    end loop;
+                    return case when l_html is not null then '<ul class="tight">' || l_html || '</ul>' end;
+                end;
+                ```
+        }
+        layout {
+            sequence: 17
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery: select 1 from oan_my_onboarding_roles_v where role_code in ('PARTNER_CONTACT','CUSTOMER_CONTACT','EXPERT','TRAINER','MENTOR')
+        }
+    )
+
     region r10_whats_new (
         name: What's new
         type: classicReport

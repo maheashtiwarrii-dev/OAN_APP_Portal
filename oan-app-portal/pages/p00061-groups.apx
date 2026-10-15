@@ -1,0 +1,814 @@
+page 61 (
+    name: Groups
+    alias: GROUPS
+    title: Groups
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    security {
+        authorizationScheme: @is-active
+        pageAccessProtection: unrestricted
+        formAutoComplete: false
+    }
+    comments {
+        comments: W6.1 Groups (FR-41, R19/R20). Without P61_ID: the group directory (open and ask-to-join groups, private groups only for members and invitees) and a form to propose a new group (reviewed by moderators). With P61_ID: join, ask to join, accept an invitation or leave; owners and moderators approve requests, invite members, change roles and remove members. Notifications link here, so P61_ID is unrestricted; OAN_GROUP_DIRECTORY_V and OAN_COMMUNITY_PKG decide access.
+    }
+
+    region r61_dir (
+        name: All groups
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select id, name, description, visibility_label, member_count, post_count,
+                       case my_role when 'OWNER' then 'Owner' when 'MODERATOR' then 'Moderator' when 'MEMBER' then 'Member'
+                                    when 'REQUESTED' then 'Requested' when 'INVITED' then 'Invited' end my_label, 'Open' open_label
+                  from oan_group_directory_v
+                 order by name
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: itemIsNull
+            item: P61_ID
+        }
+        messages {
+            whenNoDataFound: No groups yet.
+        }
+
+        column ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column NAME (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Group
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column DESCRIPTION (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: About
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column VISIBILITY_LABEL (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Joining
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column MEMBER_COUNT (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Members
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+        column POST_COUNT (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Posts
+            }
+            layout {
+                sequence: 6
+            }
+        )
+
+        column MY_LABEL (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: You
+            }
+            layout {
+                sequence: 7
+            }
+        )
+
+        column OPEN_LABEL (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Open
+            }
+            layout {
+                sequence: 8
+            }
+            link {
+                target: {
+                    page: 61
+                    items: {
+                        P61_ID: \#ID#\
+                    }
+                }
+                linkText: #OPEN_LABEL#
+            }
+        )
+
+    )
+
+    region r61_propose (
+        name: Propose a new group
+        type: staticContent
+        source {
+            htmlCode: <p>Suggest a group for a topic, practice or region. A moderator reviews it; you become its owner.</p>
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/collapsible
+            templateOptions: [
+                #DEFAULT#
+                is-collapsed
+            ]
+        }
+        serverSideCondition {
+            type: itemIsNull
+            item: P61_ID
+        }
+    )
+
+    region r61_group (
+        name: Group
+        type: dynamicContent
+        source {
+            plsqlFunctionBody:
+                ```plsql
+                declare
+                    l_html clob;
+                begin
+                    for g in (select * from oan_group_directory_v where id = to_number(:P61_ID)) loop
+                        l_html := '<h1 style="font-size:24px;margin:0">' || apex_escape.html(g.name) || '</h1>'
+                            || '<p class="oan-article-meta">' || g.visibility_label || ' &middot; ' || g.member_count || ' members &middot; '
+                            || g.post_count || ' posts'
+                            || case g.my_role when 'OWNER' then ' &middot; You own this group' when 'MODERATOR' then ' &middot; You moderate this group'
+                                              when 'MEMBER' then ' &middot; You are a member' when 'REQUESTED' then ' &middot; Waiting for approval'
+                                              when 'INVITED' then ' &middot; You are invited' end || '</p>'
+                            || '<p>' || apex_escape.html(g.description) || '</p>';
+                    end loop;
+                    return nvl(l_html, '<p>This group is not available.</p>');
+                end;
+                ```
+        }
+        layout {
+            sequence: 5
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--hideHeader js-addHiddenHeadingRoleDesc
+            ]
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P61_ID
+        }
+    )
+
+    region r61_members (
+        name: Members
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select user_id, display_name, headline, role_label, status_label, status, member_role, joined_at,
+                       case when status = 'REQUESTED' and :P61_ROLE in ('OWNER','MODERATOR') then 'Approve' end approve_label,
+                       case when status = 'REQUESTED' and :P61_ROLE in ('OWNER','MODERATOR') then 'Decline' end decline_label,
+                       case when status = 'ACTIVE' and member_role = 'MEMBER' and :P61_ROLE = 'OWNER' then 'Make moderator' end promote_label,
+                       case when status = 'ACTIVE' and member_role != 'OWNER' and :P61_ROLE in ('OWNER','MODERATOR') then 'Remove' end remove_label
+                  from oan_group_members_v
+                 where group_id = to_number(:P61_ID)
+                 order by case status when 'REQUESTED' then 0 else 1 end, role_label, display_name
+                ```
+        }
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P61_ID
+        }
+        messages {
+            whenNoDataFound: No members visible.
+        }
+
+        column USER_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column DISPLAY_NAME (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Member
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column HEADLINE (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Headline
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column ROLE_LABEL (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Role
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column STATUS_LABEL (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Status
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+        column STATUS (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 6
+            }
+        )
+
+        column MEMBER_ROLE (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 7
+            }
+        )
+
+        column JOINED_AT (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            heading {
+                heading: Since
+            }
+            layout {
+                sequence: 8
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+        column APPROVE_LABEL (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Approve
+            }
+            layout {
+                sequence: 9
+            }
+            link {
+                target: {
+                    page: 61
+                    items: {
+                        P61_ID: &P61_ID.
+                        P61_USER_ID: \#USER_ID#\
+                    }
+                    request: APPROVE
+                }
+                linkText: #APPROVE_LABEL#
+            }
+        )
+
+        column DECLINE_LABEL (
+            reportColumnQueryId: 10
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Decline
+            }
+            layout {
+                sequence: 10
+            }
+            link {
+                target: {
+                    page: 61
+                    items: {
+                        P61_ID: &P61_ID.
+                        P61_USER_ID: \#USER_ID#\
+                    }
+                    request: DECLINE
+                }
+                linkText: #DECLINE_LABEL#
+            }
+        )
+
+        column PROMOTE_LABEL (
+            reportColumnQueryId: 11
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Role
+            }
+            layout {
+                sequence: 11
+            }
+            link {
+                target: {
+                    page: 61
+                    items: {
+                        P61_ID: &P61_ID.
+                        P61_USER_ID: \#USER_ID#\
+                    }
+                    request: PROMOTE
+                }
+                linkText: #PROMOTE_LABEL#
+            }
+        )
+
+        column REMOVE_LABEL (
+            reportColumnQueryId: 12
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Remove
+            }
+            layout {
+                sequence: 12
+            }
+            link {
+                target: {
+                    page: 61
+                    items: {
+                        P61_ID: &P61_ID.
+                        P61_USER_ID: \#USER_ID#\
+                    }
+                    request: REMOVE
+                }
+                linkText: #REMOVE_LABEL#
+            }
+        )
+
+    )
+
+    region r61_invite (
+        name: Invite a member
+        type: staticContent
+        layout {
+            sequence: 40
+            slot: body
+        }
+        appearance {
+            template: @/collapsible
+            templateOptions: [
+                #DEFAULT#
+                is-collapsed
+            ]
+        }
+        serverSideCondition {
+            type: expression
+            language: plsql
+            plsqlExpression: :P61_ROLE in ('OWNER','MODERATOR')
+        }
+    )
+
+    pageItem P61_ID (
+        type: hidden
+        layout {
+            sequence: 1
+            region: @r61_group
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: unrestricted
+        }
+    )
+
+    pageItem P61_USER_ID (
+        type: hidden
+        layout {
+            sequence: 2
+            region: @r61_group
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P61_ROLE (
+        type: hidden
+        layout {
+            sequence: 3
+            region: @r61_group
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P61_NAME (
+        type: textField
+        label {
+            label: Group name
+        }
+        layout {
+            sequence: 10
+            region: @r61_propose
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 200
+        }
+    )
+
+    pageItem P61_DESCRIPTION (
+        type: textarea
+        label {
+            label: What is it for?
+        }
+        layout {
+            sequence: 20
+            region: @r61_propose
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 2000
+        }
+    )
+
+    pageItem P61_VISIBILITY (
+        type: selectList
+        label {
+            label: Who can join
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:Any member (open);OPEN,Members ask to join;REQUEST,Invitation only (private);PRIVATE
+            displayExtraValues: false
+            displayNullValue: false
+        }
+        layout {
+            sequence: 30
+            region: @r61_propose
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P61_INVITEE (
+        type: popupLov
+        label {
+            label: Member
+        }
+        lov {
+            type: sharedComponent
+            lov: @oan-members
+        }
+        layout {
+            sequence: 10
+            region: @r61_invite
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    button propose (
+        buttonName: PROPOSE
+        label: Send proposal
+        layout {
+            sequence: 10
+            region: @r61_propose
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button join (
+        buttonName: JOIN
+        label: Join
+        layout {
+            sequence: 10
+            region: @r61_group
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: expression
+            language: plsql
+            plsqlExpression: nvl(:P61_ROLE, 'NONE') = 'NONE'
+        }
+    )
+
+    button accept-invite (
+        buttonName: ACCEPT_INVITE
+        label: Accept invitation
+        layout {
+            sequence: 20
+            region: @r61_group
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: expression
+            language: plsql
+            plsqlExpression: :P61_ROLE = 'INVITED'
+        }
+    )
+
+    button leave (
+        buttonName: LEAVE
+        label: Leave group
+        layout {
+            sequence: 30
+            region: @r61_group
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: expression
+            language: plsql
+            plsqlExpression: :P61_ROLE in ('MEMBER','MODERATOR','OWNER','REQUESTED')
+        }
+    )
+
+    button posts (
+        buttonName: POSTS
+        label: Group posts
+        layout {
+            sequence: 40
+            region: @r61_group
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--simple
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 60
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button all (
+        buttonName: ALL
+        label: All groups
+        layout {
+            sequence: 50
+            region: @r61_group
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--simple
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 61
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button invite (
+        buttonName: INVITE
+        label: Invite
+        layout {
+            sequence: 10
+            region: @r61_invite
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process load (
+        name: Load the viewer role
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                :P61_ROLE := nvl(oan_community_pkg.group_role(to_number(:P61_ID)), 'NONE');
+                ```
+        }
+        execution {
+            sequence: 5
+            point: beforeHeader
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P61_ID
+        }
+    )
+
+    process member-actions (
+        name: Approve, decline, promote or remove
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                case :REQUEST
+                    when 'APPROVE' then oan_community_pkg.decide_member(to_number(:P61_ID), to_number(:P61_USER_ID), 'Y');
+                    when 'DECLINE' then oan_community_pkg.decide_member(to_number(:P61_ID), to_number(:P61_USER_ID), 'N');
+                    when 'PROMOTE' then oan_community_pkg.set_member_role(to_number(:P61_ID), to_number(:P61_USER_ID), 'MODERATOR');
+                    when 'REMOVE'  then oan_community_pkg.remove_member(to_number(:P61_ID), to_number(:P61_USER_ID));
+                end case;
+                apex_util.redirect_url(apex_page.get_url(p_page => 61, p_items => 'P61_ID', p_values => :P61_ID));
+                ```
+        }
+        execution {
+            sequence: 6
+            point: beforeHeader
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: APPROVE,DECLINE,PROMOTE,REMOVE
+        }
+    )
+
+    process actions (
+        name: Group actions
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare
+                    l_id number;
+                begin
+                    case :REQUEST
+                        when 'PROPOSE' then
+                            l_id := oan_community_pkg.propose_group(:P61_NAME, :P61_DESCRIPTION, :P61_VISIBILITY);
+                            :P61_NAME := null; :P61_DESCRIPTION := null;
+                            apex_application.g_print_success_message := 'Thanks. A moderator will review your group.';
+                        when 'JOIN' then oan_community_pkg.join_group(to_number(:P61_ID));
+                        when 'ACCEPT_INVITE' then oan_community_pkg.join_group(to_number(:P61_ID));
+                        when 'LEAVE' then oan_community_pkg.leave_group(to_number(:P61_ID));
+                        when 'INVITE' then oan_community_pkg.invite_member(to_number(:P61_ID), to_number(:P61_INVITEE)); :P61_INVITEE := null;
+                    end case;
+                end;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: PROPOSE,JOIN,ACCEPT_INVITE,LEAVE,INVITE
+        }
+    )
+
+    branch back (
+        name: Back to this page
+        behavior {
+            type: pageOrUrl
+            target: {
+                page: 61
+                items: {
+                    P61_ID: &P61_ID.
+                }
+            }
+        }
+        execution {
+            point: afterProcessing
+            sequence: 10
+        }
+    )
+
+)

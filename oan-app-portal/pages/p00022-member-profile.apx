@@ -956,6 +956,129 @@ page 22 (
         }
     )
 
+    region r22_endorse (
+        name: Skills and endorsements
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select term_id, skill, endorsements,
+                       case when member_id != to_number(sys_context('OAN_CTX','VIEWER_ID')) and i_endorsed = 'N' then 'Endorse' end endorse_label,
+                       case when i_endorsed = 'Y' then 'Withdraw' end withdraw_label
+                  from oan_endorsements_v
+                 where member_id = to_number(:P22_USER_ID)
+                 order by endorsements desc, skill
+                ```
+        }
+        layout {
+            sequence: 590
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: No skills listed.
+        }
+
+        column TERM_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column SKILL (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Skill
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column ENDORSEMENTS (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Endorsements
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column ENDORSE_LABEL (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Endorse
+            }
+            layout {
+                sequence: 4
+            }
+            link {
+                target: {
+                    page: 22
+                    items: {
+                        P22_USER_ID: &P22_USER_ID.
+                        P22_TERM_ID: \#TERM_ID#\
+                    }
+                    request: ENDORSE
+                }
+                linkText: #ENDORSE_LABEL#
+            }
+        )
+
+        column WITHDRAW_LABEL (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Withdraw
+            }
+            layout {
+                sequence: 5
+            }
+            link {
+                target: {
+                    page: 22
+                    items: {
+                        P22_USER_ID: &P22_USER_ID.
+                        P22_TERM_ID: \#TERM_ID#\
+                    }
+                    request: UNENDORSE
+                }
+                linkText: #WITHDRAW_LABEL#
+            }
+        )
+
+    )
+
+    pageItem P22_TERM_ID (
+        type: hidden
+        layout {
+            sequence: 90
+            region: @r22_endorse
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
     button message (
         buttonName: MESSAGE
         label: Message
@@ -1239,6 +1362,29 @@ page 22 (
                 }
             }
             warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process endorse (
+        name: Endorse or withdraw an endorsement (W6.9)
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                case :REQUEST
+                    when 'ENDORSE'   then oan_community_pkg.endorse(to_number(:P22_USER_ID), to_number(:P22_TERM_ID));
+                    when 'UNENDORSE' then oan_community_pkg.remove_endorsement(to_number(:P22_USER_ID), to_number(:P22_TERM_ID));
+                end case;
+                apex_util.redirect_url(apex_page.get_url(p_page => 22, p_items => 'P22_USER_ID', p_values => :P22_USER_ID));
+                ```
+        }
+        execution {
+            sequence: 4
+            point: beforeHeader
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: ENDORSE,UNENDORSE
         }
     )
 

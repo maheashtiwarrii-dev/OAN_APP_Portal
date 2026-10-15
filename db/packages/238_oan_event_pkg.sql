@@ -24,6 +24,7 @@ create or replace package oan_event_pkg authid definer as
   procedure not_going(p_event_id in number);
   procedure set_attendance(p_event_id in number, p_user_id in number, p_attended in varchar2);
   function ics(p_event_id in number) return clob;
+  function checkin_csv(p_event_id in number) return clob;                -- managers; audited (R14)
   procedure send_reminders;                                                  -- job, hourly
   procedure send_reminders_now accessible by (package ut_oan_w3);
 end oan_event_pkg;
@@ -313,6 +314,28 @@ create or replace package body oan_event_pkg as
         || 'STATUS:' || case when l_e.status = 'CANCELLED' then 'CANCELLED' else 'CONFIRMED' end || l_crlf
         || 'END:VEVENT' || l_crlf || 'END:VCALENDAR' || l_crlf;
   end ics;
+
+  function checkin_csv(p_event_id in number) return clob is
+    l_csv clob;
+    function q(p in varchar2) return varchar2 is
+    begin
+      return '"' || replace(p, '"', '""') || '"';
+    end q;
+  begin
+    assert_manager(p_event_id);
+    l_csv := 'Name,Email,Status,Registered,Attended' || chr(13) || chr(10);
+    for r in (select p.first_name || ' ' || p.last_name member_name, u.email, g.status, g.registered_at, g.attended
+                from oan_event_registrations g
+                join oan_users u on u.id = g.user_id
+                left join oan_profiles p on p.user_id = g.user_id
+               where g.event_id = p_event_id and g.status in ('GOING','WAITLIST')
+               order by g.status, 1) loop
+      l_csv := l_csv || q(r.member_name) || ',' || q(r.email) || ',' || q(r.status) || ','
+            || q(to_char(r.registered_at, 'YYYY-MM-DD HH24:MI')) || ',' || q(r.attended) || chr(13) || chr(10);
+    end loop;
+    oan_audit_pkg.log('EVENT_CHECKIN_EXPORT', 'EVENT', p_event_id, null);
+    return l_csv;
+  end checkin_csv;
 
   procedure do_reminders(p_any_hour in boolean) is
   begin

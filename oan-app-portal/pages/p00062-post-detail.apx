@@ -316,6 +316,40 @@ page 62 (
         }
     )
 
+    region r62_react (
+        name: Reactions
+        type: dynamicContent
+        source {
+            plsqlFunctionBody:
+                ```plsql
+                declare
+                    l_html varchar2(400);
+                begin
+                    for r in (select reaction_count, my_reaction from oan_post_reactions_v where post_id = to_number(:P62_ID)) loop
+                        l_html := '<p class="oan-article-meta">' || r.reaction_count || case r.reaction_count when 1 then ' reaction' else ' reactions' end
+                            || case when r.my_reaction is not null then ' &middot; you reacted: ' || initcap(r.my_reaction) end || '</p>';
+                    end loop;
+                    return l_html;
+                end;
+                ```
+        }
+        layout {
+            sequence: 15
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--hideHeader js-addHiddenHeadingRoleDesc
+            ]
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P62_ID
+        }
+    )
+
     button add-comment (
         buttonName: ADD_COMMENT
         label: Post comment
@@ -377,6 +411,113 @@ page 62 (
                 }
             }
             warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button react-like (
+        buttonName: REACT_LIKE
+        label: Like
+        layout {
+            sequence: 10
+            region: @r62_react
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button react-celebrate (
+        buttonName: REACT_CELEBRATE
+        label: Celebrate
+        layout {
+            sequence: 20
+            region: @r62_react
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button react-insightful (
+        buttonName: REACT_INSIGHTFUL
+        label: Insightful
+        layout {
+            sequence: 30
+            region: @r62_react
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button react-support (
+        buttonName: REACT_SUPPORT
+        label: Support
+        layout {
+            sequence: 40
+            region: @r62_react
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button unreact (
+        buttonName: UNREACT
+        label: Remove my reaction
+        layout {
+            sequence: 50
+            region: @r62_react
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery: select 1 from oan_post_reactions_v where post_id = to_number(:P62_ID) and my_reaction is not null
+        }
+    )
+
+    process react (
+        name: React to the post (FR-41)
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                oan_community_pkg.react(to_number(:P62_ID), case when :REQUEST != 'UNREACT' then substr(:REQUEST, 7) end);
+                ```
+        }
+        execution {
+            sequence: 5
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: REACT_LIKE,REACT_CELEBRATE,REACT_INSIGHTFUL,REACT_SUPPORT,UNREACT
         }
     )
 

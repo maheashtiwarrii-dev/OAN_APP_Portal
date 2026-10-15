@@ -64,6 +64,8 @@ jobs:
             echo "begin apex_application_install.set_auto_install_sup_obj(p_auto_install_sup_obj => true); end;"
             echo "/"
             echo "apex import -input \"$PWD/oan-app-portal\""
+            echo "set serveroutput on"
+            echo "@$PWD/ci/post-import.sql"
             echo "select application_id, pages from apex_applications where application_id = 200;"
             echo "exit"
           } > "$RUNNER_TEMP/import.sql"

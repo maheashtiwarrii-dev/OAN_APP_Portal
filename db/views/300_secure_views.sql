@@ -1022,7 +1022,8 @@ select o.id, o.name, o.org_type,
  where o.id = oan_org_pkg.my_org_id;
 
 create or replace view oan_my_org_contacts_v as
-select oc.user_id, p.first_name || ' ' || p.last_name contact_name, oc.designation, initcap(oc.contact_role) role_label, oc.added_at
+select oc.user_id, p.first_name || ' ' || p.last_name contact_name, oc.designation, initcap(oc.contact_role) role_label, oc.added_at,
+       oc.contact_role
   from oan_org_contacts oc
   join oan_profiles p on p.user_id = oc.user_id
  where oc.org_id = oan_org_pkg.my_org_id;
@@ -1191,3 +1192,244 @@ select d.term_id, t.name skill, d.demand_count, d.member_count,
   join oan_taxonomy_terms t on t.id = d.term_id
  where d.period_start = (select max(x.period_start) from oan_skill_demand x)
    and sys_context('OAN_CTX','VIEWER_TYPE') = 'MEMBER';
+
+-- S30 / W5.1, W6.2: the viewer's optional onboarding role answers (codes only), used to offer the matching
+-- application after approval (company registration, expert, trainer, mentor)
+create or replace view oan_my_onboarding_roles_v as
+select column_value role_code
+  from oan_chat_sessions s, table(apex_string.split(s.role_codes, ':'))
+ where s.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID'))
+   and s.role_codes is not null;
+
+-------------------------------------------------------------- W6 community (pages 60-78) --
+-- Group directory: OPEN and REQUEST groups are listed (name and description only); PRIVATE groups only to
+-- members and invitees (R19). Posts stay behind OAN_GROUPS_V / OAN_POSTS_V.
+create or replace view oan_group_directory_v as
+select g.id, g.name, g.description, g.visibility,
+       case g.visibility when 'OPEN' then 'Open' when 'REQUEST' then 'Ask to join' else 'Private' end visibility_label,
+       (select count(*) from oan_group_members m where m.group_id = g.id and m.status = 'ACTIVE') member_count,
+       (select count(*) from oan_posts p where p.group_id = g.id and p.status in ('OPEN','LOCKED')) post_count,
+       oan_community_pkg.group_role(g.id) my_role
+  from oan_groups g
+ where g.status = 'ACTIVE' and g.scope_type = 'GLOBAL'
+   and sys_context('OAN_CTX','VIEWER_TYPE') = 'MEMBER'
+   and (g.visibility in ('OPEN','REQUEST')
+        or exists (select 1 from oan_group_members m
+                    where m.group_id = g.id and m.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID'))
+                      and m.status in ('ACTIVE','INVITED')));
+
+-- Members of a group: active members to everyone who can read the group; requests and invitations to its managers
+create or replace view oan_group_members_v as
+select m.group_id, m.user_id, c.display_name, c.headline, initcap(m.member_role) role_label, m.member_role,
+       m.status, initcap(m.status) status_label, m.joined_at
+  from oan_group_members m
+  join oan_member_card_v c on c.user_id = m.user_id
+  join oan_group_directory_v d on d.id = m.group_id
+ where (m.status = 'ACTIVE' and (d.visibility = 'OPEN' or d.my_role in ('OWNER','MODERATOR','MEMBER')))
+    or (m.status in ('REQUESTED','INVITED') and d.my_role in ('OWNER','MODERATOR'));
+
+-- Reactions per post and the viewer's own
+create or replace view oan_post_reactions_v as
+select p.id post_id,
+       (select count(*) from oan_post_reactions r where r.post_id = p.id) reaction_count,
+       (select r.reaction from oan_post_reactions r where r.post_id = p.id and r.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID'))) my_reaction
+  from oan_posts_v p;
+
+-- Success stories (FR-12): STORY posts the viewer may read
+create or replace view oan_stories_v as
+select p.id, p.title, substr(p.body, 1, 400) summary, p.author_name, p.group_name, p.created_at, p.comment_count
+  from oan_posts_v p
+ where p.post_type = 'STORY';
+
+-- Experts and trainers members may ask (FR-07): approved, active, visible, and accepting messages
+create or replace view oan_experts_v as
+select a.user_id, a.role_type, initcap(a.role_type) role_label, c.display_name, c.headline, c.primary_chapter, a.years,
+       (select listagg(t.name, ', ') within group (order by t.name) from oan_taxonomy_terms t
+         where instr(':' || a.area_ids || ':', ':' || t.id || ':') > 0) areas,
+       replace(initcap(replace(a.offerings, '_', ' ')), ':', ', ') offerings, a.statement, a.evidence_url
+  from oan_expert_applications a
+  join oan_member_card_v c on c.user_id = a.user_id
+ where a.status = 'APPROVED'
+   and sys_context('OAN_CTX','VIEWER_TYPE') = 'MEMBER'
+   and oan_message_pkg.can_message(a.user_id) = 'Y';
+
+create or replace view oan_my_expert_applications_v as
+select a.id, initcap(a.role_type) role_label, initcap(replace(a.status, '_', ' ')) status_label, a.status, a.decision_note,
+       a.created_at, a.decided_at, a.review_due_at
+  from oan_expert_applications a
+ where a.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID'));
+
+-- Ask-the-expert requests the viewer received (TO_ME) or sent (BY_ME)
+create or replace view oan_expert_requests_v as
+select r.id, case when r.expert_id = to_number(sys_context('OAN_CTX','VIEWER_ID')) then 'TO_ME' else 'BY_ME' end direction,
+       case when r.expert_id = to_number(sys_context('OAN_CTX','VIEWER_ID'))
+            then (select c.display_name from oan_member_card_v c where c.user_id = r.requester_id)
+            else (select c.display_name from oan_member_card_v c where c.user_id = r.expert_id) end other_name,
+       r.topic, r.question, r.status, initcap(r.status) status_label, r.thread_id, r.created_at
+  from oan_expert_requests r
+ where to_number(sys_context('OAN_CTX','VIEWER_ID')) in (r.expert_id, r.requester_id);
+
+-- Applications the viewer may decide (Chapter Admin of the applicant's chapter tree, or Platform Admin)
+create or replace view oan_expert_app_queue_v as
+select a.id, initcap(a.role_type) role_label, p.first_name || ' ' || p.last_name applicant_name, p.headline, a.years,
+       (select listagg(t.name, ', ') within group (order by t.name) from oan_taxonomy_terms t
+         where instr(':' || a.area_ids || ':', ':' || t.id || ':') > 0) areas,
+       a.statement, a.evidence_url, initcap(replace(a.status, '_', ' ')) status_label, a.created_at
+  from oan_expert_applications a
+  join oan_profiles p on p.user_id = a.user_id
+ where a.status in ('APPLIED','MORE_INFO')
+   and oan_expert_pkg.can_decide(a.id) = 'Y';
+
+-- Mentors taking mentees (listed, capacity left), never blocked members (card view)
+create or replace view oan_mentors_v as
+select m.user_id, initcap(m.mentor_type) type_label, c.display_name, c.headline, c.primary_chapter, m.about, m.availability,
+       (select listagg(t.name, ', ') within group (order by t.name) from oan_taxonomy_terms t
+         where instr(':' || m.area_ids || ':', ':' || t.id || ':') > 0) areas,
+       oan_expert_pkg.mentor_slots_left(m.user_id) slots_left
+  from oan_mentor_profiles m
+  join oan_member_card_v c on c.user_id = m.user_id
+ where m.listed = 'Y'
+   and m.user_id != to_number(sys_context('OAN_CTX','VIEWER_ID'))
+   and sys_context('OAN_CTX','VIEWER_TYPE') = 'MEMBER';
+
+create or replace view oan_my_mentor_profile_v as
+select m.* from oan_mentor_profiles m where m.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID'));
+
+-- The viewer's mentorships as mentor or mentee
+create or replace view oan_my_mentorships_v as
+select s.id, case when s.mentor_id = to_number(sys_context('OAN_CTX','VIEWER_ID')) then 'MENTOR' else 'MENTEE' end my_side,
+       (select p.first_name || ' ' || p.last_name from oan_profiles p
+         where p.user_id = case when s.mentor_id = to_number(sys_context('OAN_CTX','VIEWER_ID')) then s.mentee_id else s.mentor_id end) other_name,
+       s.goal, s.status, initcap(s.status) status_label, s.thread_id, s.created_at, s.completed_at,
+       (select count(*) from oan_mentoring_sessions x where x.mentorship_id = s.id) sessions,
+       (select nvl(sum(x.duration_min), 0) from oan_mentoring_sessions x where x.mentorship_id = s.id) minutes,
+       case when s.mentor_id = to_number(sys_context('OAN_CTX','VIEWER_ID'))
+            then (select f.feedback from oan_mentoring_feedback f where f.mentorship_id = s.id) end feedback_for_me
+  from oan_mentorships s
+ where to_number(sys_context('OAN_CTX','VIEWER_ID')) in (s.mentor_id, s.mentee_id);
+
+create or replace view oan_my_mentoring_sessions_v as
+select x.id, x.mentorship_id, x.session_date, x.duration_min, initcap(replace(x.session_mode, '_', ' ')) mode_label, x.notes
+  from oan_mentoring_sessions x
+  join oan_mentorships s on s.id = x.mentorship_id
+ where to_number(sys_context('OAN_CTX','VIEWER_ID')) in (s.mentor_id, s.mentee_id);
+
+-- Trainings (FR-40): open ones for everyone, with the viewer's enrolment and seats left
+create or replace view oan_trainings_v as
+select t.id, t.kind, initcap(replace(t.kind, '_', ' ')) kind_label, t.title, t.summary, initcap(replace(t.delivery, '_', ' ')) delivery_label,
+       t.starts_on, t.ends_on, t.capacity, t.status,
+       (select c.display_name from oan_member_card_v c where c.user_id = t.trainer_id) trainer_name,
+       (select listagg(x.name, ', ') within group (order by x.name) from oan_taxonomy_terms x
+         where instr(':' || t.skill_ids || ':', ':' || x.id || ':') > 0) skills,
+       case when t.capacity is not null then greatest(t.capacity - (select count(*) from oan_training_enrolments e
+                                                                    where e.training_id = t.id and e.status = 'ENROLLED'), 0) end seats_left,
+       (select e.status from oan_training_enrolments e where e.training_id = t.id
+           and e.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID'))) my_status,
+       case when t.trainer_id = to_number(sys_context('OAN_CTX','VIEWER_ID')) then 'Y' else 'N' end is_mine
+  from oan_trainings t
+ where sys_context('OAN_CTX','VIEWER_TYPE') = 'MEMBER'
+   and (t.status = 'OPEN' or t.trainer_id = to_number(sys_context('OAN_CTX','VIEWER_ID')));
+
+-- Participants of the viewer's own trainings
+create or replace view oan_training_roster_v as
+select e.training_id, e.user_id, p.first_name || ' ' || p.last_name participant, initcap(e.status) status_label, e.status,
+       e.enrolled_at, e.completed_at, e.certificate_code
+  from oan_training_enrolments e
+  join oan_trainings t on t.id = e.training_id
+  join oan_profiles p on p.user_id = e.user_id
+ where t.trainer_id = to_number(sys_context('OAN_CTX','VIEWER_ID')) or sys_context('OAN_CTX','IS_ADMIN') = 'Y';
+
+-- The viewer's learning record and certificates
+create or replace view oan_my_learning_v as
+select t.id training_id, t.title, initcap(replace(t.kind, '_', ' ')) kind_label, initcap(e.status) status_label, e.status,
+       e.enrolled_at, e.completed_at, e.certificate_code
+  from oan_training_enrolments e
+  join oan_trainings t on t.id = e.training_id
+ where e.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID'));
+
+-- Partner needs open to members (FR-42), with skills match and the viewer's response
+create or replace view oan_partner_needs_v as
+select r.id, r.need_type, initcap(replace(r.need_type, '_', ' ')) type_label, r.title, r.description, r.location, r.language,
+       case r.budget_band when 'UNDER_5K' then 'Under 5k' when '5K_25K' then '5k-25k' when '25K_100K' then '25k-100k'
+                          when 'OVER_100K' then 'Over 100k' end budget_label,
+       o.name org_name, case o.org_type when 'NON_ORACLE_PARTNER' then 'Technology partner' else initcap(o.org_type) end org_type_label,
+       (select listagg(t.name, ', ') within group (order by t.name) from oan_taxonomy_terms t
+         where instr(':' || r.skill_ids || ':', ':' || t.id || ':') > 0) skills,
+       oan_talent_pkg.skill_match(r.id, to_number(sys_context('OAN_CTX','VIEWER_ID'))) match_pct,
+       (select x.status from oan_talent_responses x where x.request_id = r.id
+           and x.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID'))) my_status,
+       r.published_at
+  from oan_talent_requests r
+  join oan_organisations o on o.id = r.org_id and o.status = 'ACTIVE' and o.verified = 'Y'
+ where r.status = 'OPEN'
+   and sys_context('OAN_CTX','VIEWER_TYPE') = 'MEMBER';
+
+-- The viewer's organisation's needs and their responses (ORG context, R11: never another organisation's)
+create or replace view oan_org_needs_v as
+select r.id, initcap(replace(r.need_type, '_', ' ')) type_label, r.title, initcap(replace(r.status, '_', ' ')) status_label, r.status,
+       initcap(replace(r.close_reason, '_', ' ')) close_label, r.created_at, r.published_at,
+       (select count(*) from oan_talent_responses x where x.request_id = r.id and x.status != 'WITHDRAWN') responses
+  from oan_talent_requests r
+ where r.org_id = oan_org_pkg.my_org_id;
+
+create or replace view oan_org_need_responses_v as
+select x.id response_id, x.request_id, r.title, x.user_id, p.first_name || ' ' || p.last_name member_name, p.headline,
+       x.note, initcap(x.status) status_label, x.status, x.created_at,
+       oan_talent_pkg.skill_match(r.id, x.user_id) match_pct
+  from oan_talent_responses x
+  join oan_talent_requests r on r.id = x.request_id
+  join oan_profiles p on p.user_id = x.user_id
+ where r.org_id = oan_org_pkg.my_org_id
+   and x.status != 'WITHDRAWN';
+
+-- Shareable candidate feedback about the viewer (FSD BR-07)
+create or replace view oan_my_feedback_v as
+select f.id, o.name org_name, r.title, f.feedback, f.created_at
+  from oan_candidate_feedback f
+  join oan_organisations o on o.id = f.org_id
+  left join oan_talent_requests r on r.id = f.request_id
+ where f.member_id = to_number(sys_context('OAN_CTX','VIEWER_ID'))
+   and f.shareable = 'Y';
+
+-- Chapters for members (page 74): browse, join and leave
+create or replace view oan_chapters_dir_v as
+select c.id, c.name, c.path, c.chapter_level,
+       (select count(*) from oan_chapter_members m where m.chapter_id = c.id) member_count,
+       (select case when m.is_primary = 'Y' then 'Primary' else 'Member' end from oan_chapter_members m
+         where m.chapter_id = c.id and m.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID'))) my_status,
+       (select count(*) from oan_events e where e.chapter_id = c.id and e.status = 'PUBLISHED' and e.starts_at > systimestamp) upcoming_events
+  from oan_chapters c
+ where c.status = 'ACTIVE'
+   and sys_context('OAN_CTX','VIEWER_TYPE') = 'MEMBER';
+
+-- Initiatives (page 77): open ones, the viewer's own and the viewer's interest
+create or replace view oan_initiatives_v as
+select i.id, i.title, i.summary, i.needs, i.status, initcap(i.status) status_label, i.created_at, ch.name chapter_name,
+       (select c.display_name from oan_member_card_v c where c.user_id = i.owner_id) owner_name,
+       (select count(*) from oan_initiative_interest x where x.initiative_id = i.id and x.status != 'WITHDRAWN') interested,
+       (select x.status from oan_initiative_interest x where x.initiative_id = i.id
+           and x.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID'))) my_status,
+       case when i.owner_id = to_number(sys_context('OAN_CTX','VIEWER_ID')) then 'Y' else 'N' end is_mine
+  from oan_initiatives i
+  left join oan_chapters ch on ch.id = i.chapter_id
+ where sys_context('OAN_CTX','VIEWER_TYPE') = 'MEMBER'
+   and (i.status = 'OPEN' or i.owner_id = to_number(sys_context('OAN_CTX','VIEWER_ID')))
+   and (i.chapter_id is null
+        or exists (select 1 from oan_chapter_members m where m.chapter_id = i.chapter_id
+                     and m.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID'))));
+
+-- Interest in the viewer's own initiatives
+create or replace view oan_initiative_interest_v as
+select x.initiative_id, x.user_id, c.display_name, c.headline, x.note, initcap(x.status) status_label, x.status, x.created_at
+  from oan_initiative_interest x
+  join oan_initiatives i on i.id = x.initiative_id and i.owner_id = to_number(sys_context('OAN_CTX','VIEWER_ID'))
+  join oan_member_card_v c on c.user_id = x.user_id
+ where x.status != 'WITHDRAWN';
+
+-- Endorsement counts per skill a member lists (visible like the SKILLS section)
+create or replace view oan_endorsements_v as
+select s.user_id member_id, s.term_id, s.skill, count(e.endorser_id) endorsements,
+       max(case when e.endorser_id = to_number(sys_context('OAN_CTX','VIEWER_ID')) then 'Y' else 'N' end) i_endorsed
+  from oan_profile_skills_v s
+  left join oan_endorsements e on e.member_id = s.user_id and e.term_id = s.term_id
+ group by s.user_id, s.term_id, s.skill;

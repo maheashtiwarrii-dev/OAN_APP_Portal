@@ -1,0 +1,206 @@
+page 120 (
+    name: Library Import
+    alias: LIBRARY-IMPORT
+    title: Library import
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    security {
+        authorizationScheme: @administration-rights
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: W3.5 / FR-19 (P21): Platform Admins import LINK and VIDEO items from a CSV (header row; columns title, summary, item_type, url, category, owner_type, rights_basis, rights_note, tags, skill_level, provider, duration_minutes, delivery_format, source_owner_confirmed). Every row needs a rights basis and an https link; rows land as PENDING_REVIEW in the moderation queue (107). OAN_LIBRARY_PKG.IMPORT_CSV validates row by row and keeps a batch report.
+    }
+
+    region r120_upload (
+        name: Import a CSV
+        type: staticContent
+        source {
+            htmlCode: <p>Columns, in order: title, summary, item_type (LINK or VIDEO), url (https), category, owner_type, rights_basis, rights_note, tags (semicolon list), skill_level, provider, duration_minutes, delivery_format, source_owner_confirmed (Y/N). Imported items wait for review on the Moderation queue.</p>
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P120_FILE (
+        type: fileUpload
+        label {
+            label: CSV file
+        }
+        display {
+            displayAs: inlineDropzone
+        }
+        storage {
+            type: appTempFiles
+            purgeFileAt: endOfRequest
+            fileTypes: .csv,text/csv
+            maxFileSize: 5120
+        }
+        layout {
+            sequence: 10
+            region: @r120_upload
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    button import (
+        buttonName: IMPORT
+        label: Import
+        layout {
+            sequence: 10
+            region: @r120_upload
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    region r120_batches (
+        name: Import batches
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select id, created_at, row_count, ok_count, error_count, substr(report, 1, 400) report
+                  from oan_import_batches_v
+                 order by created_at desc
+                ```
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: No imports yet.
+        }
+
+        column ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: Batch
+            }
+            layout {
+                sequence: 1
+            }
+        )
+
+        column CREATED_AT (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Imported
+            }
+            layout {
+                sequence: 2
+            }
+            appearance {
+                formatMask: DD-MON-YYYY HH24:MI
+            }
+        )
+
+        column ROW_COUNT (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Rows
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column OK_COUNT (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Imported
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column ERROR_COUNT (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Rejected
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+        column REPORT (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Row report
+            }
+            layout {
+                sequence: 6
+            }
+        )
+
+    )
+
+    process import (
+        name: Import the CSV
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare
+                    l_file  number;
+                    l_batch number;
+                begin
+                    l_file  := oan_file_pkg.store(:P120_FILE, 'IMPORT_BATCH');
+                    l_batch := oan_library_pkg.import_csv(l_file);
+                end;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        serverSideCondition {
+            whenButtonPressed: @import
+        }
+        successMessage {
+            successMessage: Imported. Check the row report; imported items are waiting on the Moderation queue.
+        }
+    )
+
+)

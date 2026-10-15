@@ -22,6 +22,9 @@ create or replace package oan_org_pkg authid definer as
   procedure decide_application(p_application_id in number, p_decision in varchar2, p_note in varchar2,
                                p_org_type in varchar2 default null);
   procedure suspend_org(p_org_id in number, p_reason in varchar2);
+  -- FR-20: the owner adds up to ORG_MAX_CONTACTS colleagues (set-password link valid ORG_INVITE_DAYS) and removes them
+  procedure invite_contact(p_first_name in varchar2, p_last_name in varchar2, p_email in varchar2, p_designation in varchar2);
+  procedure remove_contact(p_user_id in number);
   function my_org_id return number;
   function is_org_contact return varchar2;                                                   -- Y / N
 end oan_org_pkg;
@@ -205,6 +208,77 @@ create or replace package body oan_org_pkg as
     end loop;
     oan_audit_pkg.log('ORG_SUSPENDED', 'ORGANISATION', p_org_id, null, json_object('reason' value p_reason));
   end suspend_org;
+
+  procedure invite_contact(p_first_name in varchar2, p_last_name in varchar2, p_email in varchar2, p_designation in varchar2) is
+    l_org    number := my_org_id;
+    l_email  varchar2(320) := lower(trim(p_email));
+    l_cnt    number;
+    l_user   number;
+    l_member number;
+    l_token  varchar2(64);
+    l_name   varchar2(200 char);
+  begin
+    oan_util.assert(l_org is not null, 'Not authorized.', oan_util.c_err_forbidden);
+    select count(*) into l_cnt from oan_org_contacts where org_id = l_org and user_id = oan_util.viewer_id and contact_role = 'OWNER';
+    oan_util.assert(l_cnt = 1, 'Only the company owner can invite colleagues.', oan_util.c_err_forbidden);
+    select count(*) into l_cnt from oan_org_contacts where org_id = l_org and contact_role = 'CONTACT';
+    oan_util.assert(l_cnt < oan_util.get_config_num('ORG_MAX_CONTACTS', 5),
+                    'A company can have ' || oan_util.get_config_num('ORG_MAX_CONTACTS', 5) || ' colleagues besides the owner.');
+    oan_util.assert(trim(p_first_name) is not null and trim(p_last_name) is not null, 'Enter the colleague''s name.');
+    oan_util.assert(regexp_like(l_email, '^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$'), 'Enter a valid work email address.');
+    oan_throttle_pkg.enforce('ORGINVITE:' || l_org, 20, 1440);
+    select name into l_name from oan_organisations where id = l_org;
+    select max(id) into l_member from oan_users where lower(email) = l_email and account_type = 'MEMBER' and status = 'ACTIVE';
+    if l_member is not null then
+      l_user := l_member;
+      insert into oan_staff_scopes (user_id, role_code, scope_type, scope_id, granted_by)
+      values (l_user, 'PARTNER_CONTACT', 'ORG', l_org, oan_util.viewer_id);
+      oan_notify_pkg.notify(l_user, 'ORG_APPLICATION', 'You were added to ' || l_name || ' on OAN',
+                            'Open the Company workspace to see its opportunities.', 70);
+    else
+      select max(id) into l_user from oan_users where lower(email) = l_email;
+      oan_util.assert(l_user is null, 'This email already has an OAN account that cannot be added. Contact the helpdesk.',
+                      oan_util.c_err_conflict);
+      insert into oan_users (username, email, email_verified, status, account_type)
+      values (l_email, l_email, 'Y', 'ACTIVE', 'PARTNER') returning id into l_user;
+      insert into oan_profiles (user_id, first_name, last_name, headline, current_org, job_title)
+      values (l_user, trim(p_first_name), trim(p_last_name), trim(p_designation) || ', ' || l_name, l_name, trim(p_designation));
+      l_token := oan_auth_pkg.create_token(l_user, 'RESET', oan_util.get_config_num('ORG_INVITE_DAYS', 7) * 1440);
+      oan_notify_pkg.send_email(l_email, 'You are invited to ' || l_name || ' on OAN',
+        'A colleague added you to ' || l_name || '''s workspace on the OAN alumni network. Use this link within '
+        || oan_util.get_config_num('ORG_INVITE_DAYS', 7) || ' days to set your password.',
+        oan_notify_pkg.page_url(8, 'P8_TOKEN:' || l_token), 'Set your password');
+    end if;
+    begin
+      insert into oan_org_contacts (org_id, user_id, contact_role, designation) values (l_org, l_user, 'CONTACT', trim(p_designation));
+    exception
+      when dup_val_on_index then oan_util.raise_error(oan_util.c_err_conflict, 'This person is already a contact.');
+    end;
+    oan_audit_pkg.log('ORG_CONTACT_INVITED', 'ORGANISATION', l_org, l_user);
+  end invite_contact;
+
+  procedure remove_contact(p_user_id in number) is
+    l_org  number := my_org_id;
+    l_cnt  number;
+    l_type varchar2(10);
+  begin
+    oan_util.assert(l_org is not null, 'Not authorized.', oan_util.c_err_forbidden);
+    select count(*) into l_cnt from oan_org_contacts where org_id = l_org and user_id = oan_util.viewer_id and contact_role = 'OWNER';
+    oan_util.assert(l_cnt = 1, 'Only the company owner can remove colleagues.', oan_util.c_err_forbidden);
+    oan_util.assert(p_user_id != oan_util.viewer_id, 'The owner cannot be removed here.');
+    delete from oan_org_contacts where org_id = l_org and user_id = p_user_id and contact_role = 'CONTACT';
+    oan_util.assert(sql%rowcount = 1, 'That colleague was not found.', oan_util.c_err_forbidden);
+    select account_type into l_type from oan_users where id = p_user_id;
+    if l_type = 'PARTNER' then
+      update oan_users set status = 'DEACTIVATED' where id = p_user_id
+        and not exists (select 1 from oan_org_contacts c where c.user_id = p_user_id);
+      oan_security_pkg.end_user_sessions(p_user_id);
+    else
+      update oan_staff_scopes set revoked_at = systimestamp, revoked_by = oan_util.viewer_id, revoke_reason = 'REMOVED_BY_OWNER'
+       where user_id = p_user_id and role_code = 'PARTNER_CONTACT' and scope_type = 'ORG' and scope_id = l_org and revoked_at is null;
+    end if;
+    oan_audit_pkg.log('ORG_CONTACT_REMOVED', 'ORGANISATION', l_org, p_user_id);
+  end remove_contact;
 
   function my_org_id return number is
     l_org number;

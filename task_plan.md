@@ -329,7 +329,7 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 | W2.7 | `oan_cv_pkg`: per-application share/revoke, logged; keep the last 3 versions (purge + test, S08); not Text-indexed | R13 | 1 | [A] 13 Oct: `oan_cv_pkg` upload/make-current/delete, last 3 versions kept, audited, not indexed; tests cv_owner_only, cv_delete_promotes_latest. Open: per-application share/revoke. 14 Oct: share current CV with one connection (30 days, revocable, audited, notified), CVs shared with me, block revokes shares; downloads via OAN_DOWNLOAD_V; per-application shares come with W5 applications |
 | W2.8 | `oan_network_pkg` + 17 Connections | FR-03 | 3.5 | [A] 13 Oct, live on dev: `098_network.sql` (member follows, followers switch, request limit and resend-wait config), `oan_network_pkg` (request/accept/decline/withdraw/remove, follow/unfollow/remove follower, block/unblock; members only, 50/day, 30-day resend wait, block clears connection and follows, audited, CONNECTION notifications), viewer views, page 28 Connections, page 22 actions + mutual connections, followers switch on page 26; `ut_oan_network` 12/12. Open: introductions and recommendations (need FR-18 messaging, W4); thread closing on block (W4). 14 Oct: introductions via a mutual connection (request/accept/decline/withdraw) and recommendations (page 22 actions, page 28 inbox); block closes the direct conversation and open introductions |
 | W2.9 | 12 Account settings (+ new settings); 60 Privacy centre | FR-01/26 | 5 | [~] 14 Oct, live on dev: page 26 settings (directory, messaging, followers) and page 27 Privacy centre (optional consents with history, export with re-auth and 7-day download, deletion with re-auth and 30-day cancellable grace, nominee, other privacy requests) over `oan_privacy_pkg`. Open: export/deletion jobs scheduling check (W0 automations), admin page 121 |
-| W2.10 | 1095 Profile update requests; 1100 Privacy requests | FR-47/26 | 2.5 | [~] 14 Oct: views `oan_admin_update_requests_v` and `oan_privacy_requests_v` ready; admin pages move to W7 (Build Pack admin range) per the wave priority given on 14 Oct |
+| W2.10 | 1095 Profile update requests; 1100 Privacy requests | FR-47/26 | 2.5 | [A] 15 Oct: admin pages 128 Profile update requests and 121 Privacy requests (W7 admin range), rail entries |
 | W2.11 | Profile-update nudge (local 08:00); set `live_yn` for J-20 | FR-47 | 0.75 | [A] 14 Oct: `oan_nudge_pkg` (08:00 local raise, reminders every NUDGE_REMINDER_DAYS, closed on update or confirm), hourly NUDGE step, J-20 live; suite `ut_oan_w2` 14/14 |
 
 ### W3 — Insights, events, knowledge (S6)
@@ -339,7 +339,7 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 | W3.2 | 20, 21, 22 (download fixed for 26.2), 23 Saved; **tag follow** (v2 3.15, S01) | FR-19/43/23 | 3 | [A] 14 Oct: page 30 Insights / Perspectives / Saved / My articles, page 31 Article detail (save, helpful, report, related), page 301 write or curate; library list keeps non-article items; search sends articles to 31 |
 | W3.3 | Events DDL + `oan_event_pkg` (capacity, waitlist, `.ics`, attendance) | FR-22 | 3 | [A] 14 Oct: events extended (details, time zone, capacity, waitlist, online link for GOING only, resources, cancel reason) + `oan_event_registrations`; `oan_event_pkg` (managers: admin, EVENT_MANAGER, chapter admin; register/waitlist/promotion, cancel, not going, attendance, .ics) |
 | W3.4 | 24 Events; 25 Event detail; **aggregate return-visit events** (S31) | FR-22, R25 | 3 | [A] 14 Oct: page 32 Events (Upcoming / Past / My events, manager list), page 33 Event detail (register, cancel, not going, Add to calendar .ics, attendees, resources, check-in); KPIs EVENT_VIEW / EVENT_RETURN_VISIT / EVENT_REGISTER |
-| W3.5 | 1027, 1060/1061, 1028 (+ check-in export) | FR-19/22, R14 | 5 | [~] 14 Oct: event editor page 331 and check-in on page 33 for managers; admin library review stays on 107; check-in export with W7 |
+| W3.5 | 1027, 1060/1061, 1028 (+ check-in export) | FR-19/22, R14 | 5 | [A] 15 Oct: event editor 331, check-in on 33 with CSV export for managers, 120 Library import (CSV batches, admin only) |
 | W3.6 | Event reminders (local 07:00); set `live_yn` for this wave | FR-22 | 0.75 | [A] 14 Oct: hourly EVENT_REMINDERS step (07:00 local on the event day, once); suite `ut_oan_w3` 11/11 |
 
 ### W4 — Conversations, notifications, channels, introductions (S6–S7)
@@ -366,15 +366,15 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 ### W6 — Community, experts, mentoring, training, partner workspace (S9–S11)
 | ID | Page(s) / task | MoSCoW | Delivers | Est | Status |
 |---|---|---|---|---|---|
-| W6.1 | Groups governance, reactions/comments, `STORY`, private-group search; 30, 31, 32, 37 | Must | FR-41, R19/20 | 5 | [A] base (after M.2) |
-| W6.5 | Partner workspace (ORG context): talent requests (8 types incl. `SOLUTION_INTEREST`) and responses; candidate feedback with 12-month purge (+ test); 46, 47, 48, 1053 | Must | FR-42, R01/07/11 | 6 | [ ] |
-| W6.2 | Expertise, expert application (via the 1.31 grant API), requests; 38, 39; **draft expert/trainer application from onboarding answers** (S30) | Must | FR-07/13/21 | 4.5 | [ ] |
-| W6.3 | Mentoring (R17) + 41, 42 | Should | FR-39 | 4 | [ ] |
-| W6.4 | Training + mock projects; 43, 44, 45 | Should | FR-40 | 4.5 | [ ] |
-| W6.6 | 49 Chapters | Should | FR-16 | 1.5 | [ ] |
-| W6.8 | 56 Initiatives; 57 Success stories; set `live_yn` for W6 journeys | Should | FR-06/12 | 6.25 | [ ] |
+| W6.1 | Groups governance, reactions/comments, `STORY`, private-group search; 30, 31, 32, 37 | Must | FR-41, R19/20 | 5 | [A] 15 Oct: 61 Groups (directory, join / ask / accept invite / leave, approve, invite, roles, remove, propose a group with moderator review), reactions on 62, STORY posts, links from 60 |
+| W6.5 | Partner workspace (ORG context): talent requests (8 types incl. `SOLUTION_INTEREST`) and responses; candidate feedback with 12-month purge (+ test); 46, 47, 48, 1053 | Must | FR-42, R01/07/11 | 6 | [A] 15 Oct: `oan_talent_pkg` (11 need types, pre-moderated, skill-match notifications), 69 needs for members (match %, respond, shared feedback), 72 company workspace (post, shortlist/decline, feedback never a rating, close), 12-month feedback purge + test |
+| W6.2 | Expertise, expert application (via the 1.31 grant API), requests; 38, 39; **draft expert/trainer application from onboarding answers** (S30) | Must | FR-07/13/21 | 4.5 | [A] 15 Oct: `oan_expert_pkg` applications (decided by Chapter Admin of the tree or Platform Admin, never self; 24-month review), Ask an expert (5/week, accept opens a conversation); page 63 |
+| W6.3 | Mentoring (R17) + 41, 42 | Should | FR-39 | 4 | [A] 15 Oct: mentor profiles with capacity and pause (R17), requests, accept/decline, sessions with private notes, complete, private feedback (no public ratings); page 65 |
+| W6.4 | Training + mock projects; 43, 44, 45 | Should | FR-40 | 4.5 | [A] 15 Oct: `oan_training_pkg` (courses, workshops, mock projects; moderated publish, seats + waitlist, completion issues a certificate code, public verify); page 67 |
+| W6.6 | 49 Chapters | Should | FR-16 | 1.5 | [A] 15 Oct: 74 Chapters (browse, member counts, upcoming events, join/leave, request a chapter) |
+| W6.8 | 56 Initiatives; 57 Success stories; set `live_yn` for W6 journeys | Should | FR-06/12 | 6.25 | [A] 15 Oct: 77 Initiatives (start, interest, shortlist, close), 78 Success stories; W6 journeys set live |
 | W6.7 | 54 Marketplace (no journey depends on it after S25-Y) | Could | FR-46 | 2 | [ ] descope lane |
-| W6.9 | Recognition: endorsements, badges, contributions | Could | FR-11/45 | 3 | [ ] descope lane |
+| W6.9 | Recognition: endorsements, badges, contributions | Could | FR-11/45 | 3 | [A] 15 Oct: endorsements only (page 22); badges and contribution scores stay in the descope lane |
 
 ### W7 — Reporting and hardening (S11)
 | ID | Page(s) / task | Delivers | Est | Status |

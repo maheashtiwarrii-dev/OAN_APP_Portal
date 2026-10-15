@@ -1,0 +1,232 @@
+page 128 (
+    name: Profile Update Requests
+    alias: PROFILE-UPDATE-REQUESTS
+    title: Profile update requests
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    security {
+        authorizationScheme: @administration-rights
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: W2.10 / FR-47 (W2.11): Platform Admins see the "is your work profile / CV still current?" requests raised at 08:00 local time, how many reminders went out and how each closed (updated, confirmed, account closed). Read-only: members close requests by updating or confirming. Aggregate counts first; never the admin's own rows.
+    }
+
+    region r128_counts (
+        name: Summary
+        type: dynamicContent
+        source {
+            plsqlFunctionBody:
+                ```plsql
+                declare
+                    l_open number; l_upd number; l_conf number; l_rem number;
+                begin
+                    select count(case when status = 'OPEN' then 1 end),
+                           count(case when close_label = 'Updated' then 1 end),
+                           count(case when close_label = 'Confirmed still current' then 1 end),
+                           nvl(sum(reminder_count), 0)
+                      into l_open, l_upd, l_conf, l_rem
+                      from oan_admin_update_requests_v;
+                    return '<div class="oan-dcard-stats" style="max-width:640px;grid-template-columns:repeat(4,1fr)">'
+                        || '<div><span>Open</span><b>' || l_open || '</b></div><div><span>Closed by update</span><b>' || l_upd
+                        || '</b></div><div><span>Confirmed current</span><b>' || l_conf || '</b></div><div><span>Reminders sent</span><b>'
+                        || l_rem || '</b></div></div>';
+                end;
+                ```
+        }
+        layout {
+            sequence: 5
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region r128_list (
+        name: Requests
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select member_name, email, type_label, initcap(status) status_label, raised_at, last_reminded_at, reminder_count, close_label, closed_at
+                  from oan_admin_update_requests_v
+                 where (nvl(:P128_SHOW, 'OPEN') = 'OPEN' and status = 'OPEN') or :P128_SHOW = 'ALL'
+                 order by raised_at desc
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: No requests.
+        }
+
+        column MEMBER_NAME (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: Member
+            }
+            layout {
+                sequence: 1
+            }
+        )
+
+        column EMAIL (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Email
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column TYPE_LABEL (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: About
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column STATUS_LABEL (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Status
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column RAISED_AT (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Raised
+            }
+            layout {
+                sequence: 5
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+        column LAST_REMINDED_AT (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Last reminder
+            }
+            layout {
+                sequence: 6
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+        column REMINDER_COUNT (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: Reminders
+            }
+            layout {
+                sequence: 7
+            }
+        )
+
+        column CLOSE_LABEL (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            heading {
+                heading: Closed as
+            }
+            layout {
+                sequence: 8
+            }
+        )
+
+        column CLOSED_AT (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            heading {
+                heading: Closed
+            }
+            layout {
+                sequence: 9
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+    )
+
+    pageItem P128_SHOW (
+        type: selectList
+        label {
+            label: Show
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:Open requests;OPEN,All requests;ALL
+            displayExtraValues: false
+            displayNullValue: false
+        }
+        layout {
+            sequence: 1
+            region: @r128_list
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    button refresh (
+        buttonName: REFRESH
+        label: Show
+        layout {
+            sequence: 5
+            region: @r128_list
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+)

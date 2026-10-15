@@ -1,0 +1,190 @@
+page 78 (
+    name: Success Stories
+    alias: SUCCESS-STORIES
+    title: Success stories
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    security {
+        authorizationScheme: @is-active
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: W6.8 Success stories (FR-12): STORY posts from groups the viewer can read (R19/R20), newest first, with a link to share your own story (page 73, post type Story).
+    }
+
+    region r78_stories (
+        name: Stories from the network
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select id, title, summary, author_name, group_name, comment_count, created_at, 'Read' read_label
+                  from oan_stories_v
+                 order by created_at desc
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: No stories yet. Share yours.
+        }
+
+        column ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column TITLE (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Story
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column SUMMARY (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Excerpt
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column AUTHOR_NAME (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: By
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column GROUP_NAME (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Group
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+        column COMMENT_COUNT (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Comments
+            }
+            layout {
+                sequence: 6
+            }
+        )
+
+        column CREATED_AT (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: Shared
+            }
+            layout {
+                sequence: 7
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+        column READ_LABEL (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Read
+            }
+            layout {
+                sequence: 8
+            }
+            link {
+                target: {
+                    page: 62
+                    items: {
+                        P62_ID: \#ID#\
+                    }
+                }
+                linkText: #READ_LABEL#
+            }
+        )
+
+    )
+
+    region r78_actions (
+        name: Actions
+        type: staticContent
+        layout {
+            sequence: 5
+            slot: body
+        }
+        appearance {
+            template: @/buttons-container
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    button share (
+        buttonName: SHARE
+        label: Share your story
+        layout {
+            sequence: 10
+            region: @r78_actions
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 73
+                clearCache: 73
+                items: {
+                    P73_TYPE: STORY
+                }
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+)

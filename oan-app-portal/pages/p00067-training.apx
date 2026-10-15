@@ -1,0 +1,818 @@
+page 67 (
+    name: Training
+    alias: TRAINING
+    title: Training and mock projects
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    security {
+        authorizationScheme: @is-active
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: W6.4 Training (FR-40/08/10; journey J-06). Open courses, workshops and mock projects with seats; enrol (waitlist when full) or withdraw; my learning and certificate codes; verify a certificate; verified trainers publish (moderated), see their roster and mark completion, which issues a certificate.
+    }
+
+    region r67_open (
+        name: Open trainings
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select id, title, kind_label, summary, trainer_name, skills, delivery_label, starts_on, ends_on,
+                       case when seats_left is null then 'Open' when seats_left = 0 then 'Full - waitlist' else seats_left || ' seats' end seats_label,
+                       case when my_status in ('ENROLLED','WAITLIST','COMPLETED') then initcap(my_status) end my_label,
+                       case when nvl(my_status, 'NONE') in ('NONE','WITHDRAWN') and is_mine = 'N' and status = 'OPEN' then 'Enrol' end enrol_label,
+                       case when my_status in ('ENROLLED','WAITLIST') then 'Withdraw' end withdraw_label
+                  from oan_trainings_v
+                 where status = 'OPEN'
+                 order by starts_on nulls last, title
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: No trainings are open yet.
+        }
+
+        column ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column TITLE (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Training
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column KIND_LABEL (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Type
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column SUMMARY (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: About
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column TRAINER_NAME (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Trainer
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+        column SKILLS (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Skills
+            }
+            layout {
+                sequence: 6
+            }
+        )
+
+        column DELIVERY_LABEL (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: Delivery
+            }
+            layout {
+                sequence: 7
+            }
+        )
+
+        column STARTS_ON (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            heading {
+                heading: Starts
+            }
+            layout {
+                sequence: 8
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+        column ENDS_ON (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            heading {
+                heading: Ends
+            }
+            layout {
+                sequence: 9
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+        column SEATS_LABEL (
+            reportColumnQueryId: 10
+            derivedColumn: N
+            heading {
+                heading: Seats
+            }
+            layout {
+                sequence: 10
+            }
+        )
+
+        column MY_LABEL (
+            reportColumnQueryId: 11
+            derivedColumn: N
+            heading {
+                heading: You
+            }
+            layout {
+                sequence: 11
+            }
+        )
+
+        column ENROL_LABEL (
+            reportColumnQueryId: 12
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Enrol
+            }
+            layout {
+                sequence: 12
+            }
+            link {
+                target: {
+                    page: 67
+                    items: {
+                        P67_ID: \#ID#\
+                    }
+                    request: ENROL
+                }
+                linkText: #ENROL_LABEL#
+            }
+        )
+
+        column WITHDRAW_LABEL (
+            reportColumnQueryId: 13
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Withdraw
+            }
+            layout {
+                sequence: 13
+            }
+            link {
+                target: {
+                    page: 67
+                    items: {
+                        P67_ID: \#ID#\
+                    }
+                    request: WITHDRAW
+                }
+                linkText: #WITHDRAW_LABEL#
+            }
+        )
+
+    )
+
+    region r67_learning (
+        name: My learning
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select training_id, title, kind_label, status_label, enrolled_at, completed_at, certificate_code
+                  from oan_my_learning_v
+                 order by enrolled_at desc
+                ```
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery: select 1 from oan_my_learning_v
+        }
+        messages {
+            whenNoDataFound: Nothing yet.
+        }
+
+        column TRAINING_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column TITLE (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Training
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column KIND_LABEL (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Type
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column STATUS_LABEL (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Status
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column ENROLLED_AT (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Enrolled
+            }
+            layout {
+                sequence: 5
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+        column COMPLETED_AT (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Completed
+            }
+            layout {
+                sequence: 6
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+        column CERTIFICATE_CODE (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: Certificate
+            }
+            layout {
+                sequence: 7
+            }
+        )
+
+    )
+
+    region r67_verify (
+        name: Verify a certificate
+        type: staticContent
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            template: @/collapsible
+            templateOptions: [
+                #DEFAULT#
+                is-collapsed
+            ]
+        }
+    )
+
+    region r67_publish (
+        name: Publish a training (verified trainers)
+        type: staticContent
+        source {
+            htmlCode: <p>Trainings are reviewed by a moderator before they appear. Use your own material only; do not present vendor-owned courses as OAN training.</p>
+        }
+        layout {
+            sequence: 40
+            slot: body
+        }
+        appearance {
+            template: @/collapsible
+            templateOptions: [
+                #DEFAULT#
+                is-collapsed
+            ]
+        }
+        serverSideCondition {
+            type: expression
+            language: plsql
+            plsqlExpression: oan_security_pkg.authz('TRAINER') = 'Y'
+        }
+    )
+
+    region r67_roster (
+        name: My participants
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select training_id, user_id, participant, status_label, enrolled_at, completed_at, certificate_code,
+                       case when status = 'ENROLLED' then 'Mark complete' end complete_label
+                  from oan_training_roster_v
+                 order by training_id, participant
+                ```
+        }
+        layout {
+            sequence: 50
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery: select 1 from oan_training_roster_v
+        }
+        messages {
+            whenNoDataFound: No participants yet.
+        }
+
+        column TRAINING_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: Training
+            }
+            layout {
+                sequence: 1
+            }
+        )
+
+        column USER_ID (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 2
+            }
+        )
+
+        column PARTICIPANT (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Participant
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column STATUS_LABEL (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Status
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column ENROLLED_AT (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Enrolled
+            }
+            layout {
+                sequence: 5
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+        column COMPLETED_AT (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Completed
+            }
+            layout {
+                sequence: 6
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+        column CERTIFICATE_CODE (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: Certificate
+            }
+            layout {
+                sequence: 7
+            }
+        )
+
+        column COMPLETE_LABEL (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Complete
+            }
+            layout {
+                sequence: 8
+            }
+            link {
+                target: {
+                    page: 67
+                    items: {
+                        P67_ID: \#TRAINING_ID#\
+                        P67_USER_ID: \#USER_ID#\
+                    }
+                    request: COMPLETE
+                }
+                linkText: #COMPLETE_LABEL#
+            }
+        )
+
+    )
+
+    pageItem P67_ID (
+        type: hidden
+        layout {
+            sequence: 1
+            region: @r67_open
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P67_USER_ID (
+        type: hidden
+        layout {
+            sequence: 2
+            region: @r67_open
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P67_CODE (
+        type: textField
+        label {
+            label: Certificate code
+        }
+        layout {
+            sequence: 10
+            region: @r67_verify
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 30
+        }
+    )
+
+    pageItem P67_RESULT (
+        type: hidden
+        layout {
+            sequence: 20
+            region: @r67_verify
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P67_KIND (
+        type: selectList
+        label {
+            label: Type
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:Course;COURSE,Workshop;WORKSHOP,Mock project;MOCK_PROJECT
+            displayExtraValues: false
+            displayNullValue: false
+        }
+        layout {
+            sequence: 10
+            region: @r67_publish
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P67_TITLE (
+        type: textField
+        label {
+            label: Title
+        }
+        layout {
+            sequence: 20
+            region: @r67_publish
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 200
+        }
+    )
+
+    pageItem P67_SUMMARY (
+        type: textarea
+        label {
+            label: What participants will do and learn
+        }
+        layout {
+            sequence: 30
+            region: @r67_publish
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 2000
+        }
+    )
+
+    pageItem P67_SKILLS (
+        type: selectMany
+        label {
+            label: Skills
+        }
+        lov {
+            type: sharedComponent
+            lov: @oan-skills
+        }
+        layout {
+            sequence: 40
+            region: @r67_publish
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P67_DELIVERY (
+        type: selectList
+        label {
+            label: Delivery
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:Online;ONLINE,In person;IN_PERSON,Self-paced;SELF_PACED
+            displayExtraValues: false
+            displayNullValue: false
+        }
+        layout {
+            sequence: 50
+            region: @r67_publish
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P67_STARTS (
+        type: datePicker
+        label {
+            label: Starts
+        }
+        layout {
+            sequence: 60
+            region: @r67_publish
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P67_ENDS (
+        type: datePicker
+        label {
+            label: Ends
+        }
+        layout {
+            sequence: 70
+            region: @r67_publish
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P67_CAPACITY (
+        type: numberField
+        label {
+            label: Seats (empty = unlimited)
+        }
+        layout {
+            sequence: 80
+            region: @r67_publish
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    button verify (
+        buttonName: VERIFY
+        label: Verify
+        layout {
+            sequence: 10
+            region: @r67_verify
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button publish (
+        buttonName: PUBLISH
+        label: Send for review
+        layout {
+            sequence: 10
+            region: @r67_publish
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process row-actions (
+        name: Enrol, withdraw or complete
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                case :REQUEST
+                    when 'ENROL'    then oan_training_pkg.enrol(to_number(:P67_ID));
+                    when 'WITHDRAW' then oan_training_pkg.withdraw(to_number(:P67_ID));
+                    when 'COMPLETE' then oan_training_pkg.complete(to_number(:P67_ID), to_number(:P67_USER_ID));
+                end case;
+                apex_util.redirect_url(apex_page.get_url(p_page => 67));
+                ```
+        }
+        execution {
+            sequence: 5
+            point: beforeHeader
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: ENROL,WITHDRAW,COMPLETE
+        }
+    )
+
+    process actions (
+        name: Verify or publish
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare
+                    l_id number;
+                begin
+                    if :REQUEST = 'VERIFY' then
+                        apex_application.g_print_success_message := nvl(oan_training_pkg.verify_certificate(:P67_CODE), 'No certificate matches this code.');
+                    else
+                        l_id := oan_training_pkg.publish(:P67_KIND, :P67_TITLE, :P67_SUMMARY, :P67_SKILLS, :P67_DELIVERY, to_date(:P67_STARTS),
+                                                         to_date(:P67_ENDS), to_number(:P67_CAPACITY));
+                        apex_application.g_print_success_message := 'Sent for review.';
+                    end if;
+                end;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: VERIFY,PUBLISH
+        }
+    )
+
+)

@@ -1,0 +1,354 @@
+page 121 (
+    name: Privacy Requests
+    alias: PRIVACY-REQUESTS
+    title: Privacy requests
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    security {
+        authorizationScheme: @is-privacy-officer
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: W2.10 / FR-26 (Q22): Privacy Officer and Platform Admin work member privacy requests (objection, rectification, grievance, nominee, regulator, removal, access) within their due date; exports run automatically. Never their own requests (view filter). Changes go through OAN_PRIVACY_PKG.UPDATE_REQUEST and are audited.
+    }
+
+    region r121_list (
+        name: Requests
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select id, initcap(request_type) type_label, initcap(replace(status, '_', ' ')) status_label, requester_name, requester_email,
+                       received_at, due_at, case when overdue = 'Y' then 'Overdue' else days_left || ' days left' end due_label, 'Open' open_label
+                  from oan_privacy_requests_v
+                 where (nvl(:P121_SHOW, 'OPEN') = 'OPEN' and status in ('RECEIVED','IN_PROGRESS')) or :P121_SHOW = 'ALL'
+                 order by case when status in ('RECEIVED','IN_PROGRESS') then 0 else 1 end, due_at
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: No privacy requests are waiting.
+        }
+
+        column ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column TYPE_LABEL (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Type
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column STATUS_LABEL (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Status
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column REQUESTER_NAME (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Member
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column REQUESTER_EMAIL (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Email
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+        column RECEIVED_AT (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Received
+            }
+            layout {
+                sequence: 6
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+        column DUE_AT (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: Due
+            }
+            layout {
+                sequence: 7
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+        column DUE_LABEL (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            heading {
+                heading: SLA
+            }
+            layout {
+                sequence: 8
+            }
+        )
+
+        column OPEN_LABEL (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Open
+            }
+            layout {
+                sequence: 9
+            }
+            link {
+                target: {
+                    page: 121
+                    items: {
+                        P121_ID: \#ID#\
+                        P121_SHOW: &P121_SHOW.
+                    }
+                }
+                linkText: #OPEN_LABEL#
+            }
+        )
+
+    )
+
+    region r121_detail (
+        name: Request
+        type: dynamicContent
+        source {
+            plsqlFunctionBody:
+                ```plsql
+                declare
+                    l_html clob;
+                begin
+                    for r in (select * from oan_privacy_requests_v where id = to_number(:P121_ID)) loop
+                        l_html := '<p class="oan-article-meta">' || initcap(r.request_type) || ' &middot; ' || initcap(replace(r.status, '_', ' '))
+                            || ' &middot; due ' || to_char(r.due_at, 'DD Mon YYYY') || '</p>'
+                            || '<p><strong>Member:</strong> ' || apex_escape.html(nvl(r.requester_name, '-')) || ' &lt;' || apex_escape.html(r.requester_email) || '&gt;</p>'
+                            || '<p><strong>Details:</strong><br>' || replace(apex_escape.html(r.details), chr(10), '<br>') || '</p>'
+                            || case when r.response is not null then '<p><strong>Response so far:</strong><br>' || replace(apex_escape.html(r.response), chr(10), '<br>') || '</p>' end;
+                    end loop;
+                    return l_html;
+                end;
+                ```
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P121_ID
+        }
+    )
+
+    pageItem P121_SHOW (
+        type: selectList
+        label {
+            label: Show
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:Open requests;OPEN,All requests;ALL
+            displayExtraValues: false
+            displayNullValue: false
+        }
+        layout {
+            sequence: 1
+            region: @r121_list
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P121_ID (
+        type: hidden
+        layout {
+            sequence: 1
+            region: @r121_detail
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P121_STATUS (
+        type: selectList
+        label {
+            label: Status
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:In progress;IN_PROGRESS,Completed;COMPLETED,Rejected;REJECTED
+            displayExtraValues: false
+            displayNullValue: false
+        }
+        layout {
+            sequence: 10
+            region: @r121_detail
+            slot: regionBody
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+        }
+    )
+
+    pageItem P121_RESPONSE (
+        type: textarea
+        label {
+            label: Response to the member
+        }
+        layout {
+            sequence: 20
+            region: @r121_detail
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 4000
+        }
+    )
+
+    button refresh (
+        buttonName: REFRESH
+        label: Show
+        layout {
+            sequence: 5
+            region: @r121_list
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button save (
+        buttonName: SAVE
+        label: Save
+        layout {
+            sequence: 10
+            region: @r121_detail
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process save (
+        name: Update the request
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                oan_privacy_pkg.update_request(to_number(:P121_ID), :P121_STATUS, :P121_RESPONSE);
+                :P121_RESPONSE := null;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        serverSideCondition {
+            whenButtonPressed: @save
+        }
+        successMessage {
+            successMessage: Saved. The member is notified when the request is completed or rejected.
+        }
+    )
+
+    branch back (
+        name: Back to this page
+        behavior {
+            type: pageOrUrl
+            target: {
+                page: 121
+                items: {
+                    P121_ID: &P121_ID.
+                    P121_SHOW: &P121_SHOW.
+                }
+            }
+        }
+        execution {
+            point: afterProcessing
+            sequence: 10
+        }
+    )
+
+)

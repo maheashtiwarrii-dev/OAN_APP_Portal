@@ -379,8 +379,12 @@ list navigation-menu (
             type: pages
             pages: [
                 60
+                61
                 62
                 73
+                74
+                77
+                78
             ]
         }
         link {
@@ -393,6 +397,62 @@ list navigation-menu (
         }
         comments {
             comments: Destination 6 of 7 (groups and posts).
+        }
+    )
+
+    entry learning (
+        label: Experts and learning
+        icon {
+            imageIconCssClasses: fa-graduation-cap
+        }
+        layout {
+            sequence: 61
+        }
+        isCurrent {
+            type: pages
+            pages: [
+                63
+                65
+                67
+            ]
+        }
+        link {
+            target: {
+                page: 63
+            }
+        }
+        security {
+            authorizationScheme: @is-active
+        }
+        comments {
+            comments: W6.2-W6.4 experts, mentoring and training (pages 63, 65, 67).
+        }
+    )
+
+    entry company-needs (
+        label: Company needs
+        icon {
+            imageIconCssClasses: fa-handshake-o
+        }
+        layout {
+            sequence: 63
+        }
+        isCurrent {
+            type: pages
+            pages: [
+                69
+            ]
+        }
+        link {
+            target: {
+                page: 69
+            }
+        }
+        security {
+            authorizationScheme: @is-active
+        }
+        comments {
+            comments: W6.5 needs from verified companies, for members (page 69).
         }
     )
 
@@ -409,6 +469,7 @@ list navigation-menu (
             pages: [
                 70
                 71
+                72
             ]
         }
         link {
@@ -635,9 +696,6 @@ list navigation-menu (
         security {
             authorizationScheme: @administration-rights
         }
-        config {
-            buildOption: @not-yet-built
-        }
     )
 
     entry privacy-requests (
@@ -657,8 +715,24 @@ list navigation-menu (
         security {
             authorizationScheme: @is-privacy-officer
         }
-        config {
-            buildOption: @not-yet-built
+    )
+
+    entry profile-update-requests (
+        label: Profile update requests
+        icon {
+            imageIconCssClasses: fa-refresh
+        }
+        layout {
+            sequence: 175
+            parentEntry: @administration
+        }
+        link {
+            target: {
+                page: 128
+            }
+        }
+        security {
+            authorizationScheme: @administration-rights
         }
     )
 

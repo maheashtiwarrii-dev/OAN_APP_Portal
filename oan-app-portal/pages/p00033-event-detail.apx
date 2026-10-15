@@ -519,6 +519,31 @@ page 33 (
         }
     )
 
+    button checkin-csv (
+        buttonName: CHECKIN_CSV
+        label: Download check-in list
+        layout {
+            sequence: 10
+            region: @r33_checkin
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 33
+                items: {
+                    P33_EVENT_ID: &P33_EVENT_ID.
+                }
+                request: CHECKIN_CSV
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
     button back (
         buttonName: BACK
         label: All events
@@ -540,6 +565,36 @@ page 33 (
                 page: 32
             }
             warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process checkin-csv (
+        name: Download the check-in list (CSV)
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                -- W3.5 / R14: event managers only; the CSV is built and audited by OAN_EVENT_PKG.CHECKIN_CSV
+                declare
+                    l_csv clob := oan_event_pkg.checkin_csv(to_number(:P33_EVENT_ID));
+                begin
+                    sys.owa_util.mime_header('text/csv', false, 'UTF-8');
+                    sys.htp.p('Content-Disposition: attachment; filename="oan-event-' || to_number(:P33_EVENT_ID) || '-checkin.csv"');
+                    sys.owa_util.http_header_close;
+                    for i in 0 .. trunc((dbms_lob.getlength(l_csv) - 1) / 8000) loop
+                        sys.htp.prn(dbms_lob.substr(l_csv, 8000, i * 8000 + 1));
+                    end loop;
+                    apex_application.stop_apex_engine;
+                end;
+                ```
+        }
+        execution {
+            sequence: 4
+            point: beforeHeader
+        }
+        serverSideCondition {
+            type: request=Value
+            value: CHECKIN_CSV
         }
     )
 

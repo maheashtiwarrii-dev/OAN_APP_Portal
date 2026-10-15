@@ -73,6 +73,7 @@ whenever sqlerror continue
 @@packages/275_oan_retention_pkg.sql
 @@packages/280_oan_jobs_pkg.sql
 @@packages/285_oan_kpi_pkg.sql
+@@packages/287_oan_admin_pkg.sql
 @@packages/290_oan_error_pkg.sql
 @@packages/292_oan_channel_pkg.sql
 @@packages/295_oan_chat_pkg.sql
@@ -122,5 +123,6 @@ whenever sqlerror continue
 @@tests/ut_oan_w4.sql
 @@tests/ut_oan_w5.sql
 @@tests/ut_oan_w6.sql
+@@tests/ut_oan_w7.sql
 
 prompt Install complete. Run 20_app_synonyms.sql as OAN_APP, then 30_assert_no_table_grants.sql.

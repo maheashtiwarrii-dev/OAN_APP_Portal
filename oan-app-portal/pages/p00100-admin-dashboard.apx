@@ -1,0 +1,472 @@
+page 100 (
+    name: Admin Dashboard
+    alias: ADMIN-DASHBOARD
+    title: Admin dashboard
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    security {
+        authorizationScheme: @administration-rights
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: W7.1 Admin dashboard (FR-24/27, R25, NFR-05). Aggregate figures only - no member names or contact details: goal KPI tiles (OAN_ADMIN_DASHBOARD_V), work waiting in each queue with a link to the page that handles it (OAN_ADMIN_QUEUES_V), job health (OAN_ADMIN_JOB_HEALTH_V), usage counters for the last 30 days (OAN_ADMIN_KPI_V), channel health (counts only) and aggregate report downloads (W7.2, OAN_EXPORT_PKG: small counts suppressed, every export logged).
+    }
+
+    region r100_tiles (
+        name: Key figures
+        type: dynamicContent
+        source {
+            plsqlFunctionBody:
+                ```plsql
+                declare
+                    l_html varchar2(32767);
+                    procedure tile(p_label in varchar2, p_value in number, p_alert in boolean default false) is
+                    begin
+                        l_html := l_html || '<div class="oan-tile' || case when p_alert then ' oan-tile-alert' end || '"><b>'
+                            || nvl(to_char(p_value, 'FM999G999G990'), '-') || '</b><span>' || apex_escape.html(p_label) || '</span></div>';
+                    end tile;
+                begin
+                    for d in (select * from oan_admin_dashboard_v) loop
+                        tile('Active members', d.active_members);
+                        tile('Active in the last month', d.monthly_active);
+                        tile('Waiting for approval', d.pending_members);
+                        tile('Approvals past SLA', d.overdue_approvals, d.overdue_approvals > 0);
+                        tile('Open reports', d.open_reports + d.open_ip_reports, d.open_reports + d.open_ip_reports > 0);
+                        tile('Privacy requests due in 7 days', d.privacy_due_7d, d.privacy_due_7d > 0);
+                        tile('Failed job runs (24 hours)', d.failed_jobs_24h, d.failed_jobs_24h > 0);
+                        tile('Library items published', d.library_published);
+                    end loop;
+                    return '<div class="oan-tiles">' || l_html || '</div>';
+                end;
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--hideHeader js-addHiddenHeadingRoleDesc
+            ]
+        }
+    )
+
+    region r100_queues (
+        name: Waiting for action
+        type: dynamicContent
+        source {
+            plsqlFunctionBody:
+                ```plsql
+                declare
+                    l_html varchar2(32767);
+                begin
+                    for q in (select queue, waiting, page_id from oan_admin_queues_v order by sort_order) loop
+                        l_html := l_html || '<li><a href="' || apex_page.get_url(p_page => q.page_id) || '">' || apex_escape.html(q.queue) || '</a>'
+                            || '<span class="oan-queue-count' || case when q.waiting > 0 then ' is-busy' end || '">' || q.waiting || '</span></li>';
+                    end loop;
+                    return '<ul class="oan-queues">' || l_html || '</ul>';
+                end;
+                ```
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region r100_jobs (
+        name: Job health
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select job_name, last_status, last_started, runs_7d, failures_7d, avg_seconds_7d, last_message, 'Runs' runs_label
+                  from oan_admin_job_health_v
+                 order by failures_7d desc, case last_status when 'FAILED' then 0 when 'RUNNING' then 1 else 2 end, job_name
+                ```
+        }
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: No job runs recorded yet.
+        }
+
+        column JOB_NAME (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: Job step
+            }
+            layout {
+                sequence: 1
+            }
+        )
+
+        column LAST_STATUS (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Last result
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column LAST_STARTED (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Last run
+            }
+            layout {
+                sequence: 3
+            }
+            appearance {
+                formatMask: DD-MON-YYYY HH24:MI
+            }
+        )
+
+        column RUNS_7D (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Runs (7 days)
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column FAILURES_7D (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Failures (7 days)
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+        column AVG_SECONDS_7D (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Average seconds
+            }
+            layout {
+                sequence: 6
+            }
+        )
+
+        column LAST_MESSAGE (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: Last message
+            }
+            layout {
+                sequence: 7
+            }
+        )
+
+        column RUNS_LABEL (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            type: link
+            heading {
+                heading: History
+            }
+            layout {
+                sequence: 8
+            }
+            link {
+                target: {
+                    page: 123
+                    items: {
+                        P123_JOB: \#JOB_NAME#\
+                    }
+                }
+                linkText: #RUNS_LABEL#
+            }
+        )
+
+    )
+
+    region r100_kpi (
+        name: Usage in the last 30 days
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select label, sum(event_count) total, max(event_day) last_day
+                  from oan_admin_kpi_v
+                 where event_day >= trunc(sysdate) - 30 and event_code != 'SEARCH_TO_PROFILE_PCT'
+                 group by label
+                 order by label
+                ```
+        }
+        layout {
+            sequence: 40
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: No usage recorded in the last 30 days.
+        }
+
+        column LABEL (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: Measure
+            }
+            layout {
+                sequence: 1
+            }
+        )
+
+        column TOTAL (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Count
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column LAST_DAY (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Latest day
+            }
+            layout {
+                sequence: 3
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+    )
+
+    region r100_channels (
+        name: Slack and WhatsApp (built, off until G-CH)
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select metric, value from oan_admin_channel_stats_v
+                ```
+        }
+        layout {
+            sequence: 50
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: No channel activity.
+        }
+
+        column METRIC (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: Measure
+            }
+            layout {
+                sequence: 1
+            }
+        )
+
+        column VALUE (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Count
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+    )
+
+    region r100_reports (
+        name: Aggregate reports
+        type: staticContent
+        source {
+            htmlCode: <p>Reports contain counts only; any count below 5 is shown as &lt;5. Each download is logged. Person-level data leaves the portal only through the member's own privacy export.</p>
+        }
+        layout {
+            sequence: 60
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P100_REPORT (
+        type: selectList
+        label {
+            label: Report
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:Members by status;MEMBERS_BY_STATUS,Members by chapter;MEMBERS_BY_CHAPTER,Directory visibility;DIRECTORY_MODES,Top skills;TOP_SKILLS,Opportunities by type;OPPORTUNITIES_BY_TYPE,Applications by status;APPLICATIONS_BY_STATUS,Partner needs by type;PARTNER_NEEDS_BY_TYPE,Companies by type;ORGANISATIONS_BY_TYPE,Training by kind;TRAINING_BY_KIND,Mentoring by status;MENTORING_BY_STATUS,Event attendance (12 months);EVENT_ATTENDANCE
+            displayExtraValues: false
+            displayNullValue: false
+        }
+        layout {
+            sequence: 10
+            region: @r100_reports
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    button download (
+        buttonName: DOWNLOAD
+        label: Download CSV
+        layout {
+            sequence: 10
+            region: @r100_reports
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button settings (
+        buttonName: SETTINGS
+        label: Settings
+        layout {
+            sequence: 10
+            region: @r100_jobs
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--simple
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 122
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button job-runs (
+        buttonName: JOB_RUNS
+        label: Job runs
+        layout {
+            sequence: 20
+            region: @r100_jobs
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--simple
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 123
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process download (
+        name: Download an aggregate report (W7.2, R14)
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare
+                    l_csv clob := oan_export_pkg.run_report(:P100_REPORT);
+                begin
+                    sys.owa_util.mime_header('text/csv', false, 'UTF-8');
+                    sys.htp.p('Content-Disposition: attachment; filename="oan-' || lower(replace(:P100_REPORT, '_', '-')) || '-' || to_char(sysdate, 'YYYYMMDD') || '.csv"');
+                    sys.owa_util.http_header_close;
+                    for i in 0 .. trunc((dbms_lob.getlength(l_csv) - 1) / 8000) loop
+                        sys.htp.prn(dbms_lob.substr(l_csv, 8000, i * 8000 + 1));
+                    end loop;
+                    apex_application.stop_apex_engine;
+                end;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        serverSideCondition {
+            whenButtonPressed: @download
+        }
+    )
+
+)

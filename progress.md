@@ -280,3 +280,12 @@
 | I24-5 | Dev data | `dev/700_sample_community.sql` (synthetic expert/trainer, mentorship with a session, open workshop, partner needs with a response, initiative, group proposal, story, reactions, endorsements) |
 | I24-6 | Checks | 17 suites, 156/156 pass (`ut_oan_w6` 9/9); harness 141 queries / 183 blocks; links, base tables, brand, APEXLang validation pass; app 200 imported (85 pages), five automations enabled |
 | I24-7 | Not built (descope lane) | W6.7 Marketplace (Could), W6.9 badges and contribution scores (Could) |
+
+## Iteration 25 — W7 administration, reports and hardening (15 Oct 2026)
+| Step | Action | Result |
+|---|---|---|
+| I25-1 | Database | `oan_admin_pkg` (settings: Platform Admin + re-auth, type checks, locked deployment/gate keys such as the synthetic-data switch and channel ids, audited old/new); `oan_export_pkg` gains 7 W5/W6 aggregate reports; views `oan_admin_job_health_v`, `oan_admin_queues_v`, `oan_config_v.locked`, wider KPI labels |
+| I25-2 | Pages | 100 Admin dashboard (tiles, queues, job health, usage, channel counts, report download), 122 Settings, 123 Job runs; rail entries Admin dashboard and Settings and jobs (no longer hidden) |
+| I25-3 | Hardening | `ci/check-page-security.py` added to CI: public pages, deep-link pages and unrestricted items must be on reviewed lists; admin pages must use admin schemes |
+| I25-4 | Checks | `ut_oan_w7` 4/4; harness 148 queries / 189 blocks; links, base tables, brand, page security, APEXLang validation pass |
+| I25-5 | Not built | XLSX/PDF report formats (CSV only); W6.7 Marketplace and W6.9 badges stay in the descope lane |

@@ -565,6 +565,28 @@ list navigation-menu (
         }
     )
 
+    entry admin-dashboard (
+        label: Admin dashboard
+        icon {
+            imageIconCssClasses: fa-tachometer
+        }
+        layout {
+            sequence: 105
+            parentEntry: @administration
+        }
+        link {
+            target: {
+                page: 100
+            }
+        }
+        security {
+            authorizationScheme: @administration-rights
+        }
+        comments {
+            comments: W7.1 admin dashboard (page 100), aggregate figures only.
+        }
+    )
+
     entry approvals (
         label: Approval queue
         icon {
@@ -769,11 +791,18 @@ list navigation-menu (
                 page: 122
             }
         }
+        isCurrent {
+            type: pages
+            pages: [
+                122
+                123
+            ]
+        }
         security {
             authorizationScheme: @administration-rights
         }
-        config {
-            buildOption: @not-yet-built
+        comments {
+            comments: W7.3 settings (122) and job runs (123).
         }
     )
 

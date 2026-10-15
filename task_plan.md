@@ -379,9 +379,10 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 ### W7 — Reporting and hardening (S11)
 | ID | Page(s) / task | Delivers | Est | Status |
 |---|---|---|---|---|
-| W7.1 | 1000 Admin dashboard: 6 goal-KPI tiles (aggregate only), queues, job health, privacy SLA | FR-24/27, R25 | 2 | [ ] |
-| W7.2 | 1085 Reports (aggregate XLSX/PDF; person-level exports via `oan_export_pkg`); 03:00 analytics automation | FR-27, R14 | 4 | [ ] |
-| W7.3 | 1070 Config; 1075 Job runs | FR-24 | 1.5 | [ ] |
+| W7.1 | 1000 Admin dashboard: 6 goal-KPI tiles (aggregate only), queues, job health, privacy SLA | FR-24/27, R25 | 2 | [A] 15 Oct: page 100 (8 aggregate tiles incl. approvals past SLA, privacy due in 7 days and failed runs; queue counts with links; job health; 30-day usage; channel counts) |
+| W7.2 | 1085 Reports (aggregate XLSX/PDF; person-level exports via `oan_export_pkg`); 03:00 analytics automation | FR-27, R14 | 4 | [A] 15 Oct: 11 aggregate CSV reports on page 100 (W5/W6 added: opportunities, applications, partner needs, companies, training, mentoring, event attendance), counts under 5 suppressed, every export logged; analytics automation already runs KPI_ROLLUP and SKILL_DEMAND. XLSX/PDF output not built (CSV only) |
+| W7.3 | 1070 Config; 1075 Job runs | FR-24 | 1.5 | [A] 15 Oct: 122 Settings (`oan_admin_pkg`: admin + re-auth, type checks, locked deployment/gate keys, audited), 123 Job runs (health + latest 200, filters); `ut_oan_w7` 4/4 |
+| W7.4 | Hardening: `ci/check-page-security.py` in CI (reviewed public pages, deep-link pages and unrestricted items; admin pages use admin schemes) | NFR-01/02/05, R25 | 0.5 | [A] 15 Oct: 88 pages pass |
 
 ### WS5 — Quality, security and performance
 | ID | Task | Delivers | Est | Owner | Sprint | Status |

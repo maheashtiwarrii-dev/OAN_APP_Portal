@@ -27,6 +27,9 @@ jobs:
       - name: Link check (no reachable link to a missing page)
         run: python3 ci/check-links.py oan-app-portal
 
+      - name: "Page security check (W7 hardening, reviewed public and deep-link pages)"
+        run: python3 ci/check-page-security.py oan-app-portal
+
       - name: "Base-table check (NFR-03, views and granted packages only)"
         run: python3 ci/check-base-tables.py oan-app-portal db
 

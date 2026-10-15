@@ -165,7 +165,8 @@ create or replace view oan_job_runs_v as
 select j.* from oan_job_runs j where sys_context('OAN_CTX','IS_ADMIN') = 'Y';
 
 create or replace view oan_config_v as
-select c.config_key, c.config_value, c.value_type, c.description, c.updated_at, c.updated_by
+select c.config_key, c.config_value, c.value_type, c.description, c.updated_at, c.updated_by,
+       oan_admin_pkg.is_locked(c.config_key) locked
   from oan_config c where sys_context('OAN_CTX','IS_ADMIN') = 'Y';
 
 create or replace view oan_admin_terms_v as
@@ -229,7 +230,10 @@ create or replace view oan_admin_kpi_v as
 select k.event_code,
        case k.event_code when 'DIRECTORY_SEARCH' then 'Directory searches'
                          when 'DIRECTORY_PROFILE_OPEN' then 'Profiles opened'
-                         when 'SEARCH_TO_PROFILE_PCT' then 'Search to profile (%)' else k.event_code end label,
+                         when 'SEARCH_TO_PROFILE_PCT' then 'Search to profile (%)'
+                         when 'ARTICLE_VIEW' then 'Articles read' when 'EVENT_VIEW' then 'Events viewed'
+                         when 'EVENT_REGISTER' then 'Event registrations' when 'EVENT_RETURN_VISIT' then 'Event return visits'
+                         when 'CAREERS_CLICK' then 'Careers clicks' else initcap(replace(k.event_code, '_', ' ')) end label,
        k.event_day, k.event_count
   from oan_kpi_daily k
  where sys_context('OAN_CTX','IS_ADMIN') = 'Y';
@@ -301,4 +305,38 @@ create or replace view oan_admin_mentoring_feedback_v as
 select s.id mentorship_id, (select p.first_name || ' ' || p.last_name from oan_profiles p where p.user_id = s.mentor_id) mentor_name,
        f.feedback, f.created_at
   from oan_mentoring_feedback f join oan_mentorships s on s.id = f.mentorship_id
+ where sys_context('OAN_CTX','IS_ADMIN') = 'Y';
+
+-- W7.1 job health (page 100/123): one row per job step, latest run and 7-day failures; no personal data
+create or replace view oan_admin_job_health_v as
+select j.job_name,
+       max(j.started_at) last_started,
+       max(j.status) keep (dense_rank last order by j.started_at) last_status,
+       max(substr(j.message, 1, 300)) keep (dense_rank last order by j.started_at) last_message,
+       count(case when j.started_at > systimestamp - interval '7' day then 1 end) runs_7d,
+       count(case when j.status = 'FAILED' and j.started_at > systimestamp - interval '7' day then 1 end) failures_7d,
+       round(avg(case when j.ended_at is not null and j.started_at > systimestamp - interval '7' day
+                      then extract(day from (j.ended_at - j.started_at)) * 86400 + extract(hour from (j.ended_at - j.started_at)) * 3600
+                         + extract(minute from (j.ended_at - j.started_at)) * 60 + extract(second from (j.ended_at - j.started_at)) end), 1) avg_seconds_7d
+  from oan_job_runs j
+ where sys_context('OAN_CTX','IS_ADMIN') = 'Y'
+ group by j.job_name;
+
+-- W7.1 work waiting in each admin and moderation queue (counts only), with the page that handles it
+create or replace view oan_admin_queues_v as
+select q.sort_order, q.queue, q.waiting, q.page_id from (
+select 10 sort_order, 'Membership applications' queue, count(*) waiting, 114 page_id from oan_registration_apps where status in ('SUBMITTED','RESUBMITTED') union all
+select 20, 'Reports and library reviews', (select count(*) from oan_reports where status = 'OPEN')
+          + (select count(*) from oan_library_items where status in ('PENDING_REVIEW','PENDING_SECOND_REVIEW')), 107 from dual union all
+select 30, 'Opportunities to review', count(*), 107 from oan_jobs where status = 'PENDING_REVIEW' union all
+select 40, 'Groups, trainings and partner needs to review', (select count(*) from oan_group_proposals where status = 'PROPOSED')
+          + (select count(*) from oan_trainings where status = 'PENDING_REVIEW')
+          + (select count(*) from oan_talent_requests where status = 'PENDING_REVIEW'), 107 from dual union all
+select 50, 'Expert and trainer applications', count(*), 63 from oan_expert_applications where status in ('APPLIED','MORE_INFO') union all
+select 60, 'Company registrations', count(*), 112 from oan_org_applications where status in ('SUBMITTED','MORE_INFO') union all
+select 70, 'Chapter requests', count(*), 118 from oan_chapter_requests where status = 'OPEN' union all
+select 80, 'Appeals', count(*), 119 from oan_appeals where status = 'OPEN' union all
+select 90, 'Privacy requests', count(*), 121 from oan_privacy_requests where status in ('RECEIVED','IN_PROGRESS') union all
+select 100, 'Profile update requests', count(*), 128 from oan_profile_update_requests where status = 'OPEN'
+) q
  where sys_context('OAN_CTX','IS_ADMIN') = 'Y';

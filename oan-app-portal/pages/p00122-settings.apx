@@ -1,0 +1,444 @@
+page 122 (
+    name: Settings
+    alias: SETTINGS
+    title: Settings
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    security {
+        authorizationScheme: @administration-rights
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: W7.3 Settings (FR-24, NFR-05). Platform Admins review every configuration value and change unlocked ones after confirming their identity (page 15, 5 minutes). OAN_ADMIN_PKG checks the value type, refuses locked keys (application id, phase, public URL, synthetic-data switch, e-mail sender and digest, channel identifiers - set by deployment or a release gate) and audits the old and new value.
+    }
+
+    region r122_config (
+        name: Configuration
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select config_key, config_value, initcap(value_type) type_label, description, updated_at, updated_by,
+                       case locked when 'Y' then 'Set by deployment' end locked_label,
+                       case locked when 'N' then 'Change' end change_label
+                  from oan_config_v
+                 order by config_key
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: No settings.
+        }
+
+        column CONFIG_KEY (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: Setting
+            }
+            layout {
+                sequence: 1
+            }
+        )
+
+        column CONFIG_VALUE (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Value
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column TYPE_LABEL (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Type
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column DESCRIPTION (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: What it does
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column UPDATED_AT (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Changed
+            }
+            layout {
+                sequence: 5
+            }
+            appearance {
+                formatMask: DD-MON-YYYY HH24:MI
+            }
+        )
+
+        column UPDATED_BY (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: By
+            }
+            layout {
+                sequence: 6
+            }
+        )
+
+        column LOCKED_LABEL (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: Locked
+            }
+            layout {
+                sequence: 7
+            }
+        )
+
+        column CHANGE_LABEL (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Change
+            }
+            layout {
+                sequence: 8
+            }
+            link {
+                target: {
+                    page: 122
+                    items: {
+                        P122_KEY: \#CONFIG_KEY#\
+                    }
+                }
+                linkText: #CHANGE_LABEL#
+            }
+        )
+
+    )
+
+    region r122_edit (
+        name: Change a setting
+        type: staticContent
+        source {
+            htmlCode: <p>Changes take effect at once and are recorded in the audit log.</p>
+        }
+        layout {
+            sequence: 5
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P122_KEY
+        }
+    )
+
+    pageItem P122_KEY (
+        type: hidden
+        layout {
+            sequence: 1
+            region: @r122_edit
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P122_REAUTH_OK (
+        type: hidden
+        layout {
+            sequence: 2
+            region: @r122_edit
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P122_SETTING (
+        type: displayOnly
+        label {
+            label: Setting
+        }
+        layout {
+            sequence: 10
+            region: @r122_edit
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P122_VALUE (
+        type: textField
+        label {
+            label: New value
+        }
+        layout {
+            sequence: 20
+            region: @r122_edit
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 500
+        }
+    )
+
+    button save (
+        buttonName: SAVE
+        label: Save
+        layout {
+            sequence: 10
+            region: @r122_edit
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: item=value
+            item: P122_REAUTH_OK
+            value: Y
+        }
+    )
+
+    button confirm-identity (
+        buttonName: CONFIRM_IDENTITY
+        label: Confirm my identity to change it
+        layout {
+            sequence: 20
+            region: @r122_edit
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: item=value
+            item: P122_REAUTH_OK
+            value: N
+        }
+    )
+
+    button cancel (
+        buttonName: CANCEL
+        label: Cancel
+        layout {
+            sequence: 30
+            region: @r122_edit
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--simple
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 122
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button job-runs (
+        buttonName: JOB_RUNS
+        label: Job runs
+        layout {
+            sequence: 10
+            region: @r122_config
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--simple
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 123
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button dashboard (
+        buttonName: DASHBOARD
+        label: Admin dashboard
+        layout {
+            sequence: 20
+            region: @r122_config
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--simple
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 100
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process load (
+        name: Load the setting and re-authentication state
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                :P122_REAUTH_OK := case when oan_auth_pkg.is_recently_reauthenticated(5) then 'Y' else 'N' end;
+                for c in (select config_key, config_value, locked from oan_config_v where config_key = :P122_KEY) loop
+                    if c.locked = 'Y' then
+                        :P122_KEY := null;
+                    else
+                        :P122_SETTING := c.config_key;
+                        :P122_VALUE := nvl(:P122_VALUE, c.config_value);
+                    end if;
+                end loop;
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+    )
+
+    process save (
+        name: Save the setting
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                oan_admin_pkg.set_config(:P122_KEY, :P122_VALUE);
+                :P122_KEY := null; :P122_VALUE := null;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        serverSideCondition {
+            whenButtonPressed: @save
+        }
+        successMessage {
+            successMessage: Setting saved and audited.
+        }
+    )
+
+    process remember-return (
+        name: Remember return page
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                :REAUTH_RETURN_PAGE := 122;
+                ```
+        }
+        execution {
+            sequence: 20
+        }
+        serverSideCondition {
+            whenButtonPressed: @confirm-identity
+        }
+    )
+
+    branch to-reauth (
+        name: To identity confirmation
+        behavior {
+            type: pageOrUrl
+            target: {
+                page: 15
+            }
+        }
+        execution {
+            point: afterProcessing
+            sequence: 5
+        }
+        serverSideCondition {
+            whenButtonPressed: @confirm-identity
+        }
+    )
+
+    branch back (
+        name: Back to this page
+        behavior {
+            type: pageOrUrl
+            target: {
+                page: 122
+            }
+        }
+        execution {
+            point: afterProcessing
+            sequence: 10
+        }
+    )
+
+)

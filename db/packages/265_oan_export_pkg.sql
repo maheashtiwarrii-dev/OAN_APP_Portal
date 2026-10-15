@@ -8,7 +8,9 @@
 create or replace package oan_export_pkg authid definer as
   c_min_count constant pls_integer := 5;
 
-  -- CSV text of an aggregate report: MEMBERS_BY_STATUS, MEMBERS_BY_CHAPTER, DIRECTORY_MODES, TOP_SKILLS
+  -- CSV text of an aggregate report: MEMBERS_BY_STATUS, MEMBERS_BY_CHAPTER, DIRECTORY_MODES, TOP_SKILLS,
+  -- OPPORTUNITIES_BY_TYPE, APPLICATIONS_BY_STATUS, PARTNER_NEEDS_BY_TYPE, ORGANISATIONS_BY_TYPE,
+  -- TRAINING_BY_KIND, MENTORING_BY_STATUS, EVENT_ATTENDANCE (W7.2)
   function run_report(p_report in varchar2) return clob;
   -- Report codes the viewer may run (for a select list)
   function report_list return varchar2;
@@ -29,7 +31,8 @@ create or replace package body oan_export_pkg as
 
   function report_list return varchar2 is
   begin
-    return 'MEMBERS_BY_STATUS:MEMBERS_BY_CHAPTER:DIRECTORY_MODES:TOP_SKILLS';
+    return 'MEMBERS_BY_STATUS:MEMBERS_BY_CHAPTER:DIRECTORY_MODES:TOP_SKILLS:OPPORTUNITIES_BY_TYPE:APPLICATIONS_BY_STATUS:'
+        || 'PARTNER_NEEDS_BY_TYPE:ORGANISATIONS_BY_TYPE:TRAINING_BY_KIND:MENTORING_BY_STATUS:EVENT_ATTENDANCE';
   end report_list;
 
   function run_report(p_report in varchar2) return clob is
@@ -81,6 +84,61 @@ create or replace package body oan_export_pkg as
                     join oan_users u on u.id = ps.user_id and u.status = 'ACTIVE'
                    group by t.name order by n desc, t.name fetch first 50 rows only) loop
           line(cell(r.name) || ',' || shown(r.n));
+          l_rows := l_rows + 1;
+        end loop;
+      when 'OPPORTUNITIES_BY_TYPE' then
+        line('type,status,opportunities');
+        for r in (select job_type, status, count(*) n from oan_jobs group by job_type, status order by 1, 2) loop
+          line(cell(r.job_type) || ',' || cell(r.status) || ',' || shown(r.n));
+          l_rows := l_rows + 1;
+        end loop;
+      when 'APPLICATIONS_BY_STATUS' then
+        line('status,applications');
+        for r in (select status, count(*) n from oan_job_applications group by status order by 1) loop
+          line(cell(r.status) || ',' || shown(r.n));
+          l_rows := l_rows + 1;
+        end loop;
+      when 'PARTNER_NEEDS_BY_TYPE' then
+        line('need_type,status,needs,responses');
+        for r in (select q.need_type, q.status, count(distinct q.id) n, count(x.id) resp
+                    from oan_talent_requests q left join oan_talent_responses x on x.request_id = q.id
+                   group by q.need_type, q.status order by 1, 2) loop
+          line(cell(r.need_type) || ',' || cell(r.status) || ',' || shown(r.n) || ',' || shown(r.resp));
+          l_rows := l_rows + 1;
+        end loop;
+      when 'ORGANISATIONS_BY_TYPE' then
+        line('org_type,status,organisations');
+        for r in (select org_type, status, count(*) n from oan_organisations group by org_type, status order by 1, 2) loop
+          line(cell(r.org_type) || ',' || cell(r.status) || ',' || shown(r.n));
+          l_rows := l_rows + 1;
+        end loop;
+      when 'TRAINING_BY_KIND' then
+        line('kind,trainings,enrolled,completed');
+        for r in (select t.kind, count(distinct t.id) n,
+                         count(case when e.status in ('ENROLLED','COMPLETED') then 1 end) enr,
+                         count(case when e.status = 'COMPLETED' then 1 end) done
+                    from oan_trainings t left join oan_training_enrolments e on e.training_id = t.id
+                   where t.status in ('OPEN','CLOSED') group by t.kind order by 1) loop
+          line(cell(r.kind) || ',' || shown(r.n) || ',' || shown(r.enr) || ',' || shown(r.done));
+          l_rows := l_rows + 1;
+        end loop;
+      when 'MENTORING_BY_STATUS' then
+        line('status,mentorships,sessions');
+        for r in (select m.status, count(distinct m.id) n, count(s.id) sess
+                    from oan_mentorships m left join oan_mentoring_sessions s on s.mentorship_id = m.id
+                   group by m.status order by 1) loop
+          line(cell(r.status) || ',' || shown(r.n) || ',' || shown(r.sess));
+          l_rows := l_rows + 1;
+        end loop;
+      when 'EVENT_ATTENDANCE' then
+        line('month,events,registered,attended');
+        for r in (select to_char(e.starts_at, 'YYYY-MM') mon, count(distinct e.id) n,
+                         count(case when g.status = 'GOING' then 1 end) reg,
+                         count(case when g.attended = 'Y' then 1 end) att
+                    from oan_events e left join oan_event_registrations g on g.event_id = e.id
+                   where e.status = 'PUBLISHED' and e.starts_at > add_months(systimestamp, -12)
+                   group by to_char(e.starts_at, 'YYYY-MM') order by 1) loop
+          line(cell(r.mon) || ',' || shown(r.n) || ',' || shown(r.reg) || ',' || shown(r.att));
           l_rows := l_rows + 1;
         end loop;
     end case;

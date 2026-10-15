@@ -1,0 +1,381 @@
+page 123 (
+    name: Job Runs
+    alias: JOB-RUNS
+    title: Job runs
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    security {
+        authorizationScheme: @administration-rights
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: W7.3 Job runs (FR-24, NFR-05). Health of every scheduled job step (15-minute, hourly, daily, weekly and analytics automations) and the latest 200 runs, filtered by step and result. Counts and messages only; job messages never contain personal data.
+    }
+
+    region r123_health (
+        name: Job health
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select job_name, last_status, last_started, runs_7d, failures_7d, avg_seconds_7d, last_message, 'Runs' runs_label
+                  from oan_admin_job_health_v
+                 order by failures_7d desc, case last_status when 'FAILED' then 0 when 'RUNNING' then 1 else 2 end, job_name
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: No job runs recorded yet.
+        }
+
+        column JOB_NAME (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: Job step
+            }
+            layout {
+                sequence: 1
+            }
+        )
+
+        column LAST_STATUS (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Last result
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column LAST_STARTED (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Last run
+            }
+            layout {
+                sequence: 3
+            }
+            appearance {
+                formatMask: DD-MON-YYYY HH24:MI
+            }
+        )
+
+        column RUNS_7D (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Runs (7 days)
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column FAILURES_7D (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Failures (7 days)
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+        column AVG_SECONDS_7D (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Average seconds
+            }
+            layout {
+                sequence: 6
+            }
+        )
+
+        column LAST_MESSAGE (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: Last message
+            }
+            layout {
+                sequence: 7
+            }
+        )
+
+        column RUNS_LABEL (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            type: link
+            heading {
+                heading: History
+            }
+            layout {
+                sequence: 8
+            }
+            link {
+                target: {
+                    page: 123
+                    items: {
+                        P123_JOB: \#JOB_NAME#\
+                    }
+                }
+                linkText: #RUNS_LABEL#
+            }
+        )
+
+    )
+
+    region r123_runs (
+        name: Runs
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select id, job_name, status, started_at, ended_at, rows_processed, substr(message, 1, 500) message
+                  from oan_job_runs_v
+                 where (:P123_JOB is null or job_name = :P123_JOB)
+                   and (:P123_STATUS is null or status = :P123_STATUS)
+                 order by started_at desc
+                 fetch first 200 rows only
+                ```
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: No runs match.
+        }
+
+        column ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column JOB_NAME (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Job step
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column STATUS (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Result
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column STARTED_AT (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Started
+            }
+            layout {
+                sequence: 4
+            }
+            appearance {
+                formatMask: DD-MON-YYYY HH24:MI:SS
+            }
+        )
+
+        column ENDED_AT (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Ended
+            }
+            layout {
+                sequence: 5
+            }
+            appearance {
+                formatMask: DD-MON-YYYY HH24:MI:SS
+            }
+        )
+
+        column ROWS_PROCESSED (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Rows
+            }
+            layout {
+                sequence: 6
+            }
+        )
+
+        column MESSAGE (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: Message
+            }
+            layout {
+                sequence: 7
+            }
+        )
+
+    )
+
+    pageItem P123_JOB (
+        type: selectList
+        label {
+            label: Job step
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select job_name d, job_name r from oan_admin_job_health_v order by 1
+                ```
+            displayExtraValues: false
+            displayNullValue: true
+        }
+        layout {
+            sequence: 1
+            region: @r123_runs
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P123_STATUS (
+        type: selectList
+        label {
+            label: Result
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:OK;OK,Failed;FAILED,Running;RUNNING
+            displayExtraValues: false
+            displayNullValue: true
+        }
+        layout {
+            sequence: 2
+            region: @r123_runs
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    button filter (
+        buttonName: FILTER
+        label: Filter
+        layout {
+            sequence: 5
+            region: @r123_runs
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button settings (
+        buttonName: SETTINGS
+        label: Settings
+        layout {
+            sequence: 10
+            region: @r123_health
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--simple
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 122
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button dashboard (
+        buttonName: DASHBOARD
+        label: Admin dashboard
+        layout {
+            sequence: 20
+            region: @r123_health
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--simple
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 100
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+)

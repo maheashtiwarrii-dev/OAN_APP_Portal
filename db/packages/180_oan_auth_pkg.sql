@@ -42,7 +42,7 @@ create or replace package oan_auth_pkg authid definer as
   function  is_recently_reauthenticated(p_minutes in pls_integer default 5) return boolean;
   procedure require_reauth(p_minutes in pls_integer default 5);
   -- utPLSQL only: treat p_user_id as re-authenticated in this session (no APEX session in tests)
-  procedure set_test_reauth(p_user_id in number) accessible by (package ut_oan_platform, package ut_oan_w2, package ut_oan_orgs, package ut_oan_w6);
+  procedure set_test_reauth(p_user_id in number) accessible by (package ut_oan_platform, package ut_oan_w2, package ut_oan_orgs, package ut_oan_w6, package ut_oan_w7);
 end oan_auth_pkg;
 /
 
@@ -525,7 +525,7 @@ create or replace package body oan_auth_pkg as
                     'Please confirm your identity to continue.', oan_util.c_err_reauth);
   end require_reauth;
 
-  procedure set_test_reauth(p_user_id in number) accessible by (package ut_oan_platform, package ut_oan_w2, package ut_oan_orgs, package ut_oan_w6) is
+  procedure set_test_reauth(p_user_id in number) accessible by (package ut_oan_platform, package ut_oan_w2, package ut_oan_orgs, package ut_oan_w6, package ut_oan_w7) is
   begin
     g_test_reauth_user := p_user_id;
   end set_test_reauth;

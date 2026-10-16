@@ -445,6 +445,31 @@ page 76 (
         }
     )
 
+    process prefill-from-profile (
+        name: Draft from the member profile (S30)
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                -- S30: a signed-in member who said they represent a company starts from a draft built from their
+                -- profile and onboarding answers; they review every field before submitting. Signed-out visitors start empty.
+                if sys_context('OAN_CTX','VIEWER_TYPE') = 'MEMBER' and :P76_EMAIL is null then
+                    for a in (select email from oan_my_account_v) loop
+                        :P76_EMAIL := a.email;
+                    end loop;
+                    for o in (select first_name, last_name, job_title, current_org from oan_my_onboarding_chat_v) loop
+                        :P76_FIRST_NAME := o.first_name; :P76_LAST_NAME := o.last_name;
+                        :P76_DESIGNATION := o.job_title; :P76_COMPANY := o.current_org;
+                    end loop;
+                end if;
+                ```
+        }
+        execution {
+            sequence: 1
+            point: beforeHeader
+        }
+    )
+
     process submit (
         name: Submit company registration
         type: executeCode

@@ -301,3 +301,11 @@
 | I26-5 | Checks | 18 suites + page smoke (194 page queries x 5 personas) = 168/168; harness 151 queries / 204 blocks; links, base tables, brand, page security, APEXLang validation pass; 10 public pages render in headless Edge; app 200 imported (93 pages) |
 | I26-6 | Test readiness | `docs/test-readiness.md` generated from the export: every page with its tester and dev account |
 | I26-7 | Calendar | Project start 12 Oct 2026: S0 12-23 Oct 2026 ... S13 gate 8.0 12-23 Apr 2027, S15 ends 21 May 2027 (plan, board, report, GitHub Project) |
+
+## Iteration 27 — Status published with % complete per wave (16 Oct 2026)
+| Step | Action | Result |
+|---|---|---|
+| I27-1 | User request | Publish project status on GitHub with the Kanban dashboard and CI/CD pipeline, showing % complete for W0-W7 |
+| I27-2 | Closed | W0.20 Build Option wiring (integration options; unused options removed), W0.21/W0.22 verified on dev, W2.9 (privacy jobs scheduled), W5.1 S30 (company registration drafted from the member profile) |
+| I27-3 | % complete | W0 76%, W1 100%, W2 100%, W3 100%, W4 59%, W5 96%, W6 86%, W7 100%; W0-W7 85% (61 of 68 tasks); whole plan 68% |
+| I27-4 | Published | Board: wave completion panel (computed from the task data) and CI/CD pipeline panel; status report wave table; README status with CI badges; PDFs; GitHub Project #1 readme and status update |

@@ -57,6 +57,22 @@ h2 { font-size: 1.05rem; font-weight: 700; }
 .stat b { font-family: var(--font-mono); font-size: 1.5rem; font-weight: 600; font-variant-numeric: tabular-nums; }
 .stat span { color: var(--muted); font-size: 0.85rem; }
 
+/* Wave completion (W0-W7) and CI/CD */
+.waves { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; display: grid; gap: 10px; }
+.wave-row { display: grid; grid-template-columns: minmax(150px, 220px) 1fr 4.2rem; gap: 10px; align-items: center; }
+.wave-name { font-weight: 600; font-size: 0.9rem; }
+.wave-name small { display: block; font-weight: 400; color: var(--muted); font-size: 0.78rem; }
+.wave-bar { height: 12px; border-radius: 6px; background: var(--sunk); overflow: hidden; display: flex; }
+.wave-bar i { display: block; height: 100%; }
+.wave-pct { font-family: var(--font-mono); font-variant-numeric: tabular-nums; text-align: right; font-weight: 600; }
+.wave-total { border-top: 1px solid var(--line); padding-top: 10px; }
+.pipeline { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; }
+.stage { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; }
+.stage b { display: block; margin-bottom: 4px; }
+.stage ul { margin: 0; padding-left: 18px; color: var(--muted); font-size: 0.85rem; }
+.stage .ok { color: var(--ok); font-weight: 600; font-size: 0.8rem; }
+@media (max-width: 560px) { .wave-row { grid-template-columns: 1fr 3.6rem; } .wave-bar { grid-column: 1 / -1; order: 3; } }
+
 /* Gate timeline */
 .timeline { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; display: grid; gap: 10px; }
 .tl-scroll { overflow-x: auto; }
@@ -160,12 +176,37 @@ table.gtable { border-collapse: collapse; width: 100%; font-size: 0.86rem; }
 
 <div class="wrap">
   <header>
-    <div class="eyebrow">OAN Portal v1 · Plan v3.2 · APEX Build Pack v1.1 (Q31) · APEX 26.1.5 (Q32) · updated 16 Oct 2026 · iteration 26 · project start 12 Oct 2026</div>
+    <div class="eyebrow">OAN Portal v1 · Plan v3.2 · APEX Build Pack v1.1 (Q31) · APEX 26.1.5 (Q32) · updated 16 Oct 2026 · iteration 27 · project start 12 Oct 2026</div>
     <h1>OAN Portal Delivery Board</h1>
     <p class="sub">The 16 sprints and 11 gates of the merged FSD scope, built in APEX Build Pack wave order with Build Pack page numbers (Q31; no Oracle HR brokering, Q29; no Oracle logos, Q30), from the S0 setup through the S14 pilot and S15 hypercare. Card status comes from <span class="mono">task_plan.md</span> in the GitHub repository.</p>
   </header>
 
   <section class="summary" aria-label="Plan summary" id="summary"></section>
+
+  <section aria-labelledby="waves-h" style="display:grid;gap:10px">
+    <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;align-items:baseline">
+      <h2 id="waves-h">Build waves W0–W7: % complete</h2>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--ok)"></i>Done</span>
+        <span><i class="sw" style="background:var(--warn)"></i>In progress</span>
+        <span><i class="sw" style="background:var(--gate)"></i>Gated (built, off until its gate)</span>
+        <span><i class="sw" style="background:var(--line)"></i>Not started / descoped</span>
+      </div>
+    </div>
+    <p class="sub">% complete = estimated person-days of done tasks ÷ all person-days in the wave. Gated items (Slack/WhatsApp, Careers feed, AI assistant) are built or designed but stay off until their external gate; descope-lane items are Could features.</p>
+    <div class="waves" id="waves"></div>
+  </section>
+
+  <section aria-labelledby="cicd-h" style="display:grid;gap:10px">
+    <h2 id="cicd-h">CI/CD pipeline</h2>
+    <div class="pipeline">
+      <div class="stage"><b>1 · Every push (GitHub Actions)</b><span class="ok">Green</span><ul><li>Brand check (no Oracle logos)</li><li>Link check</li><li>Page-security check</li><li>Base-table check (NFR-03)</li><li>Dev-script guard</li><li>Secret scan (gitleaks)</li></ul></div>
+      <div class="stage"><b>2 · Build</b><span class="ok">Green</span><ul><li>Offline APEXLang validation with SQLcl (93 pages)</li><li>No database or secrets needed</li></ul></div>
+      <div class="stage"><b>3 · Deploy to dev</b><span class="ok">Every iteration</span><ul><li>Database install and synonyms</li><li>Import app 200, enable automations</li><li>utPLSQL 168/168 incl. page smoke (5 personas)</li><li>Public pages opened over HTTP</li></ul></div>
+      <div class="stage"><b>4 · Publish</b><span class="ok">Live</span><ul><li>Board, status report and PDFs on GitHub Pages</li><li>GitHub Project #1 status update</li></ul></div>
+      <div class="stage"><b>5 · Production</b><ul><li>Not automated: needs go-live gate 8.0 (S13, 12–23 Apr 2027)</li></ul></div>
+    </div>
+  </section>
 
   <section class="timeline" aria-labelledby="tl-h">
     <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;align-items:baseline">
@@ -322,9 +363,9 @@ const T = [
  ["W0.15","Audit log, report modal, my decisions","S3","W0","x",2,"P0","Pages 80, 81, 110 · audit log as tester.asha/bala"],
  ["W0.16","Terms versions, deny-list, breached passwords","S3","W0","x",0.75,"P0","Pages 124 legal texts, 125 deny-list, 126 breached passwords"],
  ["W0.19","Suggest term, request a chapter","S3","W0","x",0.5,"P1","Pages 90, 91 on dev · 14 Oct"],
- ["W0.20","Build Option wiring + enable_feature","S3","W0","n",1.5,"P0",""],
- ["W0.21","OAN_CHAT_API + OAN_NOTIFY_API (Build Pack contracts)","S3","W0","a",2,"P0","Codes-only transcript, live-only routing · 7 tests · 13 Oct"],
- ["W0.22","Build Pack conventions: AI_ items, IS_* names, Build Pack options","S3","W0","a",0.75,"P0","AI_ items, 9 IS_* schemes, Build Pack options · 13 Oct"],
+ ["W0.20","Build Option wiring + enable_feature","S3","W0","x",1.5,"P0","CHANNELS, CAREERS_FEED, CV_PDF, ORACLE_IDP build options (off); live only with gate + DPIA (option_live)"],
+ ["W0.21","OAN_CHAT_API + OAN_NOTIFY_API (Build Pack contracts)","S3","W0","x",2,"P0","OAN_CHAT_API + OAN_NOTIFY_API on dev · ut_oan_bp_api passing"],
+ ["W0.22","Build Pack conventions: AI_ items, IS_* names, Build Pack options","S3","W0","x",0.75,"P0","AI_ items, IS_* schemes, Build Pack options on dev"],
  ["W1.1","Global page: rail, profile card, badge, search","S3","W1","x",1.5,"P1","Page 0 on dev; header fix (HTTP 500) 13 Oct"],
  ["W1.2","Home: greeting, letters carousel, What's new, route cards","S3","W1","x",2,"P1","Page 10 incl. route cards from live intents"],
  ["W1.3","Global search results","S3","W1","x",1.5,"P1","Page 19: 9 scopes incl. opportunities, events, groups, trainings, initiatives"],
@@ -337,7 +378,7 @@ const T = [
  ["W2.6","My CV + current work profile","S5","W2","x",3,"P1","Page 24: still current, CV sections, printable CV; page 25"],
  ["W2.7","CV share/revoke, last 3 versions","S5","W2","x",1,"P1","Share with a connection (30 days, revocable, audited); shared with me"],
  ["W2.8","Connections: connect, follow, block","S5","W2","x",3.5,"P1","Page 28: connections, introductions inbox, recommendations"],
- ["W2.9","Account settings + privacy centre","S5","W2","p",5,"P0","Pages 26, 27 on dev · 14 Oct"],
+ ["W2.9","Account settings + privacy centre","S5","W2","x",5,"P0","Pages 26, 27; export and deletion jobs scheduled; admin page 121"],
  ["W2.10","Profile update + privacy request admin","S5","W2","x",2.5,"P0","Pages 128 (profile update requests) and 121 (privacy requests)"],
  ["W2.11","Profile-update nudge (08:00 local)","S5","W2","x",0.75,"P1","oan_nudge_pkg: 08:00 local requests and reminders"],
  ["5.3a","100k directory smoke test","S5","WS5","n",1,"P1",""],
@@ -356,7 +397,7 @@ const T = [
  ["W4.4a","Slack channel","S7","W4","g",6,"P4","Built but off: Slack linking, signed inbound, queue (G-CH)"],
  ["W4.4b","WhatsApp channel + channel settings","S7","W4","g",6,"P4","Built but off: WhatsApp code, opt-in, page 43 (G-CH)"],
  ["W4.5","Introductions + Help-Me-Connect","S7","W4","x",4.25,"P1","Page 29 Help Me Connect + introductions (W2.8)"],
- ["W5.1","Organisations: application, verification","S7","W5","p",4.5,"P2","Pages 76, 112, 70 (invite/remove contacts); onboarding-to-draft application (S30) open"],
+ ["W5.1","Organisations: application, verification","S7","W5","x",4.5,"P2","Pages 76 (draft from member profile, S30), 112, 70 (invite/remove contacts)"],
  ["W5.2","Jobs, opportunity feed, applications","S8","W5","x",7,"P2","Pages 50-53, 71 + job review on 107; apply with optional CV share (R13)"],
  ["W5.3","Referral request","S8","W5","x",2.5,"P2","Page 54: suggested referrers, 5/week, 14-day expiry"],
  ["W5.4","Helpdesk; HR documents signpost only","S8","W5","x",3,"P2","Page 55 helpdesk: reference, consent, sensitive-data check, no HR documents (Q29)"],
@@ -432,6 +473,36 @@ function renderSummary() {
   ];
   const box = document.getElementById("summary");
   stats.forEach(([v, l]) => { const s = el("div", "stat"); s.append(el("b", null, v), el("span", null, l)); box.append(s); });
+}
+
+function renderWaves() {
+  const box = document.getElementById("waves");
+  const waves = ["W0","W1","W2","W3","W4","W5","W6","W7"];
+  const colour = { x: "var(--ok)", p: "var(--warn)", a: "var(--info)", g: "var(--gate)", b: "var(--bad)", n: "var(--line)" };
+  const order = ["x", "a", "p", "g", "b", "n"];
+  let tot = 0, totDone = 0, tasks = 0, tasksDone = 0;
+  const row = (name, sub, items) => {
+    const pd = items.reduce((s, t) => s + t[5], 0);
+    const dpd = items.filter(t => t[4] === "x").reduce((s, t) => s + t[5], 0);
+    const pct = pd ? Math.round(100 * dpd / pd) : 0;
+    const r = el("div", "wave-row");
+    const n = el("div", "wave-name", name); n.append(el("small", null, sub + " · " + items.filter(t => t[4] === "x").length + " of " + items.length + " tasks · " + fmt(dpd) + " of " + fmt(pd) + " pd"));
+    const bar = el("div", "wave-bar"); bar.setAttribute("role", "img"); bar.setAttribute("aria-label", name + ": " + pct + "% complete");
+    order.forEach(k => { const w = items.filter(t => t[4] === k).reduce((s, t) => s + t[5], 0); if (w > 0) { const i = el("i"); i.style.width = (100 * w / pd) + "%"; i.style.background = colour[k]; i.title = STATUS[k][0] + ": " + fmt(w) + " pd"; bar.append(i); } });
+    r.append(n, bar, el("div", "wave-pct", pct + "%"));
+    return [r, pd, dpd];
+  };
+  waves.forEach(w => {
+    const items = T.filter(t => t[3] === w);
+    if (!items.length) return;
+    const [r, pd, dpd] = row(w, WS[w].replace(/^W\d /, ""), items);
+    tot += pd; totDone += dpd; tasks += items.length; tasksDone += items.filter(t => t[4] === "x").length;
+    box.append(r);
+  });
+  const all = T.filter(t => waves.includes(t[3]));
+  const [r] = row("W0–W7 total", "all build waves", all);
+  r.classList.add("wave-total");
+  box.append(r);
 }
 
 function renderTimeline() {
@@ -542,7 +613,7 @@ function setView(v) {
   renderBoard();
 }
 
-renderSummary(); renderTimeline(); renderGateTable(); renderChips();
+renderSummary(); renderWaves(); renderTimeline(); renderGateTable(); renderChips();
 document.getElementById("view-sprint").addEventListener("click", () => setView("sprint"));
 document.getElementById("view-status").addEventListener("click", () => setView("status"));
 document.getElementById("q").addEventListener("input", e => { q = e.target.value.trim().toLowerCase(); renderBoard(); });

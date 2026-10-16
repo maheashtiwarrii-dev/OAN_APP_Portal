@@ -59,11 +59,15 @@ ul.tight li { margin: 2px 0; }
 .avoid { break-inside: avoid; }
 @media (max-width: 640px) { .kpis, .pipeline { grid-template-columns: repeat(2, 1fr); } }
 @media print { main { padding: 0; max-width: none; } h2 { break-after: avoid; } }
+.mini { height: 10px; border-radius: 5px; background: var(--line); overflow: hidden; min-width: 90px; }
+.mini i { display: block; height: 100%; background: var(--ok); }
+td.num { white-space: nowrap; font-variant-numeric: tabular-nums; }
+tr.tot td { border-top: 2px solid var(--line); }
 </style>
 </head>
 <body>
 <main>
-  <div class="eyebrow">Project status report · 16 October 2026 · iteration 26 · project start 12 October 2026</div>
+  <div class="eyebrow">Project status report · 16 October 2026 · iteration 27 · project start 12 October 2026</div>
   <h1>OAN Portal (Oracle Alumni Network)</h1>
   <p class="sub">Oracle APEX application 200 on Autonomous Database · Plan v3.2 · APEX Build Pack v1.1 · development environment only</p>
 
@@ -72,10 +76,27 @@ ul.tight li { margin: 2px 0; }
   <div class="kpis">
     <div class="kpi"><b>93</b><span>APEX pages live on dev, all ready for testing</span></div>
     <div class="kpi"><b>168 / 168</b><span>tests passing: 18 suites + every page query run as 5 personas</span></div>
-    <div class="kpi"><b>208 / 320</b><span>person-days of plan done (65%)</span></div>
+    <div class="kpi"><b>85%</b><span>of build waves W0–W7 complete (61 of 68 tasks); whole plan 68%</span></div>
     <div class="kpi"><b>Not yet</b><span>ready for go-live: ready for user acceptance testing on dev</span></div>
   </div>
   <p><strong>Go-live position:</strong> the application is feature-complete for v1 and ready for user acceptance testing with synthetic data, including the admin and moderation pages (dev-only test roles, decision Q36). Two defects found while confirming readiness were fixed on 16 October: public pages such as Create account and Register your company returned an error to signed-out visitors, and staff roles could not take effect because the app had no access-control roles. Go-live needs the 18-point gate 8.0: a production environment on APEX 26.2, staff sign-in through an identity provider with 2-step verification in production (Q33), email delivery (0.7), security, load and accessibility tests, the DPIA and legal texts, named owners and a signed UAT.</p>
+
+  <h2 class="avoid">Build waves W0–W7: % complete</h2>
+  <p>% complete = estimated person-days of done tasks ÷ all person-days in the wave. Gated items are built or designed but stay off until their external gate.</p>
+  <table class="avoid">
+    <thead><tr><th>Wave</th><th>Tasks done</th><th>Progress</th><th>% complete</th><th>Still open</th></tr></thead>
+    <tbody>
+      <tr><td>W0 Sign-in, onboarding and admin</td><td class="num">20 of 22</td><td><div class="mini"><i style="width:76%"></i></div></td><td class="num"><span class="pill prog">76%</span></td><td>Security baseline review (Advisor, cookie notice); AI assistant gated (G-AI)</td></tr>
+      <tr><td>W1 Shell, Home and search</td><td class="num">3 of 3</td><td><div class="mini"><i style="width:100%"></i></div></td><td class="num"><span class="pill done">100%</span></td><td>-</td></tr>
+      <tr><td>W2 Profile, directory and CV</td><td class="num">11 of 11</td><td><div class="mini"><i style="width:100%"></i></div></td><td class="num"><span class="pill done">100%</span></td><td>-</td></tr>
+      <tr><td>W3 Insights and events</td><td class="num">6 of 6</td><td><div class="mini"><i style="width:100%"></i></div></td><td class="num"><span class="pill done">100%</span></td><td>-</td></tr>
+      <tr><td>W4 Conversations, notifications, channels</td><td class="num">4 of 6</td><td><div class="mini"><i style="width:59%"></i></div></td><td class="num"><span class="pill prog">59%</span></td><td>Slack and WhatsApp built but off until gate G-CH</td></tr>
+      <tr><td>W5 Opportunities, helpdesk, companies</td><td class="num">6 of 7</td><td><div class="mini"><i style="width:96%"></i></div></td><td class="num"><span class="pill prog">96%</span></td><td>Careers feed waits for gate G-CF (Careers links work)</td></tr>
+      <tr><td>W6 Community, experts, training, partners</td><td class="num">7 of 9</td><td><div class="mini"><i style="width:86%"></i></div></td><td class="num"><span class="pill prog">86%</span></td><td>Marketplace and badges in the descope lane (Could)</td></tr>
+      <tr><td>W7 Admin, reports and hardening</td><td class="num">4 of 4</td><td><div class="mini"><i style="width:100%"></i></div></td><td class="num"><span class="pill done">100%</span></td><td>-</td></tr>
+      <tr class="tot"><td><strong>W0–W7</strong></td><td class="num"><strong>61 of 68</strong></td><td><div class="mini"><i style="width:85%"></i></div></td><td class="num"><span class="pill prog">85%</span></td><td>162.25 of 190.5 person-days</td></tr>
+    </tbody>
+  </table>
 
   <h2>Kanban dashboard</h2>
   <p>Live board: <a href="https://maheashtiwarrii-dev.github.io/OAN_APP_Portal/">maheashtiwarrii-dev.github.io/OAN_APP_Portal</a> · printable copy: <code>docs/OAN-Delivery-Board-landscape.pdf</code> · GitHub Project: <a href="https://github.com/users/maheashtiwarrii-dev/projects/1">projects/1</a> (169 items). 155 tasks across 16 sprints, S0 (12–23 Oct 2026) to S15 (10–21 May 2027), and 11 gates.</p>
@@ -112,7 +133,7 @@ ul.tight li { margin: 2px 0; }
     </tbody>
   </table>
 
-  <h2 class="avoid">Delivered on dev (app 200, 88 pages)</h2>
+  <h2 class="avoid">Delivered on dev (app 200, 93 pages)</h2>
   <table>
     <thead><tr><th>Area</th><th>Pages</th></tr></thead>
     <tbody>

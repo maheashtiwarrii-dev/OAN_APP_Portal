@@ -2,33 +2,6 @@ buildOption commented-out (
     name: Commented Out
 )
 
-buildOption phase-2 (
-    name: PHASE_2
-    status {
-        status: exclude
-        onUpgradeKeepStatus: true
-    }
-    comments {
-        comments: Networking & Collaboration features (PRD section 7). Off until Phase 2 acceptance criteria are approved and built.
-    }
-)
-
-buildOption phase-3 (
-    name: PHASE_3
-    status {
-        status: exclude
-        onUpgradeKeepStatus: true
-    }
-)
-
-buildOption phase-4 (
-    name: PHASE_4
-    status {
-        status: exclude
-        onUpgradeKeepStatus: true
-    }
-)
-
 buildOption linkedin (
     name: LINKEDIN
     status {
@@ -40,6 +13,50 @@ buildOption linkedin (
     }
 )
 
+buildOption channels (
+    name: CHANNELS
+    status {
+        status: exclude
+        onUpgradeKeepStatus: true
+    }
+    comments {
+        comments: W0.20 / R12. Slack and WhatsApp (W4.4). Processing also needs OAN_FEATURE_OPTIONS CHANNELS gate open and DPIA signed (OAN_UTIL.OPTION_LIVE), so switching this on in Builder alone does nothing. Gate G-CH.
+    }
+)
+
+buildOption careers-feed (
+    name: CAREERS_FEED
+    status {
+        status: exclude
+        onUpgradeKeepStatus: true
+    }
+    comments {
+        comments: W0.20 / R12. Oracle Careers feed (W5.7). Needs the CAREERS_FEED gate and DPIA sign-off in OAN_FEATURE_OPTIONS as well. Gate G-CF.
+    }
+)
+
+buildOption cv-pdf (
+    name: CV_PDF
+    status {
+        status: exclude
+        onUpgradeKeepStatus: true
+    }
+    comments {
+        comments: W0.20. Structured CV PDF export; the printable CV page is the v1 path. Needs the CV_PDF gate in OAN_FEATURE_OPTIONS.
+    }
+)
+
+buildOption oracle-idp (
+    name: ORACLE_IDP
+    status {
+        status: exclude
+        onUpgradeKeepStatus: true
+    }
+    comments {
+        comments: W0.20. Sign-in with an Oracle alumni identity provider, if one is ever offered. Not part of v1; no HR integration (Q29, Q35).
+    }
+)
+
 buildOption w2-directory (
     name: W2_DIRECTORY
     status {
@@ -48,28 +65,6 @@ buildOption w2-directory (
     }
     comments {
         comments: Wave W2 pages (20 Directory search, 21 results). Include when the wave is built; hides the rail entry until then (R05).
-    }
-)
-
-buildOption w4-messaging (
-    name: W4_MESSAGING
-    status {
-        status: exclude
-        onUpgradeKeepStatus: true
-    }
-    comments {
-        comments: Wave W4 pages (40 Messages and channels). Include when the wave is built (R05).
-    }
-)
-
-buildOption w5-opportunities (
-    name: W5_OPPORTUNITIES
-    status {
-        status: exclude
-        onUpgradeKeepStatus: true
-    }
-    comments {
-        comments: Wave W5 pages (50 Opportunities). Include when the wave is built (R05).
     }
 )
 

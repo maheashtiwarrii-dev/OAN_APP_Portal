@@ -422,7 +422,7 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 | 7.1b | DPIA annex `AI_ASSISTANT` | End S3 (G-AI) | [ ] |
 | 7.1c | DPIA annex `CHANNELS` | End S6 (G-CH) | [-] removed (Q38) |
 | 7.1d | DPIA annex `CAREERS_FEED` | End S7 (G-CF) | [ ] |
-| 7.2a | DPAs: OCI, Google, LinkedIn, email; transfer mechanism after OI-2 | End S6 | [ ] |
+| 7.2a | DPAs: OCI and the e-mail provider (Google/LinkedIn not used, Q37); transfer mechanism after OI-2 | End S6 | [ ] |
 | 7.2b | DPA: GenAI provider | End S3 | [ ] |
 | 7.2c | DPAs: Slack, Meta | End S6 | [-] removed (Q38) |
 | 7.2d | ~~Oracle HR arrangement~~ not pursued in v1 (Q29) | — | n/a |

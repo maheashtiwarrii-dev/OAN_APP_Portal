@@ -4,8 +4,8 @@
 --   clear_viewer - Cleanup PL/SQL (pooled connections must not leak a viewer)
 --   set_system   - only oan_jobs_pkg (Automations)
 -- Context OAN_CTX attributes:
---   VIEWER_ID, VIEWER_TYPE (MEMBER | PARTNER | ORG | CHANNEL | PENDING | SYSTEM | NONE), VIEWER_STATUS,
---   IS_ADMIN, IS_MODERATOR, IS_CHAPTER_ADMIN, IS_PRIVACY ('Y'/'N'), ROLES (':ADMIN:EXPERT:' style), CHANNEL
+--   VIEWER_ID, VIEWER_TYPE (MEMBER | PARTNER | ORG | PENDING | SYSTEM | NONE), VIEWER_STATUS,
+--   IS_ADMIN, IS_MODERATOR, IS_CHAPTER_ADMIN, IS_PRIVACY ('Y'/'N'), ROLES (':ADMIN:EXPERT:' style)
 -- 1.30 / R01: on pages of the "Organisation" page group the viewer is ORG (partner contacts only), never
 -- MEMBER, so member-only views stay closed there even for dual-role people. Request parameters are never
 -- read; only APP_USER and the page APEX is rendering.
@@ -21,9 +21,6 @@ create or replace package oan_ctx_pkg authid definer as
   function  has_role(p_username in varchar2, p_role in varchar2) return boolean;
   -- 'Y' when the current viewer holds p_role (from the ROLES attribute; usable in SQL)
   function  viewer_has_role(p_role in varchar2) return varchar2;
-  -- 1.30 APEX-free channel viewer for Slack/WhatsApp webhooks (S15)
-  procedure set_channel(p_user_id in number, p_channel in varchar2)
-    accessible by (package oan_chat_api, package oan_notify_api, package ut_oan_platform);
 end oan_ctx_pkg;
 /
 
@@ -178,23 +175,6 @@ create or replace package body oan_ctx_pkg as
     put('IS_PRIVACY', yn(instr(':' || upper(p_roles) || ':', ':PRIVACY_OFFICER:') > 0));
   end set_test_viewer;
 
-  procedure set_channel(p_user_id in number, p_channel in varchar2)
-    accessible by (package oan_chat_api, package oan_notify_api, package ut_oan_platform) is
-    l_ok number;
-  begin
-    clear_viewer;
-    select count(*) into l_ok from oan_users
-     where id = p_user_id and status = 'ACTIVE' and account_type = 'MEMBER';
-    if l_ok = 0 or upper(p_channel) not in ('SLACK','WHATSAPP','EMAIL') then
-      put('VIEWER_TYPE', 'NONE');
-      return;
-    end if;
-    -- Channel requests act for one member with no staff rights, whatever roles that member holds
-    put('VIEWER_ID', to_char(p_user_id));
-    put('VIEWER_TYPE', 'CHANNEL');
-    put('CHANNEL', upper(p_channel));
-    put('IS_ADMIN', 'N'); put('IS_MODERATOR', 'N'); put('IS_CHAPTER_ADMIN', 'N'); put('IS_PRIVACY', 'N');
-  end set_channel;
 
 end oan_ctx_pkg;
 /

@@ -22,7 +22,7 @@ page 3 (
         source {
             htmlCode:
                 ```html
-                <p>Prefer Google? <a href="f?p=&APP_ID.:10:&APP_SESSION.:APEX_AUTHENTICATION=OAN_GOOGLE">Continue with Google</a> instead.</p>
+                <p>Use any email address you check, including Gmail. You will confirm it from a link we send you.</p>
                 ```
         }
         layout {

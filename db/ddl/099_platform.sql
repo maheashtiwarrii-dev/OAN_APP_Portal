@@ -66,7 +66,6 @@ create table if not exists oan_feature_options (
 
 merge into oan_feature_options f
 using (select 'AI_ASSISTANT' c, 'OAN_AI_ASSISTANT' b, 'Read-only AI assistant (G-AI)' d, 'Y' r from dual union all
-       select 'CHANNELS', 'CHANNELS', 'Slack and WhatsApp channels (G-CH)', 'Y' from dual union all
        select 'CAREERS_FEED', 'CAREERS_FEED', 'Careers feed (G-CF)', 'Y' from dual union all
        select 'CV_PDF', 'CV_PDF', 'Structured CV PDF export', 'N' from dual union all
        select 'PARTNER_WORKSPACE', 'OAN_PARTNER_WORKSPACE', 'Partner workspace (W6.5)', 'Y' from dual) s

@@ -15,7 +15,7 @@ app OAN-APP-PORTAL (
         httpResponseHeaders:
             ```
             X-Content-Type-Options: nosniff
-            Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://static.oracle.com; style-src 'self' 'unsafe-inline' https://static.oracle.com; img-src 'self' data: blob: https://static.oracle.com; font-src 'self' data: https://static.oracle.com; frame-ancestors 'self'; form-action 'self' https://accounts.google.com https://www.linkedin.com
+            Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://static.oracle.com; style-src 'self' 'unsafe-inline' https://static.oracle.com; img-src 'self' data: blob: https://static.oracle.com; font-src 'self' data: https://static.oracle.com; frame-ancestors 'self'; form-action 'self' https://www.linkedin.com
             ```
         deepLinking: false
         embedInFrames: allowSameOrigin

@@ -57,25 +57,9 @@ create or replace context oan_ctx using oan_data.oan_ctx_pkg;
 -- Outbound HTTPS (443) for Google and LinkedIn sign-in only. APEX makes the
 -- social sign-in calls as its engine schema, so that schema gets the same ACE.
 -- FR-33 advisory link checks need a wider rule; that is a separate decision.
-declare
-  l_apex_schema varchar2(128);
-begin
-  select schema into l_apex_schema from dba_registry where comp_id = 'APEX';
-  for h in (select column_value host from table(sys.odcivarchar2list(
-              'accounts.google.com', 'oauth2.googleapis.com', 'openidconnect.googleapis.com',
-              'www.googleapis.com', 'www.linkedin.com', 'api.linkedin.com'))) loop
-    for p in (select column_value principal from table(sys.odcivarchar2list('OAN_DATA', l_apex_schema))) loop
-      dbms_network_acl_admin.append_host_ace(
-        host       => h.host,
-        lower_port => 443,
-        upper_port => 443,
-        ace        => xs$ace_type(privilege_list => xs$name_list('http'),
-                                  principal_name => p.principal,
-                                  principal_type => xs_acl.ptype_db));
-    end loop;
-  end loop;
-end;
-/
+-- Network access (0.3, S18): no social sign-in hosts. Everyone signs in with email + password (Q37) and Slack /
+-- WhatsApp were removed (Q38). The only outbound host is the SMTP relay, added by 40_email_delivery.sql.
+-- 01_network_aces.sql removes hosts that earlier versions of this script added.
 
 -- APEX workspace. Assign OAN_APP as the primary parsing schema.
 -- OAN_DATA is added only if spike 0.11 shows APEX APIs need it (see findings.md).

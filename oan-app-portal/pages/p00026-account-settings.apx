@@ -15,7 +15,7 @@ page 26 (
         formAutoComplete: false
     }
     comments {
-        comments: FR-01 account management (P07): change password, change email (re-auth + confirmation at both addresses), link/unlink Google or LinkedIn (link only after authenticating to this account); FR-35 directory switch and messaging permission.
+        comments: FR-01 account management (P07): change password, change email (re-auth + confirmation at both addresses), sign-in is email and password for everyone (Q37); FR-35 directory switch and messaging permission.
     }
 
     region sign-in-methods (
@@ -269,60 +269,6 @@ page 26 (
         }
     )
 
-    button link-google (
-        buttonName: LINK_GOOGLE
-        label: Link Google
-        layout {
-            sequence: 10
-            region: @sign-in-methods
-            slot: next
-        }
-        appearance {
-            buttonTemplate: @/text-with-icon
-            templateOptions: [
-                #DEFAULT#
-                t-Button--iconLeft
-            ]
-            icon: fa-google
-        }
-        behavior {
-            warnOnUnsavedChanges: doNotCheck
-        }
-        serverSideCondition {
-            type: noRowsReturned
-            sqlQuery: select 1 from oan_my_account_v where instr(linked_providers, 'GOOGLE') > 0
-        }
-    )
-
-    button unlink-google (
-        buttonName: UNLINK_GOOGLE
-        label: Unlink Google
-        layout {
-            sequence: 20
-            region: @sign-in-methods
-            slot: next
-        }
-        appearance {
-            buttonTemplate: @/text
-            templateOptions: [
-                #DEFAULT#
-                t-Button--simple
-            ]
-        }
-        behavior {
-            warnOnUnsavedChanges: doNotCheck
-            requiresConfirmation: true
-        }
-        confirmation {
-            message: Remove Google as a sign-in method?
-            style: danger
-        }
-        serverSideCondition {
-            type: rowsReturned
-            sqlQuery: select 1 from oan_my_account_v where instr(linked_providers, 'GOOGLE') > 0
-        }
-    )
-
     button confirm-identity (
         buttonName: CONFIRM_IDENTITY
         label: Confirm identity
@@ -423,44 +369,6 @@ page 26 (
         }
     )
 
-    process start-link (
-        name: Start linking Google
-        type: executeCode
-        source {
-            plsqlCode:
-                ```plsql
-                declare
-                    l_token varchar2(64);
-                begin
-                    l_token := oan_auth_pkg.start_link;   -- requires recent re-authentication; sets LINK_INTENT
-                end;
-                ```
-        }
-        execution {
-            sequence: 10
-        }
-        serverSideCondition {
-            whenButtonPressed: @link-google
-        }
-    )
-
-    process unlink-google (
-        name: Unlink Google
-        type: executeCode
-        source {
-            plsqlCode: oan_auth_pkg.unlink('GOOGLE');
-        }
-        execution {
-            sequence: 20
-        }
-        serverSideCondition {
-            whenButtonPressed: @unlink-google
-        }
-        successMessage {
-            successMessage: Google was removed as a sign-in method.
-        }
-    )
-
     process change-password (
         name: Change password
         type: executeCode
@@ -528,22 +436,6 @@ page 26 (
         }
         serverSideCondition {
             whenButtonPressed: @confirm-identity
-        }
-    )
-
-    branch to-google-link (
-        name: To Google sign-in for linking
-        behavior {
-            type: functionReturningUrl
-            language: plsql
-            plsqlFunctionBody: return 'f?p=' || :APP_ID || ':26:' || :APP_SESSION || ':APEX_AUTHENTICATION=OAN_GOOGLE';
-        }
-        execution {
-            point: afterProcessing
-            sequence: 10
-        }
-        serverSideCondition {
-            whenButtonPressed: @link-google
         }
     )
 

@@ -181,7 +181,7 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 | **G1** | OI-4 content inventory + owner; **product owner signs off the Must/Should/Could AC list** (S22) | End S2 | Library import at risk; go-live criterion undefined, so escalate |
 | **G-RB** | Re-baseline: S1–S2 velocity and `[A]` rework vs plan (S28). If velocity < 20 pd/sprint, invoke the descope lane and re-issue the sprint map | End S2 | — |
 | **G-AI** | `AI_ASSISTANT` DPIA annex + GenAI DPA signed (S04) | End S3 | Onboarding stays deterministic; W0.9 moves to the descope lane / v1.x |
-| **G-CH** | Slack app approved; WhatsApp Business verified with templates; Slack and Meta DPAs; **`CHANNELS` DPIA annex signed** (S04) | End S6 | W4.4 stays `[G]` (built but off, or moved to v1.x); W5.2 starts in S7 |
+| ~~G-CH~~ | Removed with Slack and WhatsApp (Q38, 16 Oct 2026) | — | — |
 | **G-CF** | `CAREERS_FEED` DPIA annex + feed terms (S04) | End S7 | Careers stays as deep-links only |
 | **G2** | OI-2 region decided; ~~temporary 100k load-test ADB~~ load test on the free ADB at reduced volume (Q34) | End S8 | NFR-06/07 at full volume unproven until a PROD-sized database exists |
 | **G3** | All staff-role holders named, each on IdP + 2-step verification (R16, S10); ≥ 3 partner/customer orgs verified for the pilot (6.8) | End S10 | Queues unstaffed; pilot cannot run J-09..J-19 |
@@ -218,28 +218,28 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 | ID | Task | Delivers | Est | Owner | Status |
 |---|---|---|---|---|---|
 | 0.1 | Node LTS, JDK 21, SQLcl 26.2 via winget; on PATH | toolchain | 0.5 | Dev | **[x]** Node 24.20, JDK 21.0.12, SQLcl 26.2.2 |
-| 0.1b | Optional local Oracle AI Database Free + utPLSQL | DoD | 1 | Dev | [ ] |
+| 0.1b | Optional local Oracle AI Database Free + utPLSQL | DoD | 1 | Dev | [-] removed 16 Oct: one shared dev ADB only (Q34) |
 | 0.2 | Dev ADB (APEX 26.1.5 per Q32), synthetic data only | Q27, Q32 | 0.5 | Dev | [x] 13 Oct: ADB `aiatp`, workspace `OAN_APP`, bootstrap run, schema installed |
-| 0.3 | ADMIN bootstrap:<br>• **explicit ACE hosts** (Google, LinkedIn, `slack.com`, `graph.facebook.com`, GenAI), replacing the wildcard (S18);<br>• `grant execute on dbms_lock` (S17);<br>• proxy `OAN_DEPLOY[OAN_APP]` (S14);<br>• `OAN_API` schema (S15). | NFR-03, R02 | 1 | Dev | [~]  — 13 Oct: run on dev with Google/LinkedIn hosts only; DBMS_LOCK, OAN_API proxy and channel hosts follow with 1.34 / 0.20 / G-CH |
+| 0.3 | ADMIN bootstrap:<br>• **explicit ACE hosts** (Google, LinkedIn, `slack.com`, `graph.facebook.com`, GenAI), replacing the wildcard (S18);<br>• `grant execute on dbms_lock` (S17);<br>• proxy `OAN_DEPLOY[OAN_APP]` (S14);<br>• `OAN_API` schema (S15). | NFR-03, R02 | 1 | Dev | [x] 16 Oct: ADMIN bootstrap; network access entries reduced to the SMTP relay only (Google/LinkedIn/Slack/Meta removed, `db/grants/01_network_aces.sql`, Q37/Q38); `dbms_lock`; proxy deploy user |
 | 0.4 | Workspace probe; deployment files; SQLcl connections | skill | 0.5 | Dev | [!] workspace name |
 | 0.5 | `git init`, layout, `.gitignore` | NFR-14 | 0.25 | Dev | [x] |
-| 0.6 | Google OIDC client | NFR-01 | 0.5 | OAN/Dev | [-] deferred (Q33) |
-| 0.7 | OCI Email Delivery + APEX SMTP | FR-23 | 0.5 | OAN/Dev | [ ] |
+| 0.6 | Google OIDC client | NFR-01 | 0.5 | OAN/Dev | [-] removed (Q37: no Google OAuth) |
+| 0.7 | OCI Email Delivery + APEX SMTP | FR-23 | 0.5 | OAN/Dev | [!] 16 Oct: `db/grants/40_email_delivery.sql` ready (ADMIN; prompts for the SMTP host, credential and sender; OCI Email Delivery or Gmail; sends a test). Needs OAN's SMTP credential - then sign-up with any e-mail (Gmail included) works end to end |
 | 0.8 | utPLSQL on dev | DoD | 0.25 | Dev | [x] 13 Oct: utPLSQL 3.2.3 (checksum verified) in schema UT3 |
-| 0.9 | CI:<br>• base-table scan;<br>• authz on every component (with a negative test);<br>• utPLSQL;<br>• gitleaks;<br>• Advisor;<br>• offline `apex validate`;<br>• **page-registry check (S19)**;<br>• **brand check: no Oracle logos or marks in pages, static files or email templates (Q30, `ci/check-brand.ps1`)**;<br>• **org-page group/actions check (S09)**. | NFR-02/03/04 | 2.5 | Dev | [~] 14 Oct: GitHub Actions `ci.yml` (brand, link check, base-table scan, dev-script guard, gitleaks, offline validate), `deploy-dev.yml` (manual import + utPLSQL + smoke), `board.yml` (Pages). Open: authz negative test, Advisor, page registry, org-page check |
-| 0.10 | **Spike:** `apex_release` = 26.2 on dev and planned PROD; ADB upgrade policy (R30) | Q27 | 0.25 | Dev | [~] dev = 26.1.5 (13 Oct); PROD and upgrade policy open |
-| 0.11 | **Spike (two-schema):** definer-rights package from a page, an Automation, post-auth and an ORDS handler | NFR-02/03 | 1 | Dev | [~] 13 Oct: OAN_APP blocked from base tables (ORA-00942) and from setting OAN_CTX (ORA-01031); views and package APIs work through synonyms; `set_viewer` outside APEX gives NONE. Automation and ORDS parts wait for those components |
-| 0.12 | **Spike (auth):** Social Sign-In post-auth, Switch in Session, re-auth | NFR-01 | 1 | Dev | [-] deferred with Google sign-in (Q33) |
+| 0.9 | CI:<br>• base-table scan;<br>• authz on every component (with a negative test);<br>• utPLSQL;<br>• gitleaks;<br>• Advisor;<br>• offline `apex validate`;<br>• **page-registry check (S19)**;<br>• **brand check: no Oracle logos or marks in pages, static files or email templates (Q30, `ci/check-brand.ps1`)**;<br>• **org-page group/actions check (S09)**. | NFR-02/03/04 | 2.5 | Dev | [x] 16 Oct: GitHub Actions: brand, links, page security, base tables, dev-script guard, changelog = install.sql, gitleaks, offline validate; deploy-dev runs Liquibase, import and all utPLSQL suites |
+| 0.10 | **Spike:** `apex_release` = 26.2 on dev and planned PROD; ADB upgrade policy (R30) | Q27 | 0.25 | Dev | [x] dev = 26.1.5 (13 Oct); PROD on 26.2 is a gate 8.0 check |
+| 0.11 | **Spike (two-schema):** definer-rights package from a page, an Automation, post-auth and an ORDS handler | NFR-02/03 | 1 | Dev | [x] two-schema boundary proven (pages, automations, post-auth); no ORDS handlers after Q38 |
+| 0.12 | **Spike (auth):** Social Sign-In post-auth, Switch in Session, re-auth | NFR-01 | 1 | Dev | [-] removed (Q37) |
 | 0.13 | **Spike (crypto):** PBKDF2 at 210k, 1 and 20 parallel logins | NFR-01 | 0.5 | Dev | [x] 13 Oct: **~1.9 s per hash** on the free ADB (3 runs: 1888/1895/1909 ms), so login P95 > 1 s; change request raised (findings), iterations NOT lowered. Parallel run not done (free tier) |
 | 0.14 | **Spike (Oracle Text):** filters; CONTAINS via a view; SYNC under `OAN_DATA` | FR-02 | 0.5 | Dev | [x] 13 Oct: 3 CONTEXT indexes INDEXED, automatic sync every 2 min, CONTAINS runs under OAN_DATA |
-| 0.15 | **Secrets register (S05):** owner, store, environment and rotation for:<br>• audit/unsubscribe HMAC keys;<br>• invite/CV-share token keys;<br>• Google/LinkedIn secrets;<br>• SMTP;<br>• Slack signing secret + bot token;<br>• WhatsApp app secret, access token and verify token;<br>• GenAI credential.<br>Signing secrets live in `OAN_SECRETS` (`ACCESSIBLE BY` extended per consumer); tokens live in Web Credentials (S02). | NFR-04, R02 | 1 | Dev/OAN | [~] `OAN_SECRETS` authored |
-| 0.16a | Liquibase changelog:<br>• forward-only DDL; runOnChange code; runAlways asserts;<br>• ctx preconditions;<br>• `dev`-only test/synthetic contexts;<br>• OAN_APP synonym changelog. | NFR-14, R29 | 1.5 | Dev | [ ] |
+| 0.15 | **Secrets register (S05):** owner, store, environment and rotation for:<br>• audit/unsubscribe HMAC keys;<br>• invite/CV-share token keys;<br>• Google/LinkedIn secrets;<br>• SMTP;<br>• Slack signing secret + bot token;<br>• WhatsApp app secret, access token and verify token;<br>• GenAI credential.<br>Signing secrets live in `OAN_SECRETS` (`ACCESSIBLE BY` extended per consumer); tokens live in Web Credentials (S02). | NFR-04, R02 | 1 | Dev/OAN | [x] 16 Oct: `docs/secrets-register.md` (2 signing keys, one-time tokens, 9 external credentials; owners and rotation; no values) |
+| 0.16a | Liquibase changelog:<br>• forward-only DDL; runOnChange code; runAlways asserts;<br>• ctx preconditions;<br>• `dev`-only test/synthetic contexts;<br>• OAN_APP synonym changelog. | NFR-14, R29 | 1.5 | Dev | [x] 16 Oct: `db/controller.xml` generated from install.sql (`ci/gen-changelog.py`; 88 changesets, DDL forward-only, code runOnChange, SQLcl runOracleScript); dev baselined with `lb changelog-sync`; CI checks it matches install.sql; deploy-dev runs `lb update` |
 | 0.16b | Deploy wrapper:<br>• `set_workspace`, `set_application_id(103)`;<br>• live `runtime validate` gate;<br>• DEV-only Build Option script. | NFR-14 | 0.75 | Dev | [~] `ci/deploy-apex-app.ps1` |
-| 0.16c | Scratch-schema rebuild every sprint | NFR-14 | 0.5 | Dev | [ ] |
-| 0.17 | **Spike (webhooks):**<br>• raw-body HMAC with the secret read from `OAN_SECRETS`;<br>• constant-time compare;<br>• enqueue a scheduler job;<br>• respond in under 1s (S02). | R02 | 1.5 | Dev | [!] G0 |
-| 0.18 | **Spike (GenAI):** APEX GenAI service on ADB; read-only tool pattern | R15 | 0.5 | Dev | [ ] |
-| 0.19 | External procurement (OAN): Slack app, WhatsApp Business + templates (Oracle HR arrangement not pursued, Q29) | G-CH | — | OAN | [ ] |
-| 0.20 | **ORDS install (S15):**<br>• REST-enabled `OAN_API` schema with EXECUTE on `oan_channel_pkg` entry points only;<br>• `db/ords/900_channels.sql` under Liquibase label `channels`;<br>• Slack `url_verification` and WhatsApp GET verify handling. | R02, NFR-15 | 1 | Dev | [ ] |
+| 0.16c | Scratch-schema rebuild every sprint | NFR-14 | 0.5 | Dev | [-] removed 16 Oct: a second schema cannot be installed beside OAN_DATA on the single shared ADB (OAN_CTX is database-wide, Q34); the changelog check and Liquibase status cover drift |
+| 0.17 | **Spike (webhooks):**<br>• raw-body HMAC with the secret read from `OAN_SECRETS`;<br>• constant-time compare;<br>• enqueue a scheduler job;<br>• respond in under 1s (S02). | R02 | 1.5 | Dev | [-] removed (Q38) |
+| 0.18 | **Spike (GenAI):** APEX GenAI service on ADB; read-only tool pattern | R15 | 0.5 | Dev | [G] G-AI (AI assistant gated) |
+| 0.19 | External procurement (OAN): Slack app, WhatsApp Business + templates (Oracle HR arrangement not pursued, Q29) | G-CH | — | OAN | [-] removed (Q38) |
+| 0.20 | **ORDS install (S15):**<br>• REST-enabled `OAN_API` schema with EXECUTE on `oan_channel_pkg` entry points only;<br>• `db/ords/900_channels.sql` under Liquibase label `channels`;<br>• Slack `url_verification` and WhatsApp GET verify handling. | R02, NFR-15 | 1 | Dev | [-] removed (Q38: no ORDS modules needed) |
 
 ### M — Migration and refactor (S0, offline)
 | ID | Task | Delivers | Est | Status |
@@ -348,8 +348,8 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 | W4.1 | Messaging DDL + `oan_message_pkg` (R08/R09/R27) + **`oan_msg_text_ix` + `oan_message_pkg.search`** (S16) | FR-18 | 6 | [A] 14 Oct: `101_messaging.sql` + `oan_message_pkg` (direct/group/announcement, messaging permission, blocks, 200/day limit, NEW_MESSAGE notifications); 15 Oct: `OAN_MSG_TEXT_IX` + `oan_message_pkg.search` (own conversations only, S16/R20) and `poll_stamp`; suites `ut_oan_messaging` 6/6, `ut_oan_w4` polling test |
 | W4.2 | 26 Conversations (two-pane, polling) | FR-18, R27 | 3 | [A] page 40 Conversations to the member mockup (two panes, All/Unread/Groups, Announcements/Pinned, reply, groups, pin, leave) + message search + new-message polling every 20s (OAN_CHAT_POLL; reloads only when nothing is typed) |
 | W4.3 | Per-channel notifications; 50, 52, 51; read notifications purged at 180 days (+ test) | FR-23, R26 | 4 | [A] 15 Oct: per-type email (Instant/Digest/Off) and channel (On/Off) on page 42 (`oan_notify_pkg.set_pref`), page 41 links, public one-click unsubscribe page 44 (HMAC token), read notifications purged at 180 days (registry rule + test) |
-| W4.4a | **Channels: Slack** (handler, HMAC, timestamp, idempotency, async job, DM-only, title + link; 7-day/30-day/90-day purges + tests) | FR-48, R02 | 6 | [G] built but off (G-CH): `105_channels_notifications.sql`, `oan_channel_pkg` (link codes, signature checks, idempotent inbound log, intent reply with a link, outbound queue title + link only, dispatch via APEX Web Credentials, 7/30/90-day purges), page 43; nothing is sent until CHANNELS is ready |
-| W4.4b | **Channels: WhatsApp** (X-Hub-Signature-256, 24h window/templates, opt-in, 12-month re-verification) + 53 Channel settings + 1090 Channel configuration | FR-48, R02 | 6 | [G] built but off (G-CH): WhatsApp code verification, opt-in off by default and re-confirmed yearly, template sending, page 43; ORDS handlers and channel admin page wait for G-CH |
+| W4.4a | **Channels: Slack** (handler, HMAC, timestamp, idempotency, async job, DM-only, title + link; 7-day/30-day/90-day purges + tests) | FR-48, R02 | 6 | [-] removed (Q38) |
+| W4.4b | **Channels: WhatsApp** (X-Hub-Signature-256, 24h window/templates, opt-in, 12-month re-verification) + 53 Channel settings + 1090 Channel configuration | FR-48, R02 | 6 | [-] removed (Q38) |
 | W4.5 | Introductions + Help-Me-Connect (18); `live_yn` for J-21 when channels are live | FR-03/04 | 4.25 | [A] 15 Oct: introductions (W2.8) + Help Me Connect: `106_help_requests.sql`, `oan_help_pkg` (masked contacts, private reply opens a conversation, resolve, thanks, 30-day expiry job), page 29; suite `ut_oan_w4` 11/11 |
 
 ### W5 — Opportunities, helpdesk, skills insights, organisations (S7–S8)
@@ -420,11 +420,11 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 |---|---|---|---|
 | 7.1a | Core DPIA + RoPA + lawful bases for the merged scope, incl. the **R09 antivirus residual-risk acceptance** | End S2 | [ ] |
 | 7.1b | DPIA annex `AI_ASSISTANT` | End S3 (G-AI) | [ ] |
-| 7.1c | DPIA annex `CHANNELS` | End S6 (G-CH) | [ ] |
+| 7.1c | DPIA annex `CHANNELS` | End S6 (G-CH) | [-] removed (Q38) |
 | 7.1d | DPIA annex `CAREERS_FEED` | End S7 (G-CF) | [ ] |
 | 7.2a | DPAs: OCI, Google, LinkedIn, email; transfer mechanism after OI-2 | End S6 | [ ] |
 | 7.2b | DPA: GenAI provider | End S3 | [ ] |
-| 7.2c | DPAs: Slack, Meta | End S6 | [ ] |
+| 7.2c | DPAs: Slack, Meta | End S6 | [-] removed (Q38) |
 | 7.2d | ~~Oracle HR arrangement~~ not pursued in v1 (Q29) | — | n/a |
 | 7.3 | Legal texts incl. Partner/Customer terms, channel terms, HR-brokering notice | End S9 | [ ] |
 | 7.4 | Grievance Officer / privacy contact; breach runbook | End S9 | [ ] |
@@ -433,7 +433,7 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 ### WS8 — Release (S13–S15)
 | ID | Task | Est | Status |
 |---|---|---|---|
-| 8.0 | **Go-live gate (S06).** Signed by the OI-1 owner and the privacy contact before the pilot or any real-data import. All must pass:<br>1. WS7 complete, incl. 7.5 and the DPIA annex of every option to be enabled; residual risks accepted in writing<br>2. OI-2 region fixed; transfer mechanism documented<br>3. legal texts loaded as v1 (8.5)<br>4. no open Critical/High from 5.2<br>5. 5.7 at 100%<br>6. backup retention ≤ 60 days<br>7. every holder of every staff role (R16) on IdP + 2-step verification, attested; `OAN_STAFF_SCOPES` reviewed<br>8. Builder/SQL access named-only; dev/test accounts removed; debug off<br>9. breach tabletop held<br>10. **every secrets-register entry** freshly generated for PROD<br>11. APEX 26.2 on PROD (R30)<br>12. each enabled option has its DPIA sign-off in `OAN_CONFIG`<br>13. every Must AC passes<br>14. anonymous ORDS modules = `/verify` + the two webhook handlers only<br>15. ACEs exist only for enabled options<br>16. `CHANNELS`, `AI_ASSISTANT` and `CAREERS_FEED` verified OFF by query unless 12 holds<br>17. PD-registry and retention tests pass on PROD; every purge job enabled with a logged first run<br>18. CI green on the exact release tag | 1.5 | [ ] |
+| 8.0 | **Go-live gate (S06).** Signed by the OI-1 owner and the privacy contact before the pilot or any real-data import. All must pass:<br>1. WS7 complete, incl. 7.5 and the DPIA annex of every option to be enabled; residual risks accepted in writing<br>2. OI-2 region fixed; transfer mechanism documented<br>3. legal texts loaded as v1 (8.5)<br>4. no open Critical/High from 5.2<br>5. 5.7 at 100%<br>6. backup retention ≤ 60 days<br>7. every holder of every staff role (R16) named, with a verified e-mail and a current access review (Q37); `OAN_STAFF_SCOPES` reviewed<br>8. Builder/SQL access named-only; dev/test accounts removed; debug off<br>9. breach tabletop held<br>10. **every secrets-register entry** freshly generated for PROD<br>11. APEX 26.2 on PROD (R30)<br>12. each enabled option has its DPIA sign-off in `OAN_CONFIG`<br>13. every Must AC passes<br>14. no anonymous ORDS modules (Q38)<br>15. ACEs exist only for enabled options<br>16. `AI_ASSISTANT` and `CAREERS_FEED` verified OFF by query unless 12 holds<br>17. PD-registry and retention tests pass on PROD; every purge job enabled with a logged first run<br>18. CI green on the exact release tag | 1.5 | [ ] |
 | 8.1 | Provision PROD; deploy with the rehearsed 0.16 pipeline via `OAN_DEPLOY`; fresh secrets; assertions; `apex import` | 1 | [ ] |
 | 8.2 | Seed chapters; assign admins and staff roles (attested) | 0.5 | [ ] |
 | 8.3 | Pilot (S14): ~50 members, one holder per staff role, ≥ 3 verified orgs running J-09..J-19 | — | [ ] |
@@ -480,7 +480,7 @@ Dev share of WS9: 10 pd.
 |---|---|---|
 | Merged scope ≈ 2.3× v2 (347 vs 149 pd) | Go-live slips | 3-developer staffing as a G0 condition; G-RB at End S2; S11 descope lane |
 | `[A]` rework larger than 40% | S1–S3 overrun | G-RB re-baseline; validation already passing on 26.2 lowers the risk |
-| G-CH late | FR-48 not in v1 | `[G]` build or descope; web + email fallback |
+| G-CH late | Removed (Q38) | — |
 | No Oracle HR arrangement (accepted, Q29) | Members cannot request HR documents through OAN | Out of scope, no signpost (Q35, 15 Oct 2026); v1.x change only if an arrangement is made |
 | Destination ADB not on 26.2 | Import blocked | Spike 0.10; decision at 8.0 (R30) |
 | No SQLcl yet validates APEXLang 26.2 metadata (12 Oct 2026) | M.1 blocked; 26.2-only syntax cannot be checked | Author the 26.1/26.2-common subset (current source validates clean); recheck winget at every sprint start; R30 fallback |

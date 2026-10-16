@@ -83,7 +83,7 @@ select n.id, n.notif_type, n.title, n.body, n.link_page, n.link_params, n.is_rea
   from oan_notifications n
  where n.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID'));
 
--- Per-type settings (page 42): in-app is always on; email Instant / Daily digest / Off; channel On / Off.
+-- Per-type settings (page 42): in-app is always on; email Instant / Daily digest / Off.
 -- Types of later phases are listed once their phase is current.
 create or replace view oan_my_notif_prefs_v as
 select t.code notif_type, t.description, t.mandatory, t.phase,
@@ -91,8 +91,7 @@ select t.code notif_type, t.description, t.mandatory, t.phase,
        case when t.mandatory = 'Y' then 'INSTANT' else coalesce(p.email_mode, t.default_mode) end email_mode,
        case when t.mandatory = 'Y' then 'Instant (required)'
             else case coalesce(p.email_mode, t.default_mode) when 'INSTANT' then 'Instant' when 'DIGEST' then 'Daily digest'
-                                                             else 'Off' end end email_label,
-       coalesce(p.channel_mode, 'OFF') channel_mode
+                                                             else 'Off' end end email_label
   from oan_notif_types t
   left join oan_notif_prefs p on p.notif_type = t.code and p.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID'))
  where sys_context('OAN_CTX','VIEWER_ID') is not null
@@ -1028,23 +1027,6 @@ select oc.user_id, p.first_name || ' ' || p.last_name contact_name, oc.designati
   from oan_org_contacts oc
   join oan_profiles p on p.user_id = oc.user_id
  where oc.org_id = oan_org_pkg.my_org_id;
-
--------------------------------------------------------------- channels (W4.4, page 43) --
--- The viewer's Slack / WhatsApp links (masked label only; never the full number or Slack id)
-create or replace view oan_my_channels_v as
-select c.channel, initcap(c.channel) channel_label, c.status,
-       case c.status when 'LINKED' then 'Linked' when 'PENDING' then 'Waiting for the code' else 'Not linked' end status_label,
-       c.external_label, c.linked_at, c.opt_in_outbound, c.opt_in_at, c.reverify_due_at, c.code_expires_at
-  from oan_channel_identities c
- where c.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID'))
-   and c.status in ('PENDING','LINKED')
-   and sys_context('OAN_CTX','VIEWER_TYPE') = 'MEMBER';
-
--- Recent channel deliveries for the viewer (FR-48 AC5: every message logged with its status)
-create or replace view oan_my_channel_messages_v as
-select m.id, initcap(m.channel) channel_label, m.body, initcap(m.status) status_label, m.created_at, m.sent_at
-  from oan_channel_messages m
- where m.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID'));
 
 ------------------------------------------------------------ Help Me Connect (W4.5, page 29) --
 -- Open and recent requests the viewer may see: members only; chapter-scoped requests for that chapter's

@@ -112,7 +112,6 @@ create or replace package body oan_jobs_pkg as
   begin
     oan_ctx_pkg.set_system('QUARTER_HOURLY');
     run_step('MARK_STUCK_SENDS', 'oan_notify_pkg.mark_stuck_sends');
-    run_step('CHANNEL_DISPATCH', 'oan_channel_pkg.dispatch');            -- W4.4: skipped while CHANNELS is off
   end run_quarter_hourly;
 
   procedure run_hourly is
@@ -137,7 +136,6 @@ create or replace package body oan_jobs_pkg as
     run_step('MFA_REATTEST_REVOKE',     'oan_security_pkg.revoke_unattested_privileges');
     run_step('RETENTION',               'oan_retention_pkg.run');
     run_step('ARTICLE_VIEW_ROLLUP',     'oan_insight_pkg.rollup_views');   -- R24: per-member views to daily counts
-    run_step('CHANNEL_HOUSEKEEPING',    'oan_channel_pkg.housekeeping');   -- R02 payloads 7 days; WhatsApp opt-in yearly
     run_step('HELP_REQUESTS_EXPIRE',    'oan_help_pkg.close_expired');     -- FR-04 AC2
     run_step('REFERRALS_EXPIRE',        'oan_job_pkg.expire_referrals');   -- FR-37: 14 days
     run_step('JOBS_CLOSE_EXPIRED',      'oan_job_pkg.close_expired_jobs');

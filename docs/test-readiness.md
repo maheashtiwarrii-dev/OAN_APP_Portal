@@ -27,7 +27,7 @@ A staff member never decides their own item (P25): for example, use tester.asha 
 
 ## Pages by tester
 
-- Active member: 35 pages
+- Active member: 34 pages
 - Any signed-in user: 19 pages
 - Platform Admin: 16 pages
 - Anyone (signed out): 11 pages
@@ -49,7 +49,7 @@ A staff member never decides their own item (P25): for example, use tester.asha 
 | 6 | OAN membership application | Pending applicant | tester.devi |  |
 | 7 | Confirm your email address | Anyone (signed out) | - | Link arrives by e-mail: e-mail delivery (0.7) not set up on dev |
 | 8 | Reset your OAN password | Anyone (signed out) | - | Reset link arrives by e-mail (0.7) |
-| 9 | Existing OAN account | Anyone (signed out) | - | Google/LinkedIn sign-in set aside (Q33) |
+| 9 | Existing OAN account | Anyone (signed out) | - | Only reached from LinkedIn sign-in, which is off (Q37) |
 | 10 | OAN Portal | Any signed-in user | tester.asha |  |
 | 11 | Oracle Alumni Network | Anyone (signed out) | - |  |
 | 12 | Terms, Privacy and Guidelines | Anyone (signed out) | - |  |
@@ -77,7 +77,6 @@ A staff member never decides their own item (P25): for example, use tester.asha 
 | 40 | Conversations | Active member | tester.asha or tester.chen |  |
 | 41 | Notifications | Any signed-in user | tester.asha |  |
 | 42 | Notification settings | Any signed-in user | tester.asha |  |
-| 43 | Slack and WhatsApp | Active member | tester.asha or tester.chen | Slack/WhatsApp linking stays off until gate G-CH |
 | 44 | Unsubscribe | Anyone (signed out) | - | Opened from an e-mail link (needs a signed token) |
 | 50 | Opportunities | Active member | tester.asha or tester.chen |  |
 | 51 | Opportunity | Any signed-in user | tester.asha |  |

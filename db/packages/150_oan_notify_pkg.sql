@@ -27,7 +27,7 @@ create or replace package oan_notify_pkg authid definer as
   function  apply_unsubscribe(p_user_id in number, p_type in varchar2, p_token in varchar2) return boolean;
   procedure mark_read(p_notification_id in number);
   procedure mark_all_read;
-  procedure set_pref(p_type in varchar2, p_mode in varchar2, p_channel_mode in varchar2 default null);
+  procedure set_pref(p_type in varchar2, p_mode in varchar2);
   function  effective_mode(p_user_id in number, p_type in varchar2) return varchar2;
   procedure send_daily_digests;     -- P2 (enabled by config DIGEST_ENABLED)
   -- 1.34 Send state machine: QUEUED -> SENDING -> SENT | FAILED. Rows left SENDING for 15 minutes become
@@ -149,7 +149,6 @@ create or replace package body oan_notify_pkg as
     l_status oan_users.status%type;
     l_id     number;
     l_err    varchar2(400);
-    l_chan   varchar2(3);
   begin
     select email, status into l_email, l_status from oan_users where id = p_user_id;
 
@@ -160,12 +159,6 @@ create or replace package body oan_notify_pkg as
             case l_mode when 'INSTANT' then 'QUEUED' when 'DIGEST' then 'DIGEST' else 'SKIPPED' end)
     returning id into l_id;
 
-    -- W4.3: a short title + link to the member's linked Slack / WhatsApp when they chose it for this type
-    select max(channel_mode) into l_chan from oan_notif_prefs where user_id = p_user_id and notif_type = p_type;
-    if l_chan = 'ON' then
-      oan_channel_pkg.queue_for_notification(p_user_id, l_id, p_title,
-        case when p_link_page is not null then page_url(p_link_page, p_link_params) end);
-    end if;
 
     if l_mode = 'INSTANT' and l_email is not null and l_status not in ('DELETION_PENDING') then
       update oan_notifications set email_status = 'SENDING', email_sending_at = systimestamp where id = l_id;
@@ -232,18 +225,17 @@ create or replace package body oan_notify_pkg as
     update oan_notifications set is_read = 'Y' where user_id = oan_util.viewer_id and is_read = 'N';
   end mark_all_read;
 
-  procedure set_pref(p_type in varchar2, p_mode in varchar2, p_channel_mode in varchar2 default null) is
+  procedure set_pref(p_type in varchar2, p_mode in varchar2) is
     l_mand oan_notif_types.mandatory%type;
   begin
     select mandatory into l_mand from oan_notif_types where code = p_type;
     oan_util.assert(l_mand = 'N' or p_mode = 'INSTANT', 'This notification type cannot be switched off.');
     oan_util.assert(p_mode in ('INSTANT','DIGEST','OFF'), 'Invalid mode');
-    oan_util.assert(p_channel_mode is null or p_channel_mode in ('ON','OFF'), 'Invalid channel setting');
     merge into oan_notif_prefs p
     using (select oan_util.viewer_id u, p_type t from dual) s on (p.user_id = s.u and p.notif_type = s.t)
-     when matched then update set p.email_mode = p_mode, p.channel_mode = nvl(p_channel_mode, p.channel_mode)
-     when not matched then insert (user_id, notif_type, email_mode, channel_mode)
-                           values (s.u, s.t, p_mode, nvl(p_channel_mode, 'OFF'));
+     when matched then update set p.email_mode = p_mode
+     when not matched then insert (user_id, notif_type, email_mode)
+                           values (s.u, s.t, p_mode);
   end set_pref;
 
   procedure send_daily_digests is

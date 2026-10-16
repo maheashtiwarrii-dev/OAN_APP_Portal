@@ -15,7 +15,7 @@ page 100 (
         formAutoComplete: false
     }
     comments {
-        comments: W7.1 Admin dashboard (FR-24/27, R25, NFR-05). Aggregate figures only - no member names or contact details: goal KPI tiles (OAN_ADMIN_DASHBOARD_V), work waiting in each queue with a link to the page that handles it (OAN_ADMIN_QUEUES_V), job health (OAN_ADMIN_JOB_HEALTH_V), usage counters for the last 30 days (OAN_ADMIN_KPI_V), channel health (counts only) and aggregate report downloads (W7.2, OAN_EXPORT_PKG: small counts suppressed, every export logged).
+        comments: W7.1 Admin dashboard (FR-24/27, R25, NFR-05). Aggregate figures only - no member names or contact details: goal KPI tiles (OAN_ADMIN_DASHBOARD_V), work waiting in each queue with a link to the page that handles it (OAN_ADMIN_QUEUES_V), job health (OAN_ADMIN_JOB_HEALTH_V), usage counters for the last 30 days (OAN_ADMIN_KPI_V) and aggregate report downloads (W7.2, OAN_EXPORT_PKG: small counts suppressed, every export logged).
     }
 
     region r100_tiles (
@@ -282,57 +282,6 @@ page 100 (
             }
             appearance {
                 formatMask: DD-MON-YYYY
-            }
-        )
-
-    )
-
-    region r100_channels (
-        name: Slack and WhatsApp (built, off until G-CH)
-        type: classicReport
-        source {
-            location: localDatabase
-            type: sqlQuery
-            sqlQuery:
-                ```sql
-                select metric, value from oan_admin_channel_stats_v
-                ```
-        }
-        layout {
-            sequence: 50
-            slot: body
-        }
-        appearance {
-            template: @/standard
-            templateOptions: #DEFAULT#
-        }
-        componentAppearance {
-            template: @/standard
-            templateOptions: #DEFAULT#
-        }
-        messages {
-            whenNoDataFound: No channel activity.
-        }
-
-        column METRIC (
-            reportColumnQueryId: 1
-            derivedColumn: N
-            heading {
-                heading: Measure
-            }
-            layout {
-                sequence: 1
-            }
-        )
-
-        column VALUE (
-            reportColumnQueryId: 2
-            derivedColumn: N
-            heading {
-                heading: Count
-            }
-            layout {
-                sequence: 2
             }
         )
 

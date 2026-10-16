@@ -13,17 +13,6 @@ buildOption linkedin (
     }
 )
 
-buildOption channels (
-    name: CHANNELS
-    status {
-        status: exclude
-        onUpgradeKeepStatus: true
-    }
-    comments {
-        comments: W0.20 / R12. Slack and WhatsApp (W4.4). Processing also needs OAN_FEATURE_OPTIONS CHANNELS gate open and DPIA signed (OAN_UTIL.OPTION_LIVE), so switching this on in Builder alone does nothing. Gate G-CH.
-    }
-)
-
 buildOption careers-feed (
     name: CAREERS_FEED
     status {

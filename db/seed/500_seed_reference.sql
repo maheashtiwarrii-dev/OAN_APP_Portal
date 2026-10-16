@@ -274,8 +274,7 @@ using (select 'JOB_SEARCH' cd, 'Find a job that suits me' l, 'J-01' j, 50 p, 'op
        select 'SOLUTION_INTEREST', 'Find people interested in our solution', 'J-17', 70, 'partner-workspace', 17 from dual union all
        select 'NON_ORACLE_PARTNERS', 'Collaborate with non-Oracle partners', 'J-18', 50, 'opportunities', 18 from dual union all
        select 'FUNDED_WORK', 'Offer funded work', 'J-19', 70, 'partner-workspace', 19 from dual union all
-       select 'KEEP_CV_CURRENT', 'Keep my CV and work profile current', 'J-20', 24, 'my-cv', 20 from dual union all
-       select 'USE_CHANNELS', 'Use OAN from Slack or WhatsApp', 'J-21', 43, 'channel-settings', 21 from dual) s
+       select 'KEEP_CV_CURRENT', 'Keep my CV and work profile current', 'J-20', 24, 'my-cv', 20 from dual) s
    on (c.code_type = 'INTENT' and c.code = s.cd)
  when matched then update set c.label = s.l, c.journey = s.j, c.landing_page = s.p, c.landing_alias = s.a, c.sort_order = s.s
  when not matched then insert (code_type, code, label, journey, landing_page, landing_alias, sort_order, live_yn)
@@ -302,8 +301,7 @@ using (select 'JOB_SEARCH' cd, 'job,jobs,role,opening,vacancy,apply,position,car
        select 'SOLUTION_INTEREST', 'solution,product,application,offering,interested in' from dual union all
        select 'NON_ORACLE_PARTNERS', 'non-oracle,non oracle,other vendors,ecosystem' from dual union all
        select 'FUNDED_WORK', 'budget,funded,pay,contract,statement of work,sow' from dual union all
-       select 'KEEP_CV_CURRENT', 'cv,resume,work profile,out of date,update my profile' from dual union all
-       select 'USE_CHANNELS', 'slack,whatsapp,channel' from dual) s
+       select 'KEEP_CV_CURRENT', 'cv,resume,work profile,out of date,update my profile' from dual) s
    on (c.code_type = 'INTENT' and c.code = s.cd)
  when matched then update set c.description = s.k;
 

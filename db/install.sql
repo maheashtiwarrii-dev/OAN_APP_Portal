@@ -33,6 +33,7 @@ prompt == DDL
 @@ddl/107_opportunities_helpdesk.sql
 @@ddl/108_community_w6.sql
 @@ddl/109_w0_w7_completion.sql
+@@ddl/110_remove_channels.sql
 
 prompt == Packages (bodies with forward references compile at the end)
 whenever sqlerror continue
@@ -76,7 +77,6 @@ whenever sqlerror continue
 @@packages/285_oan_kpi_pkg.sql
 @@packages/287_oan_admin_pkg.sql
 @@packages/290_oan_error_pkg.sql
-@@packages/292_oan_channel_pkg.sql
 @@packages/295_oan_chat_pkg.sql
 @@packages/296_oan_chat_api.sql
 @@packages/297_oan_notify_api.sql

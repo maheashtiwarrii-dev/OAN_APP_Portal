@@ -33,6 +33,11 @@ jobs:
       - name: "Base-table check (NFR-03, views and granted packages only)"
         run: python3 ci/check-base-tables.py oan-app-portal db
 
+      - name: Liquibase changelog matches install.sql (task 0.16a)
+        run: |
+          python3 ci/gen-changelog.py
+          git diff --exit-code -- db/controller.xml
+
       - name: Dev-only scripts stay out of the install
         run: |
           if grep -nE '@@?dev/' db/install.sql; then

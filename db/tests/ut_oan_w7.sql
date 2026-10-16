@@ -82,7 +82,7 @@ create or replace package body ut_oan_w7 as
     oan_ctx_pkg.set_test_viewer(g_admin, 'MEMBER', 'Y');
     oan_auth_pkg.set_test_reauth(g_admin);
     expect_error(-20403, 'synthetic-data switch is locked (Q12)', 'oan_admin_pkg.set_config(''SYNTHETIC_DATA_ALLOWED'', ''N'');');
-    expect_error(-20403, 'channel ids are locked (G-CH)', 'oan_admin_pkg.set_config(''WHATSAPP_PHONE_NUMBER_ID'', ''123'');');
+    expect_error(-20403, 'the e-mail sender is locked (0.7)', 'oan_admin_pkg.set_config(''MAIL_FROM'', ''x@example.invalid'');');
     select locked into l_locked from oan_config_v where config_key = 'APP_ID';
     ut.expect(l_locked, 'view shows the lock').to_equal('Y');
   end config_locked;

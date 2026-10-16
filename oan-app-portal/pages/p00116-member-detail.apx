@@ -15,7 +15,7 @@ page 116 (
         formAutoComplete: false
     }
     comments {
-        comments: W0.11 (FR-24, NFR-01/02, R16, P08). Platform Admin actions on one member through OAN_SECURITY_PKG: grant/revoke role (re-authentication required; privileged roles need a linked Google/LinkedIn sign-in and attested 2-step verification; never on yourself), attest 2-step verification, suspend (ends all sessions) and reactivate. Every action is audited by the package.
+        comments: W0.11 (FR-24, NFR-01/02, R16, P08). Platform Admin actions on one member through OAN_SECURITY_PKG: grant/revoke role (re-authentication required; privileged roles need a verified email and the annual access review; never on yourself), record the access review, suspend (ends all sessions) and reactivate. Every action is audited by the package.
     }
 
     region member (
@@ -29,7 +29,7 @@ page 116 (
                   <dt class="t-AVPList-label">Status</dt><dd class="t-AVPList-value">&P116_STATUS_LABEL!HTML.</dd>
                   <dt class="t-AVPList-label">Roles</dt><dd class="t-AVPList-value">&P116_ROLES!HTML.</dd>
                   <dt class="t-AVPList-label">Sign-in methods</dt><dd class="t-AVPList-value">&P116_SIGN_IN!HTML.</dd>
-                  <dt class="t-AVPList-label">2-step verification attested</dt><dd class="t-AVPList-value">&P116_MFA!HTML.</dd>
+                  <dt class="t-AVPList-label">Access review recorded</dt><dd class="t-AVPList-value">&P116_MFA!HTML.</dd>
                   <dt class="t-AVPList-label">Member since</dt><dd class="t-AVPList-value">&P116_CREATED!HTML.</dd>
                   <dt class="t-AVPList-label">Last sign-in</dt><dd class="t-AVPList-value">&P116_LAST_LOGIN!HTML.</dd>
                 </dl>
@@ -49,7 +49,7 @@ page 116 (
         name: Roles
         type: staticContent
         source {
-            htmlCode: <p>Role changes need a recent identity confirmation. Administrator, Moderator, Chapter Admin and Privacy Officer need a linked Google or LinkedIn sign-in with 2-step verification, and you must confirm you have checked it. You cannot change your own roles.</p>
+            htmlCode: <p>Role changes need a recent identity confirmation. Administrator, Moderator, Chapter Admin and Privacy Officer need a verified email address, and you must confirm you have reviewed why they need the role. You cannot change your own roles.</p>
         }
         layout {
             sequence: 20
@@ -62,10 +62,10 @@ page 116 (
     )
 
     region verification (
-        name: 2-step verification
+        name: Annual access review
         type: staticContent
         source {
-            htmlCode: <p>Record that you have checked this person's 2-step verification with their sign-in provider. Privileged roles are removed automatically 30 days after the yearly re-check falls due.</p>
+            htmlCode: <p>Record that you have reviewed why this person still needs privileged access. Privileged roles are removed automatically 30 days after the yearly review falls due.</p>
         }
         layout {
             sequence: 30
@@ -236,7 +236,7 @@ page 116 (
     pageItem P116_MFA_ATTESTED (
         type: switch
         label {
-            label: I have checked their 2-step verification (required for privileged roles)
+            label: I have reviewed why they need this access (required for privileged roles)
         }
         layout {
             sequence: 20
@@ -369,7 +369,7 @@ page 116 (
 
     button attest (
         buttonName: ATTEST
-        label: Record 2-step verification check
+        label: Record access review
         layout {
             sequence: 10
             region: @verification

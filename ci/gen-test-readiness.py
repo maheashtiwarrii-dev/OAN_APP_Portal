@@ -27,8 +27,7 @@ PERSONA = {
 LIMITS = {
     7: 'Link arrives by e-mail: e-mail delivery (0.7) not set up on dev',
     8: 'Reset link arrives by e-mail (0.7)',
-    9: 'Google/LinkedIn sign-in set aside (Q33)',
-    43: 'Slack/WhatsApp linking stays off until gate G-CH',
+    9: 'Only reached from LinkedIn sign-in, which is off (Q37)',
     44: 'Opened from an e-mail link (needs a signed token)',
     76: 'Approval e-mail not delivered on dev (0.7)',
     112: 'Approval e-mail not delivered on dev (0.7)',

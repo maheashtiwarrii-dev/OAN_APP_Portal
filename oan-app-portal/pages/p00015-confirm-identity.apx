@@ -42,7 +42,7 @@ page 15 (
         name: Confirm with your sign-in provider
         type: staticContent
         source {
-            htmlCode: <p>Your account signs in with Google or LinkedIn. You will be asked to sign in with the provider again.</p>
+            htmlCode: <p>Your account has no password yet. Set one from the sign-in page with "Forgot password", then confirm your identity here.</p>
         }
         layout {
             sequence: 20
@@ -98,27 +98,6 @@ page 15 (
         }
     )
 
-    button confirm-google (
-        buttonName: CONFIRM_GOOGLE
-        label: Confirm with Google
-        layout {
-            sequence: 10
-            region: @with-provider
-            slot: next
-        }
-        appearance {
-            buttonTemplate: @/text-with-icon
-            templateOptions: [
-                #DEFAULT#
-                t-Button--iconLeft
-            ]
-            icon: fa-google
-        }
-        behavior {
-            warnOnUnsavedChanges: doNotCheck
-        }
-    )
-
     process verify-password (
         name: Verify password
         type: executeCode
@@ -138,20 +117,6 @@ page 15 (
         }
     )
 
-    process start-social-reauth (
-        name: Start provider re-authentication
-        type: executeCode
-        source {
-            plsqlCode: :REAUTH_INTENT := 'Y';
-        }
-        execution {
-            sequence: 20
-        }
-        serverSideCondition {
-            whenButtonPressed: @confirm-google
-        }
-    )
-
     branch back-to-caller (
         name: Back to the calling page
         behavior {
@@ -165,22 +130,6 @@ page 15 (
         }
         serverSideCondition {
             whenButtonPressed: @confirm-password
-        }
-    )
-
-    branch to-google (
-        name: To Google re-authentication
-        behavior {
-            type: functionReturningUrl
-            language: plsql
-            plsqlFunctionBody: return 'f?p=' || :APP_ID || ':' || coalesce(:REAUTH_RETURN_PAGE, '1') || ':' || :APP_SESSION || ':APEX_AUTHENTICATION=OAN_GOOGLE';
-        }
-        execution {
-            point: afterProcessing
-            sequence: 20
-        }
-        serverSideCondition {
-            whenButtonPressed: @confirm-google
         }
     )
 

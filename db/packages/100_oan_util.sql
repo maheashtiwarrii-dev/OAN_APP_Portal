@@ -14,7 +14,7 @@ create or replace package oan_util authid definer as
 
   -- Secrets are readable only by the packages that need them (ballot Q10)
   function get_secret(p_name in varchar2) return raw
-    accessible by (package oan_audit_pkg, package oan_notify_pkg, package oan_auth_pkg, package oan_channel_pkg);
+    accessible by (package oan_audit_pkg, package oan_notify_pkg, package oan_auth_pkg);
   procedure ensure_secret(p_name in varchar2);           -- generate if absent (deploy time, per environment)
 
   function sha256(p_text in varchar2) return raw;
@@ -72,7 +72,7 @@ create or replace package body oan_util as
   end set_config;
 
   function get_secret(p_name in varchar2) return raw
-    accessible by (package oan_audit_pkg, package oan_notify_pkg, package oan_auth_pkg, package oan_channel_pkg) is
+    accessible by (package oan_audit_pkg, package oan_notify_pkg, package oan_auth_pkg) is
     l_val oan_secrets.secret_value%type;
   begin
     select secret_value into l_val from oan_secrets where name = p_name;

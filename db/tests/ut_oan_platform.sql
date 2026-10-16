@@ -13,7 +13,7 @@ create or replace package ut_oan_platform as
   procedure retention_purges_old_rows_only;
   --%test(1.37 A feature option is ready only with an open gate and a signed DPIA)
   procedure option_needs_dpia_and_gate;
-  --%test(R16 Privileged roles are refused for local-only accounts)
+  --%test(R16 / Q37 Privileged roles need a verified email; local accounts are fine)
   procedure staff_grant_refuses_local_account;
   --%test(R16 Granting needs recent re-authentication)
   procedure staff_grant_needs_reauth;
@@ -23,10 +23,8 @@ create or replace package ut_oan_platform as
   procedure chapter_scope_inherits;
   --%test(R16 Revoking ends the scope and the chapter assignment)
   procedure revoke_ends_scope;
-  --%test(R16 Privileged scopes lapse without re-attestation)
+  --%test(R16 Privileged scopes lapse without the annual access review)
   procedure unattested_scope_lapses;
-  --%test(1.30 Channel viewers act for one member with no staff rights)
-  procedure channel_viewer_has_no_staff_rights;
   --%test(R19/R20 in_group is true only for active group members)
   procedure in_group_membership;
   --%test(R26 Sends stuck for 15 minutes become FAILED_UNKNOWN; recent ones stay)
@@ -130,9 +128,18 @@ create or replace package body ut_oan_platform as
   procedure staff_grant_refuses_local_account is
     l_admin  number := as_admin;
     l_target number := new_member('Local');
+    l_ok     varchar2(1);
   begin
-    expect_error(oan_util.c_err_forbidden, 'a local-only account must not become a moderator',
+    update oan_users set email_verified = 'N' where id = l_target;
+    expect_error(oan_util.c_err_forbidden, 'an unverified email must not become a moderator',
                  'oan_security_pkg.grant_staff_role(' || l_target || ', ''MODERATOR'', ''GLOBAL'', null, ''Y'');');
+    update oan_users set email_verified = 'Y' where id = l_target;
+    expect_error(oan_util.c_err_validation, 'the access review must be confirmed',
+                 'oan_security_pkg.grant_staff_role(' || l_target || ', ''MODERATOR'', ''GLOBAL'', null, ''N'');');
+    oan_security_pkg.grant_staff_role(l_target, 'MODERATOR', 'GLOBAL', null, 'Y');
+    oan_ctx_pkg.set_test_viewer(l_target, 'MEMBER');
+    l_ok := oan_security_pkg.authz('MODERATOR');
+    ut.expect(l_ok, 'a local (email and password) account can hold a privileged role').to_equal('Y');
   end staff_grant_refuses_local_account;
 
   procedure staff_grant_needs_reauth is
@@ -213,18 +220,6 @@ create or replace package body ut_oan_platform as
     ut.expect(oan_security_pkg.authz('EXPERT'), 'non-privileged role').to_equal('Y');
   end unattested_scope_lapses;
 
-  procedure channel_viewer_has_no_staff_rights is
-    l_member number := new_member('Channel');
-  begin
-    insert into oan_staff_scopes (user_id, role_code, scope_type) values (l_member, 'EXPERT', 'GLOBAL');
-    oan_ctx_pkg.set_channel(l_member, 'slack');
-    ut.expect(sys_context('OAN_CTX','VIEWER_TYPE')).to_equal('CHANNEL');
-    ut.expect(sys_context('OAN_CTX','CHANNEL')).to_equal('SLACK');
-    ut.expect(sys_context('OAN_CTX','IS_ADMIN')).to_equal('N');
-    ut.expect(oan_security_pkg.authz('EXPERT'), 'no staff rights through a channel').to_equal('N');
-    oan_ctx_pkg.set_channel(l_member, 'carrier-pigeon');
-    ut.expect(sys_context('OAN_CTX','VIEWER_TYPE'), 'unknown channel').to_equal('NONE');
-  end channel_viewer_has_no_staff_rights;
 
   procedure in_group_membership is
     l_member number := new_member('Grouped');

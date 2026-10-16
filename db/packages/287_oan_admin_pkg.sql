@@ -5,7 +5,7 @@
 --   * Configuration values are checked against the key's type (NUMBER: whole number 0-100000; FLAG: Y or N;
 --     STRING: up to 500 characters, no markup).
 --   * Locked keys are set by deployment or a release gate, never from the page: the application id, phase,
---     public URL, synthetic-data switch (Q12), e-mail sender and digest (0.7) and channel identifiers (G-CH).
+--     public URL, synthetic-data switch (Q12), e-mail sender and digest (0.7).
 --   * Legal texts (FR-19): drafts get the next version number; publishing retires the previous published version
 --     of the same document; when it requires re-acceptance, members are asked again at their next sign-in.
 --   * Breached passwords (NFR-01): only SHA-1 hashes are stored, never passwords; the list is loaded as hex.
@@ -42,8 +42,7 @@ end oan_admin_pkg;
 create or replace package body oan_admin_pkg as
 
   c_locked constant varchar2(400) :=
-    ':APP_ID:CURRENT_PHASE:PUBLIC_URL:SYNTHETIC_DATA_ALLOWED:MAIL_FROM:DIGEST_ENABLED:SLACK_BOT_HANDLE:'
-    || 'WHATSAPP_PHONE_NUMBER_ID:WHATSAPP_TEMPLATE:';
+    ':APP_ID:CURRENT_PHASE:PUBLIC_URL:SYNTHETIC_DATA_ALLOWED:MAIL_FROM:DIGEST_ENABLED:';
 
   procedure require_admin_reauth is
   begin

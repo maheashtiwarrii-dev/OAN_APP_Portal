@@ -53,6 +53,27 @@ jobs:
           WALLET_B64: ${{ secrets.OAN_WALLET_ZIP_B64 }}
         run: echo "$WALLET_B64" | base64 -d > "$RUNNER_TEMP/wallet.zip"
 
+      - name: Database changes (Liquibase, task 0.16a)
+        env:
+          DEPLOY_PWD: ${{ secrets.OAN_DEPLOY_PASSWORD }}
+          APP_PWD: ${{ secrets.OAN_APP_PASSWORD }}
+          SERVICE: ${{ secrets.OAN_DB_SERVICE }}
+        run: |
+          {
+            echo "set cloudconfig $RUNNER_TEMP/wallet.zip"
+            echo "connect OAN_DEPLOY[OAN_DATA]/\"$DEPLOY_PWD\"@$SERVICE"
+            echo "cd $PWD/db"
+            echo "lb status -changelog-file controller.xml"
+            echo "lb update -changelog-file controller.xml"
+            echo "connect OAN_APP/\"$APP_PWD\"@$SERVICE"
+            echo "@$PWD/db/grants/20_app_synonyms.sql"
+            echo "exit"
+          } > "$RUNNER_TEMP/db.sql"
+          sql -S /nolog @"$RUNNER_TEMP/db.sql" | tee db.log
+          rm -f "$RUNNER_TEMP/db.sql"
+          grep -qE 'Update has been successful|is up to date' db.log
+          ! grep -qE '^(ORA|PLS|SP2)-[0-9]+' db.log
+
       - name: Import application 200
         env:
           APP_PWD: ${{ secrets.OAN_APP_PASSWORD }}
@@ -83,7 +104,7 @@ jobs:
             echo "set cloudconfig $RUNNER_TEMP/wallet.zip"
             echo "connect OAN_DEPLOY[OAN_DATA]/\"$DEPLOY_PWD\"@$SERVICE"
             echo "set serveroutput on size unlimited"
-            echo "exec ut.run(ut_varchar2_list('ut_oan_vis','ut_oan_directory','ut_oan_career','ut_oan_network'));"
+            echo "exec ut.run(ut_varchar2_list('ut_oan_vis','ut_oan_registry','ut_oan_auth','ut_oan_chat','ut_oan_bp_api','ut_oan_directory','ut_oan_career','ut_oan_network','ut_oan_platform','ut_oan_w2','ut_oan_messaging','ut_oan_w3','ut_oan_orgs','ut_oan_w4','ut_oan_w5','ut_oan_w6','ut_oan_w7'));"
             echo "exit"
           } > "$RUNNER_TEMP/ut.sql"
           sql -S /nolog @"$RUNNER_TEMP/ut.sql" | tee ut.log

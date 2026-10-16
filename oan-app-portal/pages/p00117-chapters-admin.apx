@@ -16,7 +16,7 @@ page 117 (
         formAutoComplete: false
     }
     comments {
-        comments: W0.12 (FR-16, Q11, P11, NFR-01). Region > Country > City chapter tree (materialized path). Platform Admins create chapters and assign Chapter Admins through OAN_CHAPTER_PKG / OAN_SECURITY_PKG; Chapter Admins must sign in with Google or LinkedIn and have 2-step verification attested. Registration approvals route to the nearest ancestor chapter with an active Chapter Admin.
+        comments: W0.12 (FR-16, Q11, P11, NFR-01). Region > Country > City chapter tree (materialized path). Platform Admins create chapters and assign Chapter Admins through OAN_CHAPTER_PKG / OAN_SECURITY_PKG; Chapter Admins need a verified email and the annual access review (Q37). Registration approvals route to the nearest ancestor chapter with an active Chapter Admin.
     }
 
     region tree (
@@ -135,7 +135,7 @@ page 117 (
         name: Chapter Admins
         type: staticContent
         source {
-            htmlCode: <p>Chapter Admins approve applications for their chapter and the chapters below it. They must sign in with Google or LinkedIn, and you must confirm you have checked their 2-step verification.</p>
+            htmlCode: <p>Chapter Admins approve applications for their chapter and the chapters below it. They need a verified email address, and you must confirm you have reviewed why they need the role (renewed every year).</p>
         }
         layout {
             sequence: 30
@@ -316,7 +316,7 @@ page 117 (
     pageItem P117_MFA_ATTESTED (
         type: switch
         label {
-            label: I have checked their 2-step verification
+            label: I have reviewed why they need this access
         }
         layout {
             sequence: 30

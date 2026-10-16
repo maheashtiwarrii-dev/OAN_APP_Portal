@@ -67,131 +67,96 @@ tr.tot td { border-top: 2px solid var(--line); }
 </head>
 <body>
 <main>
-  <div class="eyebrow">Project status report · 16 October 2026 · iteration 27 · project start 12 October 2026</div>
+  <div class="eyebrow">Project status report · 16 October 2026 · iteration 28 · project start 12 October 2026</div>
   <h1>OAN Portal (Oracle Alumni Network)</h1>
   <p class="sub">Oracle APEX application 200 on Autonomous Database · Plan v3.2 · APEX Build Pack v1.1 · development environment only</p>
 
   <h2>Summary</h2>
-  <p>The project started on 12 October 2026 (sprint S0, 12–23 October). All build waves W0 to W7 already run on the dev environment and are ready for user acceptance testing, well ahead of the sprint calendar, which runs to 21 May 2027. Members can use profiles, the directory and CVs, insights and events, conversations, opportunities, referrals and the helpdesk, groups, experts, mentoring, training, chapters and initiatives. Companies can register, post opportunities and needs, and review responses. Administrators have a dashboard, aggregate reports, settings and job monitoring. Every change is validated, tested on the database and pushed to GitHub, where CI runs on each push.</p>
+  <p>The project started on 12 October 2026 (sprint S0, 12–23 October). The build waves W0 to W7 run on the dev environment and every page is ready for user acceptance testing. On 16 October two requirements were removed at the product owner's request: <strong>Google sign-in</strong> (everyone now signs in with an e-mail address and password, any provider including Gmail; Q37) and <strong>Slack and WhatsApp</strong> (notifications are in-app and e-mail; Q38). The environment workstream WS0 is complete apart from two items that wait on others.</p>
   <div class="kpis">
-    <div class="kpi"><b>93</b><span>APEX pages live on dev, all ready for testing</span></div>
-    <div class="kpi"><b>168 / 168</b><span>tests passing: 18 suites + every page query run as 5 personas</span></div>
-    <div class="kpi"><b>85%</b><span>of build waves W0–W7 complete (61 of 68 tasks); whole plan 68%</span></div>
-    <div class="kpi"><b>Not yet</b><span>ready for go-live: ready for user acceptance testing on dev</span></div>
+    <div class="kpi"><b>91%</b><span>of build waves W0–W7 complete (61 of 66 tasks)</span></div>
+    <div class="kpi"><b>14 / 16</b><span>WS0 environment tasks done; e-mail waits for the SMTP credential, the AI spike for gate G-AI</span></div>
+    <div class="kpi"><b>160 / 160</b><span>tests passing: 17 suites + every page query run as 5 personas</span></div>
+    <div class="kpi"><b>92</b><span>APEX pages live on dev, all ready for testing</span></div>
   </div>
-  <p><strong>Go-live position:</strong> the application is feature-complete for v1 and ready for user acceptance testing with synthetic data, including the admin and moderation pages (dev-only test roles, decision Q36). Two defects found while confirming readiness were fixed on 16 October: public pages such as Create account and Register your company returned an error to signed-out visitors, and staff roles could not take effect because the app had no access-control roles. Go-live needs the 18-point gate 8.0: a production environment on APEX 26.2, staff sign-in through an identity provider with 2-step verification in production (Q33), email delivery (0.7), security, load and accessibility tests, the DPIA and legal texts, named owners and a signed UAT.</p>
+  <p><strong>Go-live position:</strong> ready for user acceptance testing with synthetic data; not yet for production. Gate 8.0 still needs e-mail delivery, a production environment on APEX 26.2, security, load and accessibility tests, the DPIA and legal texts, and a signed UAT. Whole plan: 90 of 144 tasks, 74% of person-days.</p>
 
   <h2 class="avoid">Build waves W0–W7: % complete</h2>
   <p>% complete = estimated person-days of done tasks ÷ all person-days in the wave. Gated items are built or designed but stay off until their external gate.</p>
   <table class="avoid">
     <thead><tr><th>Wave</th><th>Tasks done</th><th>Progress</th><th>% complete</th><th>Still open</th></tr></thead>
     <tbody>
-      <tr><td>W0 Sign-in, onboarding and admin</td><td class="num">20 of 22</td><td><div class="mini"><i style="width:76%"></i></div></td><td class="num"><span class="pill prog">76%</span></td><td>Security baseline review (Advisor, cookie notice); AI assistant gated (G-AI)</td></tr>
-      <tr><td>W1 Shell, Home and search</td><td class="num">3 of 3</td><td><div class="mini"><i style="width:100%"></i></div></td><td class="num"><span class="pill done">100%</span></td><td>-</td></tr>
-      <tr><td>W2 Profile, directory and CV</td><td class="num">11 of 11</td><td><div class="mini"><i style="width:100%"></i></div></td><td class="num"><span class="pill done">100%</span></td><td>-</td></tr>
-      <tr><td>W3 Insights and events</td><td class="num">6 of 6</td><td><div class="mini"><i style="width:100%"></i></div></td><td class="num"><span class="pill done">100%</span></td><td>-</td></tr>
-      <tr><td>W4 Conversations, notifications, channels</td><td class="num">4 of 6</td><td><div class="mini"><i style="width:59%"></i></div></td><td class="num"><span class="pill prog">59%</span></td><td>Slack and WhatsApp built but off until gate G-CH</td></tr>
+      <tr><td>W0 Sign-in, onboarding and admin</td><td class="num">20 of 22</td><td><div class="mini"><i style="width:76%"></i></div></td><td class="num"><span class="pill prog">76%</span></td><td>Security baseline review (W0.18); AI assistant waits for gate G-AI</td></tr>
+      <tr><td>W1 Shell, Home and search</td><td class="num">3 of 3</td><td><div class="mini"><i style="width:100%"></i></div></td><td class="num"><span class="pill done">100%</span></td><td>—</td></tr>
+      <tr><td>W2 Profile, directory and CV</td><td class="num">11 of 11</td><td><div class="mini"><i style="width:100%"></i></div></td><td class="num"><span class="pill done">100%</span></td><td>—</td></tr>
+      <tr><td>W3 Insights and events</td><td class="num">6 of 6</td><td><div class="mini"><i style="width:100%"></i></div></td><td class="num"><span class="pill done">100%</span></td><td>—</td></tr>
+      <tr><td>W4 Conversations and notifications</td><td class="num">4 of 4</td><td><div class="mini"><i style="width:100%"></i></div></td><td class="num"><span class="pill done">100%</span></td><td>—</td></tr>
       <tr><td>W5 Opportunities, helpdesk, companies</td><td class="num">6 of 7</td><td><div class="mini"><i style="width:96%"></i></div></td><td class="num"><span class="pill prog">96%</span></td><td>Careers feed waits for gate G-CF (Careers links work)</td></tr>
       <tr><td>W6 Community, experts, training, partners</td><td class="num">7 of 9</td><td><div class="mini"><i style="width:86%"></i></div></td><td class="num"><span class="pill prog">86%</span></td><td>Marketplace and badges in the descope lane (Could)</td></tr>
-      <tr><td>W7 Admin, reports and hardening</td><td class="num">4 of 4</td><td><div class="mini"><i style="width:100%"></i></div></td><td class="num"><span class="pill done">100%</span></td><td>-</td></tr>
-      <tr class="tot"><td><strong>W0–W7</strong></td><td class="num"><strong>61 of 68</strong></td><td><div class="mini"><i style="width:85%"></i></div></td><td class="num"><span class="pill prog">85%</span></td><td>162.25 of 190.5 person-days</td></tr>
+      <tr><td>W7 Admin, reports and hardening</td><td class="num">4 of 4</td><td><div class="mini"><i style="width:100%"></i></div></td><td class="num"><span class="pill done">100%</span></td><td>—</td></tr>
+      <tr class="tot"><td><strong>W0–W7</strong></td><td class="num"><strong>61 of 66</strong></td><td><div class="mini"><i style="width:91%"></i></div></td><td class="num"><span class="pill prog">91%</span></td><td>162.25 of 178.5 person-days</td></tr>
+    </tbody>
+  </table>
+
+  <h2 class="avoid">WS0 environment and tooling</h2>
+  <table class="avoid">
+    <thead><tr><th>Item</th><th>Status</th><th>Detail</th></tr></thead>
+    <tbody>
+      <tr><td>Toolchain, dev ADB, ADMIN bootstrap, workspace, Git, utPLSQL</td><td><span class="pill done">Done</span></td><td>Network access reduced to the e-mail relay only (Google, LinkedIn, Slack and Meta hosts removed)</td></tr>
+      <tr><td>CI/CD (0.9)</td><td><span class="pill done">Done</span></td><td>Every push: brand, links, page security, base tables, dev-script guard, changelog check, secret scan, APEXLang validation. Deploy: Liquibase, import, all test suites</td></tr>
+      <tr><td>Liquibase changelog (0.16a)</td><td><span class="pill done">Done</span></td><td><code>db/controller.xml</code> generated from <code>install.sql</code> (88 changesets); dev baselined</td></tr>
+      <tr><td>Secrets register (0.15)</td><td><span class="pill done">Done</span></td><td><code>docs/secrets-register.md</code>: owners and rotation, no values</td></tr>
+      <tr><td>Spikes (APEX version, two-schema, password hashing, Oracle Text)</td><td><span class="pill done">Done</span></td><td>—</td></tr>
+      <tr><td>E-mail delivery (0.7)</td><td><span class="pill block">Needs input</span></td><td>Script <code>db/grants/40_email_delivery.sql</code> is ready; OAN provides an SMTP credential (OCI Email Delivery, or Gmail with an app password). Until then sign-up confirmation and password e-mails are not delivered</td></tr>
+      <tr><td>AI assistant spike (0.18)</td><td><span class="pill wait">Gated</span></td><td>Waits for gate G-AI</td></tr>
+      <tr><td>Removed</td><td>—</td><td>Google client and social sign-in spike (Q37); Slack/WhatsApp procurement, webhook spike and ORDS module (Q38); optional local database and scratch-schema rebuild (single shared ADB, Q34)</td></tr>
     </tbody>
   </table>
 
   <h2>Kanban dashboard</h2>
-  <p>Live board: <a href="https://maheashtiwarrii-dev.github.io/OAN_APP_Portal/">maheashtiwarrii-dev.github.io/OAN_APP_Portal</a> · printable copy: <code>docs/OAN-Delivery-Board-landscape.pdf</code> · GitHub Project: <a href="https://github.com/users/maheashtiwarrii-dev/projects/1">projects/1</a> (169 items). 155 tasks across 16 sprints, S0 (12–23 Oct 2026) to S15 (10–21 May 2027), and 11 gates.</p>
-  <div class="bar" role="img" aria-label="Tasks by status: 82 done, 12 in progress, 4 authored, 6 blocked or gated, 51 not started">
-    <i style="width:52.9%;background:var(--ok)"></i>
-    <i style="width:7.7%;background:var(--info)"></i>
-    <i style="width:2.6%;background:var(--warn)"></i>
-    <i style="width:3.9%;background:var(--bad)"></i>
-    <i style="width:32.9%;background:var(--line)"></i>
+  <p>Live board: <a href="https://maheashtiwarrii-dev.github.io/OAN_APP_Portal/delivery-board.html">maheashtiwarrii-dev.github.io/OAN_APP_Portal</a> · printable copy: <code>docs/OAN-Delivery-Board-landscape.pdf</code> · GitHub Project: <a href="https://github.com/users/maheashtiwarrii-dev/projects/1">projects/1</a>. 144 tasks across 16 sprints, S0 (12–23 Oct 2026) to S15 (10–21 May 2027), and 10 gates.</p>
+  <div class="bar" role="img" aria-label="Tasks by status: 90 done, 8 in progress, 2 authored, 3 blocked or gated, 41 not started">
+    <i style="width:62.5%;background:var(--ok)"></i>
+    <i style="width:5.6%;background:var(--info)"></i>
+    <i style="width:1.4%;background:var(--warn)"></i>
+    <i style="width:2.1%;background:var(--bad)"></i>
+    <i style="width:28.5%;background:var(--line)"></i>
   </div>
   <div class="legend">
-    <span><i style="background:var(--ok)"></i>Done 82</span>
-    <span><i style="background:var(--info)"></i>In progress 12</span>
-    <span><i style="background:var(--warn)"></i>Authored, untested 4</span>
-    <span><i style="background:var(--bad)"></i>Blocked 3 · gated 3</span>
-    <span><i style="background:var(--line)"></i>Not started 51</span>
+    <span><i style="background:var(--ok)"></i>Done 90</span>
+    <span><i style="background:var(--info)"></i>In progress 8</span>
+    <span><i style="background:var(--warn)"></i>Authored, untested 2</span>
+    <span><i style="background:var(--bad)"></i>Blocked 1 · gated 2</span>
+    <span><i style="background:var(--line)"></i>Not started 41</span>
   </div>
 
-  <h3>Progress by workstream</h3>
-  <table>
-    <thead><tr><th>Workstream</th><th>Status</th><th>What is in place</th></tr></thead>
-    <tbody>
-      <tr><td>Environment (WS0)</td><td><span class="pill prog">11 of 23 done</span></td><td>Dev ADB on APEX 26.1.5, ADMIN bootstrap, utPLSQL, spikes. Blocked: Google client, social sign-in spike, email delivery.</td></tr>
-      <tr><td>Database (WS1)</td><td><span class="pill prog">15 of 20 done</span></td><td>Secure views and definer-rights packages only (no table grants to the app schema); personal-data registry with retention; staff scopes; job locks; synthetic data.</td></tr>
-      <tr><td>W0 Auth &amp; admin</td><td><span class="pill prog">17 of 22 done</span></td><td>Sign-in, registration, onboarding, legal texts, identity confirmation, approvals, members and staff roles, chapters, taxonomy, moderation, audit, deny-list, breached passwords, health pages. Open: security baseline review (Advisor, cookie notice), Build Option wiring.</td></tr>
-      <tr><td>W1 Shell &amp; Home</td><td><span class="pill done">3 of 3 done</span></td><td>Rail, profile card, notifications; Home with letters, events, route cards and role offers; global search across 9 areas.</td></tr>
-      <tr><td>W2 Profile &amp; directory</td><td><span class="pill done">10 of 11 done</span></td><td>Directory cards, profiles, CV, work profile, introductions, recommendations, referral opt-in, update and privacy request admin.</td></tr>
-      <tr><td>W3 Insights &amp; events</td><td><span class="pill done">6 of 6 done</span></td><td>Insights and perspectives; events with registration, waitlist, reminders, check-in and CSV; library import.</td></tr>
-      <tr><td>W4 Conversations</td><td><span class="pill done">4 of 6 done</span></td><td>Conversations, notification settings, unsubscribe, Help Me Connect. Slack/WhatsApp built, gated (G-CH).</td></tr>
-      <tr><td>W5 Opportunities</td><td><span class="pill done">5 of 7 done</span></td><td>Opportunities, applications, referrals, helpdesk, skills in demand, company registration and workspace. Careers feed gated (G-CF).</td></tr>
-      <tr><td>W6 Community &amp; partners</td><td><span class="pill done">7 of 9 done</span></td><td>Groups, reactions, experts, mentoring, training, company needs, chapters, initiatives, stories, endorsements. Marketplace and badges descoped.</td></tr>
-      <tr><td>W7 Reporting &amp; hardening</td><td><span class="pill done">4 of 4 done</span></td><td>Admin dashboard, 11 aggregate reports, settings with re-authentication, job runs, page-security check in CI.</td></tr>
-      <tr><td>Quality, compliance, release, acceptance</td><td><span class="pill idle">0 of 42 started</span></td><td>Security, load and accessibility tests; DPIA and legal texts; production and go-live gate; UAT. Planned for S11–S15.</td></tr>
-    </tbody>
-  </table>
-
-  <h2 class="avoid">Delivered on dev (app 200, 93 pages)</h2>
-  <table>
-    <thead><tr><th>Area</th><th>Pages</th></tr></thead>
-    <tbody>
-      <tr><td>Sign-in and onboarding</td><td>1 Login · 2 Onboarding · 3 Create account · 4 Access denied · 5 Status · 6 Application · 7 Confirm email · 8 Reset password · 9 Link account · 11 Welcome · 12 Legal · 13 Report a concern · 14 Accept terms · 15 Confirm identity · 44 Unsubscribe</td></tr>
-      <tr><td>Shell and Home</td><td>0 Global page · 10 Home · 19 Search · 41 Notifications · 42 Notification settings · 43 Slack and WhatsApp</td></tr>
-      <tr><td>Profile and directory</td><td>20 Directory · 21 Results · 22 Member profile · 23 My profile · 24 My CV · 25 Work profile · 26 Settings · 27 Privacy centre · 28 My network · 29 Help Me Connect · 90 · 91 · 231–234</td></tr>
-      <tr><td>Insights and events</td><td>30 Insights · 31 Article · 301 Write · 32 Events · 33 Event detail · 331 Event editor · 34–36 Library</td></tr>
-      <tr><td>Conversations</td><td>40 Conversations · 80 Report · 81 My decisions</td></tr>
-      <tr><td>Careers and helpdesk</td><td>50 Opportunities · 51 Opportunity · 52 My applications · 53 Post · 54 Referrals · 55 Helpdesk · 56 Skills in demand</td></tr>
-      <tr><td>Community, experts and learning</td><td>60 Discussions · 61 Groups · 62 Post · 73 New post · 63 Experts · 65 Mentoring · 67 Training · 69 Company needs · 74 Chapters · 77 Initiatives · 78 Success stories</td></tr>
-      <tr><td>Companies</td><td>76 Register your company (public) · 70 Company workspace · 71 Company opportunities · 72 Our needs</td></tr>
-      <tr><td>Administration (test as tester.bala / tester.asha, Q36)</td><td>100 Admin dashboard · 101 Members · 106 Taxonomy · 107 Moderation · 110 Audit · 112 Company registrations · 114 Approvals · 115 Review · 116 Member detail · 117 Chapters · 118 Requests · 119 Appeals · 120 Library import · 121 Privacy requests · 122 Settings · 123 Job runs · 124 Legal texts · 125 Deny-list · 126 Breached passwords · 128 Profile update requests · 9001 System health</td></tr>
-      <tr><td>Health</td><td>9000 Health (public, for monitoring)</td></tr>
-    </tbody>
-  </table>
-  <p>Test data on dev is synthetic only (decision Q12): 265 alumni, test accounts, CV-based personas and sample content for every area. OAN does not handle Oracle HR documents (Q29, Q35).</p>
-
   <h2 class="avoid">Ready for testing</h2>
-  <p>Every page, its tester and the dev account to use are listed in <code>docs/test-readiness.md</code>. All page queries were run on dev as five personas without error, and all public pages were opened in a browser.</p>
+  <p>Every page, its tester and the dev account to use are listed in <code>docs/test-readiness.md</code>. Sign-in link: <code>…/ords/r/oan_app/oan-app-portal200/login</code>.</p>
   <table class="avoid">
     <thead><tr><th>Who</th><th>Journey to test on dev</th><th>Limits</th></tr></thead>
     <tbody>
-      <tr><td>Member</td><td>Home → Directory → Profile → Conversations → Opportunities → Groups → Experts → Mentoring → Training → Company needs</td><td>No emails are delivered</td></tr>
-      <tr><td>Company contact</td><td>Register (76) → Workspace (70) → Opportunities (71) → Our needs (72)</td><td>Approval email not delivered; the sample company account is used</td></tr>
-      <tr><td>Moderator and staff (tester.asha)</td><td>Moderation queue (107), helpdesk queue (55), events, insights, chapter approvals</td><td>Never decides their own item (P25)</td></tr>
-      <tr><td>Platform Admin (tester.bala)</td><td>Dashboard (100), approvals, members and staff roles, settings, legal texts, job runs, system health, privacy requests</td><td>Dev-only roles (Q36); production staff need an identity provider (Q33)</td></tr>
+      <tr><td>Member</td><td>Home → Directory → Profile → Conversations → Opportunities → Groups → Experts → Mentoring → Training → Company needs</td><td>No e-mails until 0.7</td></tr>
+      <tr><td>New member (any e-mail, Gmail included)</td><td>Create account (3) → confirm e-mail (7) → application (6) → approval</td><td>Needs e-mail delivery (0.7) for the confirmation link</td></tr>
+      <tr><td>Company contact</td><td>Register (76) → Workspace (70) → Opportunities (71) → Our needs (72)</td><td>Approval e-mail needs 0.7</td></tr>
+      <tr><td>Moderator and staff (tester.asha)</td><td>Moderation (107), helpdesk queue (55), events, insights, chapter approvals</td><td>Never decides their own item</td></tr>
+      <tr><td>Platform Admin (tester.bala)</td><td>Dashboard (100), approvals, members and staff roles, settings, legal texts, job runs, system health</td><td>Dev-only test roles (Q36)</td></tr>
     </tbody>
   </table>
 
   <h2 class="avoid">CI/CD pipeline</h2>
   <div class="pipeline avoid">
-    <div class="stage"><b>1 · Every push and pull request</b><ul><li>Brand check (no Oracle logos)</li><li>Link check (no 404 pages)</li><li>Page-security check (W7)</li><li>Base-table check (NFR-03)</li><li>Dev-script guard</li><li>Secret scan (gitleaks)</li></ul></div>
-    <div class="stage"><b>2 · Build</b><ul><li>Offline APEXLang validation with SQLcl (all 93 pages)</li><li>No database or secrets needed</li></ul></div>
-    <div class="stage"><b>3 · Deploy to dev (manual)</b><ul><li>Validate again</li><li>Import app 200</li><li>Enable automations</li><li>Run utPLSQL suites</li></ul></div>
-    <div class="stage"><b>4 · Publish</b><ul><li>Kanban board, status report and both PDFs to GitHub Pages</li><li>GitHub Project kept in step</li></ul></div>
+    <div class="stage"><b>1 · Every push</b><ul><li>Brand check (no Oracle logos)</li><li>Link and page-security checks</li><li>Base-table check (NFR-03)</li><li>Changelog = install.sql</li><li>Secret scan (gitleaks)</li></ul></div>
+    <div class="stage"><b>2 · Build</b><ul><li>Offline APEXLang validation with SQLcl (92 pages)</li></ul></div>
+    <div class="stage"><b>3 · Deploy to dev</b><ul><li>Liquibase update (controller.xml)</li><li>Import app 200, enable automations</li><li>All utPLSQL suites</li><li>Sign-in page responds</li></ul></div>
+    <div class="stage"><b>4 · Publish</b><ul><li>Board, report and PDFs on GitHub Pages</li><li>GitHub Project #1 status update</li></ul></div>
   </div>
   <table>
     <thead><tr><th>Item</th><th>Status</th></tr></thead>
     <tbody>
-      <tr><td>Workflows <code>ci.yml</code>, <code>deploy-dev.yml</code>, <code>board.yml</code></td><td><span class="pill done">Live</span> CI green on every push this week</td></tr>
-      <tr><td>Check scripts (<code>ci/</code>)</td><td><span class="pill done">Live</span> links, base tables, brand, page security and validation pass on 93 pages</td></tr>
-      <tr><td>Board, report and PDFs on GitHub Pages</td><td><span class="pill done">Live</span> republished on every push to <code>docs/</code></td></tr>
-      <tr><td>Local release checks per iteration</td><td><span class="pill done">Running</span> page SQL/PL/SQL compiled as the app schema (151 queries, 204 blocks), utPLSQL 168/168 incl. page smoke, import to dev, public pages opened in headless Edge</td></tr>
-      <tr><td>Dev deploy secrets</td><td><span class="pill wait">Waiting</span> wallet and passwords to be added by the owner in environment <code>dev</code></td></tr>
+      <tr><td>Workflows <code>ci.yml</code>, <code>deploy-dev.yml</code>, <code>board.yml</code></td><td><span class="pill done">Live</span> CI green on every push</td></tr>
+      <tr><td>Local release checks per iteration</td><td><span class="pill done">Running</span> page SQL/PL/SQL compiled as the app schema (148 queries, 200 blocks), 160/160 tests, import to dev, public pages checked over HTTP</td></tr>
+      <tr><td>Dev deploy secrets in GitHub</td><td><span class="pill wait">Waiting</span> wallet and passwords to be added by the owner in environment <code>dev</code></td></tr>
       <tr><td>Production deployment</td><td><span class="pill idle">Not automated</span> requires go-live gate 8.0</td></tr>
-    </tbody>
-  </table>
-
-  <h2 class="avoid">Go-live readiness (gate 8.0)</h2>
-  <table class="avoid">
-    <thead><tr><th>Area</th><th>Status</th><th>Still needed</th></tr></thead>
-    <tbody>
-      <tr><td>Application build (W0–W7)</td><td><span class="pill done">Built</span></td><td>UAT and fixes; Must acceptance criteria regression (5.1) and journeys J-01..J-21 (5.10)</td></tr>
-      <tr><td>Production environment</td><td><span class="pill idle">Not started</span></td><td>PROD ADB on APEX 26.2 (dev is 26.1.5), deploy pipeline (0.16), fresh secrets (0.15), restore test (5.5)</td></tr>
-      <tr><td>Sign-in and email</td><td><span class="pill block">Blocked</span></td><td>Identity provider with 2-step verification for staff in production (Q33; dev uses the Q36 exception); OCI Email Delivery (0.7)</td></tr>
-      <tr><td>Testing</td><td><span class="pill idle">Not started</span></td><td>Security test (5.2), load test (5.3b), WCAG 2.2 AA audit (5.4), security and privacy matrix (5.7)</td></tr>
-      <tr><td>Privacy and legal</td><td><span class="pill idle">Not started</span></td><td>DPIA and RoPA, DPAs, legal texts, privacy contact, breach runbook, named owners (7.1–7.5)</td></tr>
-      <tr><td>Operations and acceptance</td><td><span class="pill idle">Not started</span></td><td>Runbook, admin guide, go-live checklist, UAT sign-off (G5), pilot of about 50 members and 3 verified companies</td></tr>
     </tbody>
   </table>
 
@@ -199,11 +164,10 @@ tr.tot td { border-top: 2px solid var(--line); }
   <table class="avoid">
     <thead><tr><th>Item</th><th>Impact</th><th>Owner</th></tr></thead>
     <tbody>
-      <tr><td>Google OAuth client for production staff sign-in (dev uses the Q36 exception)</td><td><span class="pill wait">Needed</span> for the go-live gate (NFR-01)</td><td>OAN / product owner</td></tr>
-      <tr><td>OCI Email Delivery for dev (task 0.7)</td><td><span class="pill wait">Limits</span> sign-up confirmation, password links, company approval emails</td><td>OAN</td></tr>
+      <tr><td>SMTP credential for e-mail delivery (0.7): OCI Email Delivery approved sender + SMTP credential, or a Gmail app password; then run <code>db/grants/40_email_delivery.sql</code></td><td><span class="pill block">Blocks</span> sign-up with any e-mail (confirmation link), password reset, approval e-mails</td><td>OAN</td></tr>
+      <tr><td>2-step verification for staff (recommended after Q37)</td><td><span class="pill wait">Decision</span> staff accounts have a password only; an in-app authenticator code would add a second factor</td><td>Product owner</td></tr>
       <tr><td>Production ADB on APEX 26.2 and region (OI-2)</td><td><span class="pill wait">Needed</span> for the go-live gate</td><td>OAN / sponsor</td></tr>
       <tr><td>DPIA, legal texts, privacy contact, named owners (WS7)</td><td><span class="pill wait">Needed</span> for the go-live gate</td><td>OAN</td></tr>
-      <tr><td>Gate G-CH: Slack app, WhatsApp Business number, DPAs, DPIA annex</td><td><span class="pill wait">Gated</span> channels are built but switched off</td><td>OAN</td></tr>
       <tr><td>Gate G-CF: Oracle Careers feed</td><td><span class="pill wait">Gated</span> Oracle roles are entered as Careers links until then</td><td>OAN</td></tr>
       <tr><td>PBKDF2 cost (≈1.9 s per sign-in at 210k iterations)</td><td><span class="pill wait">Change request</span> NFR-01 vs login performance</td><td>Product owner</td></tr>
     </tbody>
@@ -211,10 +175,10 @@ tr.tot td { border-top: 2px solid var(--line); }
 
   <h2>Next steps</h2>
   <ul class="tight">
-    <li>User acceptance testing on dev with the test accounts in <code>docs/test-readiness.md</code>; product-owner demo of W0–W7.</li>
-    <li>Set up email delivery (0.7) so sign-up, password and approval emails can be tested end to end.</li>
+    <li>Provide the SMTP credential and run the e-mail script, so anyone can register with their Gmail or other address and confirm it.</li>
+    <li>User acceptance testing on dev with the test accounts in <code>docs/test-readiness.md</code>.</li>
     <li>Security, load and accessibility tests, then fixes (WS5); security baseline review (W0.18).</li>
-    <li>In parallel, OAN completes the DPIA, legal texts and named owners (WS7), orders the production environment and sets up Google sign-in for staff.</li>
+    <li>In parallel, OAN completes the DPIA, legal texts and named owners (WS7) and orders the production environment.</li>
   </ul>
 
   <p class="foot">Source: <code>task_plan.md</code>, <code>progress.md</code> and the delivery board in github.com/maheashtiwarrii-dev/OAN_APP_Portal. OAN is an independent alumni community; this report uses no Oracle logos.</p>

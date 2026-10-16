@@ -14,7 +14,6 @@ create or replace package oan_auth_pkg authid definer as
   function authenticate(p_username in varchar2, p_password in varchar2) return boolean;
   -- Post-authentication procedures
   procedure post_auth_local;
-  procedure post_auth_google;
   procedure post_auth_linkedin;
 
   -- Passwords
@@ -273,11 +272,6 @@ create or replace package body oan_auth_pkg as
     finish_login(l_user_id);
   end post_auth_social;
 
-  procedure post_auth_google is
-  begin
-    post_auth_social('GOOGLE');
-  end post_auth_google;
-
   procedure post_auth_linkedin is
   begin
     post_auth_social('LINKEDIN');
@@ -361,7 +355,7 @@ create or replace package body oan_auth_pkg as
           oan_notify_pkg.page_url(8, 'P8_TOKEN:' || l_token), 'Reset password');
       else
         oan_notify_pkg.send_email(l_user.email, 'OAN sign-in help',
-          'Your OAN account signs in with Google or LinkedIn, so it has no password to reset.');
+          'Your OAN account signs in with LinkedIn, so it has no password to reset.');
       end if;
       oan_audit_pkg.log('PASSWORD_RESET_REQUESTED', 'USER', l_user.id, l_user.id);
     exception
@@ -401,7 +395,7 @@ create or replace package body oan_auth_pkg as
       'If this was not you, reset your password and contact the OAN privacy contact.');
   exception
     when no_data_found then
-      oan_util.raise_error(oan_util.c_err_validation, 'Your account signs in with Google or LinkedIn and has no password.');
+      oan_util.raise_error(oan_util.c_err_validation, 'Your account signs in with LinkedIn and has no password.');
   end change_password;
 
   ------------------------------------------------------------------------------
@@ -475,9 +469,6 @@ create or replace package body oan_auth_pkg as
     select count(*) into l_ids   from oan_user_identities where user_id = l_user_id;
     select count(*) into l_local from oan_local_credentials where user_id = l_user_id;
     oan_util.assert(l_ids + l_local > 1, 'You cannot remove your only sign-in method.');
-    oan_util.assert(not (l_ids = 1 and (oan_security_pkg.is_admin or oan_security_pkg.is_moderator
-                                        or sys_context('OAN_CTX','IS_CHAPTER_ADMIN') = 'Y')),
-                    'Privileged roles require at least one Google or LinkedIn sign-in.');
     delete from oan_user_identities where user_id = l_user_id and provider = p_provider;
     oan_audit_pkg.log('IDENTITY_UNLINKED', 'USER', l_user_id, l_user_id, json_object('provider' value p_provider));
   end unlink;

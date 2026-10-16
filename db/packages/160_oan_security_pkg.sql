@@ -1,6 +1,6 @@
 --------------------------------------------------------------------------------
 -- oan_security_pkg: roles via APEX ACL (single source, P10), chapter scope, CoI,
---   privileged-role IdP rule + MFA attestation (NFR-01, P08, Q18), session kill (NFR-02)
+--   privileged roles need a verified email and an annual access review (NFR-01 as amended by Q37), session kill (NFR-02)
 --------------------------------------------------------------------------------
 create or replace package oan_security_pkg authid definer as
   c_privileged_roles constant varchar2(100) := ':ADMIN:MODERATOR:CHAPTER_ADMIN:PRIVACY_OFFICER:';
@@ -11,7 +11,6 @@ create or replace package oan_security_pkg authid definer as
   function is_active_member return boolean;
   -- Viewer administers p_chapter_id directly or through an ancestor chapter
   function is_chapter_admin_of(p_chapter_id in number, p_user_id in number default null) return boolean;
-  function has_idp_identity(p_user_id in number) return boolean;
 
   procedure require_admin;
   procedure require_active_member;
@@ -24,7 +23,7 @@ create or replace package oan_security_pkg authid definer as
   procedure remove_chapter_admin(p_chapter_id in number, p_user_id in number);
   procedure attest_mfa(p_user_id in number);
 
-  -- 1.31 One grant API for every staff role and scope (S10). Privileged roles: IdP sign-in required
+  -- 1.31 One grant API for every staff role and scope (S10). Privileged roles: verified email + access review (Q37)
   -- (local accounts refused), 2-step verification attested, annual re-attestation with auto-revoke.
   -- Every grant and revoke ends the user's sessions. grant_role / assign_chapter_admin delegate here.
   procedure grant_staff_role(p_user_id in number, p_role in varchar2, p_scope_type in varchar2 default 'GLOBAL',
@@ -97,13 +96,6 @@ create or replace package body oan_security_pkg as
        and a.user_id = coalesce(p_user_id, oan_util.viewer_id);
     return l_cnt > 0;
   end is_chapter_admin_of;
-
-  function has_idp_identity(p_user_id in number) return boolean is
-    l_cnt number;
-  begin
-    select count(*) into l_cnt from oan_user_identities where user_id = p_user_id;
-    return l_cnt > 0;
-  end has_idp_identity;
 
   procedure require_admin is
   begin
@@ -188,12 +180,12 @@ create or replace package body oan_security_pkg as
     select count(*) into l_cnt from oan_users where id = p_user_id and status = 'ACTIVE';
     oan_util.assert(l_cnt = 1, 'Staff roles are granted to active accounts only.');
     if l_priv then
-      -- NFR-01 / P08: privileged roles only for IdP-authenticated users with attested 2-step verification
-      oan_util.assert(has_idp_identity(p_user_id),
-        'Privileged roles require a linked Google or LinkedIn sign-in (NFR-01). Local accounts are refused.',
-        oan_util.c_err_forbidden);
+      -- NFR-01 as amended by Q37 (16 Oct 2026): every account signs in with email + password; privileged roles
+      -- need a verified email address and the granting admin's access review, renewed every 12 months (P08)
+      select count(*) into l_cnt from oan_users where id = p_user_id and email_verified = 'Y';
+      oan_util.assert(l_cnt = 1, 'Privileged roles need an account with a verified email address.', oan_util.c_err_forbidden);
       oan_util.assert(p_mfa_attested = 'Y',
-        'Confirm that this user has 2-step verification enabled at their identity provider.');
+        'Confirm that you have reviewed why this person needs this role (annual access review).');
       update oan_users set mfa_attested_at = l_now, mfa_attested_by = l_me where id = p_user_id;
     end if;
     begin
@@ -255,7 +247,7 @@ create or replace package body oan_security_pkg as
     l_valid timestamp with time zone := oan_util.now - interval '12' month - interval '30' day;
     l_privs varchar2(100) := c_privileged_roles;
   begin
-    if l_me is null or sys_context('OAN_CTX','VIEWER_TYPE') in ('CHANNEL','NONE','PENDING') then
+    if l_me is null or sys_context('OAN_CTX','VIEWER_TYPE') in ('NONE','PENDING') then
       return 'N';
     end if;
     if sys_context('OAN_CTX','IS_ADMIN') = 'Y' then
@@ -377,7 +369,7 @@ create or replace package body oan_security_pkg as
                where u.mfa_attested_at < systimestamp - interval '12' month
                  and u.mfa_attested_at >= systimestamp - interval '12' month - interval '1' day) loop
       oan_notify_pkg.notify_role('ADMIN', 'SECURITY_ALERT',
-        'MFA re-attestation due', 'A privileged user needs annual 2-step verification re-attestation within 30 days.', 101);
+        'Access review due', 'A privileged user needs the annual access review within 30 days.', 101);
     end loop;
   end remind_mfa_reattestation;
 
@@ -392,10 +384,10 @@ create or replace package body oan_security_pkg as
         apex_acl.remove_user_role(p_application_id => app_id, p_user_name => u.username,
                                   p_role_static_id => r.role_static_id);
         oan_audit_pkg.log('ROLE_AUTO_REVOKE', 'USER', u.id, u.id,
-                          json_object('role' value r.role_static_id, 'reason' value 'MFA re-attestation overdue'));
+                          json_object('role' value r.role_static_id, 'reason' value 'annual access review overdue'));
       end loop;
       delete from oan_chapter_admins where user_id = u.id;
-      update oan_staff_scopes set revoked_at = oan_util.now, revoke_reason = 'MFA re-attestation overdue'
+      update oan_staff_scopes set revoked_at = oan_util.now, revoke_reason = 'annual access review overdue'
        where user_id = u.id and revoked_at is null and instr(c_privileged_roles, ':' || role_code || ':') > 0;
       update oan_users set mfa_attested_at = null where id = u.id;
       end_user_sessions(u.id);
@@ -411,7 +403,7 @@ create or replace package body oan_security_pkg as
      where application_id = p_app_id and role_static_id = 'ADMIN';
     oan_util.assert(l_count = 0, 'An administrator already exists; use the admin pages.');
     select * into l_user from oan_users where lower(email) = lower(p_email) and status = 'ACTIVE';
-    oan_util.assert(has_idp_identity(l_user.id), 'The first admin must have signed in with Google or LinkedIn.');
+    oan_util.assert(l_user.email_verified = 'Y', 'The first admin needs a verified email address.');
     apex_acl.add_user_role(p_application_id => p_app_id, p_user_name => l_user.username, p_role_static_id => 'ADMIN');
     update oan_users set mfa_attested_at = systimestamp where id = l_user.id;
     oan_audit_pkg.log('ROLE_GRANT_BOOTSTRAP', 'USER', l_user.id, l_user.id, json_object('role' value 'ADMIN'));

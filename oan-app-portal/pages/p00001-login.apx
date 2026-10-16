@@ -132,30 +132,6 @@ page 1 (
         }
     )
 
-    button sign-in-google (
-        buttonName: SIGN_IN_GOOGLE
-        label: Sign in with Google
-        layout {
-            sequence: 50
-            region: @sign-in
-            slot: next
-        }
-        appearance {
-            buttonTemplate: @/text-with-icon
-            templateOptions: [
-                #DEFAULT#
-                t-Button--stretch
-                t-Button--iconLeft
-            ]
-            icon: fa-google
-        }
-        behavior {
-            action: redirectUrl
-            targetUrl: f?p=&APP_ID.:10:&APP_SESSION.:APEX_AUTHENTICATION=OAN_GOOGLE
-            warnOnUnsavedChanges: doNotCheck
-        }
-    )
-
     button sign-in-linkedin (
         buttonName: SIGN_IN_LINKEDIN
         label: Sign in with LinkedIn

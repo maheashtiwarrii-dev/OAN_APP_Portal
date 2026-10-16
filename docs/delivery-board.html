@@ -176,9 +176,9 @@ table.gtable { border-collapse: collapse; width: 100%; font-size: 0.86rem; }
 
 <div class="wrap">
   <header>
-    <div class="eyebrow">OAN Portal v1 · Plan v3.2 · APEX Build Pack v1.1 (Q31) · APEX 26.1.5 (Q32) · updated 16 Oct 2026 · iteration 27 · project start 12 Oct 2026</div>
+    <div class="eyebrow">OAN Portal v1 · Plan v3.2 · APEX Build Pack v1.1 (Q31) · APEX 26.1.5 (Q32) · updated 16 Oct 2026 · iteration 28 · project start 12 Oct 2026</div>
     <h1>OAN Portal Delivery Board</h1>
-    <p class="sub">The 16 sprints and 11 gates of the merged FSD scope, built in APEX Build Pack wave order with Build Pack page numbers (Q31; no Oracle HR brokering, Q29; no Oracle logos, Q30), from the S0 setup through the S14 pilot and S15 hypercare. Card status comes from <span class="mono">task_plan.md</span> in the GitHub repository.</p>
+    <p class="sub">The 16 sprints and 10 gates of the merged FSD scope, built in APEX Build Pack wave order with Build Pack page numbers (Q31; no Oracle HR brokering, Q29; no Oracle logos, Q30), from the S0 setup through the S14 pilot and S15 hypercare. Card status comes from <span class="mono">task_plan.md</span> in the GitHub repository.</p>
   </header>
 
   <section class="summary" aria-label="Plan summary" id="summary"></section>
@@ -193,7 +193,7 @@ table.gtable { border-collapse: collapse; width: 100%; font-size: 0.86rem; }
         <span><i class="sw" style="background:var(--line)"></i>Not started / descoped</span>
       </div>
     </div>
-    <p class="sub">% complete = estimated person-days of done tasks ÷ all person-days in the wave. Gated items (Slack/WhatsApp, Careers feed, AI assistant) are built or designed but stay off until their external gate; descope-lane items are Could features.</p>
+    <p class="sub">% complete = estimated person-days of done tasks ÷ all person-days in the wave. Gated items (Careers feed, AI assistant) are built or designed but stay off until their external gate; Slack and WhatsApp were removed (Q38); descope-lane items are Could features.</p>
     <div class="waves" id="waves"></div>
   </section>
 
@@ -271,17 +271,16 @@ const SPRINTS = [
 ];
 const SPRINT_FOCUS = {
   S0:"Toolchain, spikes, migrations", S1:"First shared DB deploy", S2:"DB tests, W0 auth + admin", S3:"W0 onboarding, W1 shell",
-  S4:"W2 profile + directory", S5:"W2 CV, privacy; demo 1", S6:"W3 content, W4 messaging", S7:"W4 channels, W5 orgs",
+  S4:"W2 profile + directory", S5:"W2 CV, privacy; demo 1", S6:"W3 content, W4 messaging", S7:"W4 notifications, W5 orgs",
   S8:"W5 jobs, helpdesk, W6 experts; demo 2", S9:"W6 groups, partners, mentoring", S10:"W6 training, initiatives; demo 3; buffer", S11:"W7 reports; descope lane",
   S12:"Load, WCAG, security, UAT", S13:"Gate 8.0, PROD release", S14:"Pilot ~50 members", S15:"Hypercare + handover"
 };
 // [id, name, sprint, status(x done|p in progress|b blocked|n not started), condition]
 const GATES = [
-  ["G0","S0","p","Done: toolchain, dev ADB aiatp on APEX 26.1.5 (Q32), ADMIN bootstrap, install, utPLSQL, spikes (13 Oct); app 200 live on dev with 93 pages and W0-W7 built and ready for testing (16 Oct); project start 12 Oct 2026. Open: Google OAuth set aside (Q33), staffing decision."],
+  ["G0","S0","p","Done: toolchain, dev ADB aiatp on APEX 26.1.5 (Q32), ADMIN bootstrap, install, utPLSQL, spikes (13 Oct); app 200 live on dev with 93 pages and W0-W7 built and ready for testing (16 Oct); project start 12 Oct 2026. Sign-in is e-mail + password for everyone (Q37); open: staffing decision."],
   ["G1","S2","n","Content inventory + owner; product owner signs off the Must/Should/Could AC list."],
   ["G-RB","S2","n","Re-baseline: S1–S2 velocity and offline-rework actuals vs plan; invoke descope lane if < 20 pd/sprint."],
   ["G-AI","S3","n","AI_ASSISTANT DPIA annex + GenAI DPA signed."],
-  ["G-CH","S6","n","Slack app, WhatsApp Business + templates, Slack/Meta DPAs, CHANNELS DPIA annex."],
   ["G-CF","S7","n","CAREERS_FEED DPIA annex + feed terms."],
   ["G2","S8","n","Region decided; temporary 100k load-test ADB booked."],
   ["G3","S10","n","All staff-role holders named with IdP + 2-step verification; ≥ 3 pilot orgs verified."],
@@ -291,7 +290,7 @@ const GATES = [
 ];
 const WS = {
   WS0:"Environment", M:"Migration", WS1:"Database", W0:"W0 Auth & admin", W1:"W1 Shell", W2:"W2 Profile & directory",
-  W3:"W3 Content & events", W4:"W4 Messaging & channels", W5:"W5 Jobs & helpdesk", W6:"W6 Community & partners",
+  W3:"W3 Content & events", W4:"W4 Conversations & notifications", W5:"W5 Jobs & helpdesk", W6:"W6 Community & partners",
   W7:"W7 Reporting", WS5:"Quality", WS6:"Content & adoption", WS7:"Compliance", WS8:"Release", WS9:"Acceptance"
 };
 const STATUS = {
@@ -300,30 +299,23 @@ const STATUS = {
 // [id, title, sprint, ws, status, est pd, tier, note]
 const T = [
  ["0.1","Node, JDK 21, SQLcl 26.2 installed","S0","WS0","x",0.5,"P0","Node 24.20 · JDK 21.0.12 · SQLcl 26.2.2"],
- ["0.1b","Local Oracle DB Free + utPLSQL (optional)","S0","WS0","n",1,"",""],
  ["0.2","Dev ADB (APEX 26.1.5, Q32), synthetic data","S0","WS0","x",0.5,"P0","ADB aiatp, APEX 26.1.5; synthetic data loaded (Q12)"],
- ["0.3","ADMIN bootstrap: schemas, grants, OAN_CTX, sign-in hosts","S0","WS0","x",1,"P0","Run as ADMIN 13 Oct: OAN_DATA, OAN_DEPLOY, OAN_CTX, ACL"],
+ ["0.3","ADMIN bootstrap: schemas, grants, OAN_CTX, sign-in hosts","S0","WS0","x",1,"P0","ADMIN bootstrap; network access only for the SMTP relay (Q37/Q38)"],
  ["0.4","Workspace probe, deployment files, SQLcl connections","S0","WS0","x",0.5,"P0","Workspace OAN_APP · oan_app_dev saved · app 200 · no name collisions"],
  ["0.5","Git repo, layout, .gitignore","S0","WS0","x",0.25,"","On GitHub"],
- ["0.6","Google OIDC client","S0","WS0","b",0.5,"P0","Set aside (Q33); blocks admin sign-in (NFR-01)"],
- ["0.7","OCI Email Delivery + APEX SMTP","S0","WS0","n",0.5,"P0",""],
+ ["0.7","OCI Email Delivery + APEX SMTP","S0","WS0","b",0.5,"P0","Script ready (db/grants/40_email_delivery.sql); needs OAN's SMTP credential"],
  ["0.8","utPLSQL on dev","S0","WS0","x",0.25,"","utPLSQL 3.2.3; 47 tests pass on dev"],
- ["0.9","CI: base-table scan, authz, utPLSQL, gitleaks, validate, page registry, org pages, brand","S0","WS0","p",2.5,"P0","GitHub Actions: validate, brand, secret scan, link scan, SQL lint · manual dev deploy"],
+ ["0.9","CI: base-table scan, authz, utPLSQL, gitleaks, validate, page registry, org pages, brand","S0","WS0","x",2.5,"P0","CI checks + deploy-dev: Liquibase, import, all utPLSQL suites"],
  ["0.10","Spike: APEX version on dev and PROD","S0","WS0","x",0.25,"P0","Dev = 26.1.5 (Q32); PROD policy at gate 8.0"],
  ["0.11","Spike: two-schema calls incl. ORDS","S0","WS0","x",1,"P0","Two-schema boundary OK; ORDS part with 0.20"],
- ["0.12","Spike: social sign-in, switch in session, re-auth","S0","WS0","b",1,"P0","Google sign-in set aside (Q33)"],
  ["0.13","Spike: PBKDF2 210k under load","S0","WS0","x",0.5,"P0","PBKDF2 ~1.9 s/hash; change request raised"],
  ["0.14","Spike: Oracle Text on ADB","S0","WS0","x",0.5,"P0","Oracle Text OK on ADB"],
- ["0.15","Secrets register (all secrets, owners, rotation)","S0","WS0","p",1,"P0","OAN_SECRETS authored"],
- ["0.17","Spike: webhook HMAC + async job < 1s","S0","WS0","b",1.5,"P4","G0"],
- ["0.18","Spike: APEX GenAI service","S0","WS0","n",0.5,"P4",""],
- ["0.19","Procure Slack app, WhatsApp Business","S0","WS0","n",0,"P4","OAN-owned · Oracle HR not pursued (Q29)"],
+ ["0.15","Secrets register (all secrets, owners, rotation)","S0","WS0","x",1,"P0","docs/secrets-register.md: keys, tokens, credentials, owners, rotation"],
+ ["0.18","Spike: APEX GenAI service","S0","WS0","g",0.5,"P4","AI assistant spike, gate G-AI"],
  ["M.1","APEXLang 26.1 → 26.2 metadata","S0","M","n",1.5,"P0","Deferred: dev runs 26.1.5 (Q32)"],
  ["M.2","Groups refactor: forums → groups / posts / comments","S0","M","a",3.5,"P1","Done 13 Oct; validated"],
- ["0.16a","Liquibase changelog (forward-only)","S1","WS0","n",1.5,"P0",""],
+ ["0.16a","Liquibase changelog (forward-only)","S1","WS0","x",1.5,"P0","db/controller.xml from install.sql; dev baselined; CI + deploy use it"],
  ["0.16b","Deploy wrapper + live validate gate","S1","WS0","x",0.75,"P0","deploy-apex-app.ps1 + GitHub Actions deploy job"],
- ["0.16c","Scratch-schema rebuild each sprint","S1","WS0","n",0.5,"",""],
- ["0.20","ORDS install: OAN_API schema, channel modules","S1","WS0","n",1,"P4",""],
  ["1.1–1.5","DDL: identity, profile, chapters, content, ops","S1","WS1","x",7.25,"P0","Live on dev; re-runnable DDL"],
  ["1.6","Personal-data registry + test","S1","WS1","x",0.75,"P0","Registry covers W2 tables"],
  ["1.7","Seed reference data","S1","WS1","x",2,"P0","Seeded on dev"],
@@ -333,7 +325,7 @@ const T = [
  ["1.24","Text/search split (search_body, directory index)","S1","WS1","x",2,"P1","People search on OAN_DIRECTORY_IDX (OAN_DIR_TEXT_IX); profile-name index dropped"],
  ["1.25","Grants from manifest, synonyms, no-table-grant assert","S1","WS1","x",0.5,"P0","Grants + synonyms; helpers never granted"],
  ["1.29","Traceability + Must/Should/Could AC tags","S1","WS1","n",1.5,"P0","Feeds G1"],
- ["1.30","OAN_CTX: ORG/CHANNEL viewer, ROLES, in_group","S1","WS1","x",1.5,"P0","ORG and CHANNEL viewers, ROLES, in_group (ef99de5)"],
+ ["1.30","OAN_CTX: ORG/CHANNEL viewer, ROLES, in_group","S1","WS1","x",1.5,"P0","ORG viewer, ROLES from staff scopes, in_group"],
  ["1.31","Staff scopes + single authz + one grant API","S1","WS1","x",1.5,"P0","oan_staff_scopes + authz + one grant API (ef99de5)"],
  ["1.32","OAN_LU_CODE intents with live_yn","S1","WS1","a",0.5,"P1","Seeded J01–J21 + roles"],
  ["1.37","option_live(): Build Option + DPIA sign-off","S1","WS1","x",0.75,"P0","option_ready / option_live with DPIA sign-off"],
@@ -363,7 +355,7 @@ const T = [
  ["W0.15","Audit log, report modal, my decisions","S3","W0","x",2,"P0","Pages 80, 81, 110 · audit log as tester.asha/bala"],
  ["W0.16","Terms versions, deny-list, breached passwords","S3","W0","x",0.75,"P0","Pages 124 legal texts, 125 deny-list, 126 breached passwords"],
  ["W0.19","Suggest term, request a chapter","S3","W0","x",0.5,"P1","Pages 90, 91 on dev · 14 Oct"],
- ["W0.20","Build Option wiring + enable_feature","S3","W0","x",1.5,"P0","CHANNELS, CAREERS_FEED, CV_PDF, ORACLE_IDP build options (off); live only with gate + DPIA (option_live)"],
+ ["W0.20","Build Option wiring + enable_feature","S3","W0","x",1.5,"P0","CAREERS_FEED, CV_PDF, ORACLE_IDP build options (off); live only with gate + DPIA"],
  ["W0.21","OAN_CHAT_API + OAN_NOTIFY_API (Build Pack contracts)","S3","W0","x",2,"P0","OAN_CHAT_API + OAN_NOTIFY_API on dev · ut_oan_bp_api passing"],
  ["W0.22","Build Pack conventions: AI_ items, IS_* names, Build Pack options","S3","W0","x",0.75,"P0","AI_ items, IS_* schemes, Build Pack options on dev"],
  ["W1.1","Global page: rail, profile card, badge, search","S3","W1","x",1.5,"P1","Page 0 on dev; header fix (HTTP 500) 13 Oct"],
@@ -393,9 +385,7 @@ const T = [
  ["W4.1","Messaging package + message search index","S6","W4","x",6,"P1","oan_message_pkg + OAN_MSG_TEXT_IX search (own conversations only)"],
  ["W4.2","Conversations (two-pane, polling)","S6","W4","x",3,"P1","Page 40 to the mockup: two panes, groups, pin, search, 20s polling"],
  ["6.3a","Synthetic content import rehearsal","S6","WS6","n",0.5,"",""],
- ["W4.3","Notifications per channel; centre, preferences, unsubscribe","S7","W4","x",4,"P1","Pages 41, 42, 44 (unsubscribe); per-type email and channel; 180-day read purge"],
- ["W4.4a","Slack channel","S7","W4","g",6,"P4","Built but off: Slack linking, signed inbound, queue (G-CH)"],
- ["W4.4b","WhatsApp channel + channel settings","S7","W4","g",6,"P4","Built but off: WhatsApp code, opt-in, page 43 (G-CH)"],
+ ["W4.3","Notifications per channel; centre, preferences, unsubscribe","S7","W4","x",4,"P1","Pages 41, 42, 44 (unsubscribe); per-type email; 180-day read purge"],
  ["W4.5","Introductions + Help-Me-Connect","S7","W4","x",4.25,"P1","Page 29 Help Me Connect + introductions (W2.8)"],
  ["W5.1","Organisations: application, verification","S7","W5","x",4.5,"P2","Pages 76 (draft from member profile, S30), 112, 70 (invite/remove contacts)"],
  ["W5.2","Jobs, opportunity feed, applications","S8","W5","x",7,"P2","Pages 50-53, 71 + job review on 107; apply with optional CV share (R13)"],
@@ -415,7 +405,7 @@ const T = [
  ["W6.8","Initiatives + success stories","S10","W6","x",6.25,"P3","Pages 77, 78; W6 journeys live (J-07)"],
  ["9.2c","Product-owner demo: W6","S10","WS9","n",1,"",""],
  ["6.8","≥ 3 partner orgs verified for pilot","S10","WS6","n",0,"","OAN-owned"],
- ["W7.1","Admin dashboard with 6 goal KPIs","S11","W7","x",2,"P2","Page 100: KPI tiles, queues, job health, usage, channel counts"],
+ ["W7.1","Admin dashboard with 6 goal KPIs","S11","W7","x",2,"P2","Page 100: KPI tiles, queues, job health, usage"],
  ["W7.2","Reports & analytics, exports","S11","W7","x",4,"P2","Page 100: 11 aggregate CSV reports, small counts suppressed, logged"],
  ["W7.3","Config + job runs","S11","W7","x",1.5,"P2","Pages 122 settings (re-auth, locked keys, audited), 123 job runs"],
  ["W7.4","Hardening: page-security check in CI","S11","W7","x",0.5,"P2","ci/check-page-security.py: reviewed public/deep-link pages, admin schemes"],
@@ -447,13 +437,11 @@ const T = [
  ["7.1a","Core DPIA + RoPA (incl. antivirus risk)","S2","WS7","n",0,"","OAN-owned"],
  ["7.1b","DPIA annex: AI assistant","S3","WS7","n",0,"","OAN-owned · G-AI"],
  ["7.2b","DPA: GenAI provider","S3","WS7","n",0,"","OAN-owned · G-AI"],
- ["7.1c","DPIA annex: channels","S6","WS7","n",0,"","OAN-owned · G-CH"],
- ["7.2a","DPAs: OCI, Google, LinkedIn, email","S6","WS7","n",0,"","OAN-owned"],
- ["7.2c","DPAs: Slack, Meta","S6","WS7","n",0,"","OAN-owned · G-CH"],
+ ["7.2a","DPAs: OCI, Google, LinkedIn, email","S6","WS7","n",0,"","OAN-owned: OCI and e-mail provider"],
  ["7.1d","DPIA annex: Careers feed","S7","WS7","n",0,"","OAN-owned · G-CF"],
 
  ["7.5","Owners, access policy, Q6 + EXPERT/TRAINER confirmation","S8","WS7","n",0,"","OAN-owned"],
- ["7.3","Legal texts incl. partner, channel, HR notices","S9","WS7","n",0,"","OAN-owned · G4"],
+ ["7.3","Legal texts incl. partner, channel, HR notices","S9","WS7","n",0,"","OAN-owned · G4: legal texts incl. partner terms"],
  ["7.4","Grievance officer, breach runbook","S9","WS7","n",0,"","OAN-owned · G4"]
 ];
 
@@ -467,7 +455,7 @@ function renderSummary() {
   const total = T.reduce((s, t) => s + t[5], 0);
   const by = k => T.filter(t => t[4] === k).length;
   const stats = [
-    ["16", "Sprints, S0–S15"], ["11", "Gates incl. go-live 8.0"], [String(T.length), "Tracked tasks"],
+    ["16", "Sprints, S0–S15"], [String(GATES.length), "Gates incl. go-live 8.0"], [String(T.length), "Tracked tasks"],
     [fmt(total) + " pd", "Dev estimate on board"], [String(by("a") + by("x")), "Done or authored offline"],
     [String(by("b")), "Blocked (mostly on G0)"], ["21 May 2027", "Planned end of S15"]
   ];

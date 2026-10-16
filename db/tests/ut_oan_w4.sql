@@ -1,28 +1,14 @@
 --------------------------------------------------------------------------------
--- utPLSQL: W4 notifications per channel, channel linking (built but off, G-CH), Help Me Connect and
--- conversation polling (FR-23, FR-48, FR-04, FR-18). Run as OAN_DATA: exec ut.run('ut_oan_w4');
+-- utPLSQL: W4 notifications, Help Me Connect and conversation polling (FR-23, FR-04, FR-18).
+-- Slack and WhatsApp channels were removed from the requirements (Q38). Run as OAN_DATA: exec ut.run('ut_oan_w4');
 --------------------------------------------------------------------------------
 create or replace package ut_oan_w4 as
-  --%suite(W4 - notifications, channels, help me connect)
+  --%suite(W4 - notifications, help me connect, polling)
   --%rollback(auto)
 
   --%beforeeach
   procedure setup;
 
-  --%test(FR-48: with CHANNELS off nothing is queued for a channel)
-  procedure channels_off_by_default;
-  --%test(FR-23/48: when live, a chosen type sends title + link to Slack; WhatsApp needs opt-in)
-  procedure queue_when_live;
-  --%test(FR-48: WhatsApp linking with a one-time code; wrong codes and the attempt limit)
-  procedure whatsapp_link;
-  --%test(FR-48: Slack links through "link <code>"; repeated events are ignored)
-  procedure slack_link_inbound;
-  --%test(R02: events with a bad signature are logged and ignored; stale Slack timestamps fail)
-  procedure bad_signature_ignored;
-  --%test(FSD BR-14: one channel identity belongs to one member)
-  procedure one_identity_one_member;
-  --%test(FR-48 AC2: a linked inbound message is answered with a link; the text is not kept)
-  procedure inbound_answered;
   --%test(W4.3: read notifications are purged after 180 days)
   procedure read_notification_retention;
   --%test(FR-04: requests, masked contacts, private replies and resolution)
@@ -54,28 +40,6 @@ create or replace package body ut_oan_w4 as
     oan_ctx_pkg.set_test_viewer(p_user, 'MEMBER');
   end as_member;
 
-  procedure open_channels is
-  begin
-    update oan_feature_options set gate_open = 'Y', dpia_signed_at = systimestamp where option_code = 'CHANNELS';
-  end open_channels;
-
-  function linked(p_user in number, p_channel in varchar2, p_ref in varchar2, p_opt_in in varchar2 default 'N') return number is
-    l_id number;
-  begin
-    insert into oan_channel_identities (user_id, channel, external_hash, external_ref, external_label, status, linked_at,
-                                        opt_in_outbound)
-    values (p_user, p_channel, oan_util.sha256_hex(p_ref), p_ref, 'test', 'LINKED', systimestamp, p_opt_in)
-    returning id into l_id;
-    return l_id;
-  end linked;
-
-  function queued(p_user in number) return number is
-    l_cnt number;
-  begin
-    select count(*) into l_cnt from oan_channel_messages where user_id = p_user and status = 'QUEUED';
-    return l_cnt;
-  end queued;
-
   procedure expect_error(p_code in number, p_what in varchar2, p_block in varchar2) is
   begin
     execute immediate 'begin ' || p_block || ' end;';
@@ -88,121 +52,7 @@ create or replace package body ut_oan_w4 as
   begin
     g_a := new_member('Ari');
     g_b := new_member('Bo');
-    update oan_feature_options set gate_open = 'N' where option_code = 'CHANNELS';
   end setup;
-
-  ---------------------------------------------------------------- channels --
-  procedure channels_off_by_default is
-    l_id number;
-  begin
-    l_id := linked(g_a, 'SLACK', 'U-OFF');
-    as_member(g_a);
-    oan_notify_pkg.set_pref('CONNECTION', 'INSTANT', 'ON');
-    oan_notify_pkg.notify(g_a, 'CONNECTION', 'Someone wants to connect', 'private body', 28);
-    ut.expect(queued(g_a), 'nothing queued while CHANNELS is off').to_equal(0);
-  end channels_off_by_default;
-
-  procedure queue_when_live is
-    l_s    number;
-    l_w    number;
-    l_body varchar2(1000);
-  begin
-    open_channels;
-    l_s := linked(g_a, 'SLACK', 'U-LIVE');
-    l_w := linked(g_a, 'WHATSAPP', '+919800000001', 'N');
-    as_member(g_a);
-    oan_notify_pkg.set_pref('CONNECTION', 'INSTANT', 'ON');
-    oan_notify_pkg.notify(g_a, 'CONNECTION', 'Someone wants to connect', 'private body', 28);
-    ut.expect(queued(g_a), 'Slack only: WhatsApp has no opt-in').to_equal(1);
-    select body into l_body from oan_channel_messages where identity_id = l_s;
-    ut.expect(instr(l_body, 'private body') = 0, 'title + link only, never the body').to_be_true();
-    update oan_channel_identities set opt_in_outbound = 'Y' where id = l_w;
-    oan_notify_pkg.notify(g_a, 'CONNECTION', 'Another one', null, 28);
-    ut.expect(queued(g_a), 'WhatsApp after opt-in').to_equal(3);
-    oan_notify_pkg.set_pref('CONNECTION', 'INSTANT', 'OFF');
-    oan_notify_pkg.notify(g_a, 'CONNECTION', 'Third', null, 28);
-    ut.expect(queued(g_a), 'channel switched off for this type').to_equal(3);
-  end queue_when_live;
-
-  procedure whatsapp_link is
-    l_code varchar2(6);
-    l_row  oan_channel_identities%rowtype;
-  begin
-    as_member(g_a);
-    expect_error(-20400, 'number needs a country code',
-      'declare l varchar2(6); begin l := oan_channel_pkg.start_link(''WHATSAPP'', ''98765 43210''); end;');
-    l_code := oan_channel_pkg.start_link('WHATSAPP', '+91 98765 43210');
-    ut.expect(l_code, 'code goes to the phone, not the page').to_be_null();
-    select * into l_row from oan_channel_identities where user_id = g_a and channel = 'WHATSAPP' and status = 'PENDING';
-    ut.expect(l_row.external_label).to_equal('+91 ******3210');
-    expect_error(-20400, 'wrong code', 'begin oan_channel_pkg.verify_code(''WHATSAPP'', ''000000''); end;');
-    -- attempts are counted in an autonomous transaction (committed rows only); the limit cancels the link
-    update oan_channel_identities set code_attempts = 5 where id = l_row.id;
-    expect_error(-20400, 'too many attempts', 'begin oan_channel_pkg.verify_code(''WHATSAPP'', ''123456''); end;');
-    l_code := oan_channel_pkg.start_link('WHATSAPP', '+91 98765 43210');
-    select * into l_row from oan_channel_identities where user_id = g_a and channel = 'WHATSAPP' and status = 'PENDING';
-    update oan_channel_identities set code_hash = oan_util.sha256_hex('123456') where id = l_row.id;
-    oan_channel_pkg.verify_code('WHATSAPP', '123456');
-    select status, opt_in_outbound into l_row.status, l_row.opt_in_outbound from oan_channel_identities where id = l_row.id;
-    ut.expect(l_row.status).to_equal('LINKED');
-    ut.expect(l_row.opt_in_outbound, 'outbound off until opt-in').to_equal('N');
-  end whatsapp_link;
-
-  procedure slack_link_inbound is
-    l_code varchar2(6);
-    l_st   varchar2(12);
-    l_ref  varchar2(100);
-    l_cnt  number;
-  begin
-    open_channels;
-    as_member(g_a);
-    l_code := oan_channel_pkg.start_link('SLACK');
-    ut.expect(length(l_code)).to_equal(6);
-    oan_channel_pkg.handle_inbound('SLACK', 'ut-evt-' || g_a, 'U-SLACK-' || g_a, 'link ' || l_code, '{}', 'Y');
-    select status, external_ref into l_st, l_ref from oan_channel_identities where user_id = g_a and channel = 'SLACK';
-    ut.expect(l_st).to_equal('LINKED');
-    ut.expect(l_ref).to_equal('U-SLACK-' || g_a);
-    oan_channel_pkg.handle_inbound('SLACK', 'ut-evt-' || g_a, 'U-SLACK-' || g_a, 'link ' || l_code, '{}', 'Y');
-    select count(*) into l_cnt from oan_channel_events where event_key = 'ut-evt-' || g_a;
-    ut.expect(l_cnt, 'idempotent').to_equal(1);
-  end slack_link_inbound;
-
-  procedure bad_signature_ignored is
-    l_st varchar2(12);
-  begin
-    open_channels;
-    oan_channel_pkg.handle_inbound('SLACK', 'ut-bad-' || g_a, 'U-X', 'hello', '{}', 'N');
-    select status into l_st from oan_channel_events where event_key = 'ut-bad-' || g_a;
-    ut.expect(l_st).to_equal('IGNORED');
-    ut.expect(oan_channel_pkg.verify_slack_signature('{}', '1000000000', 'v0=abc'), 'stale timestamp').to_be_false();
-  end bad_signature_ignored;
-
-  procedure one_identity_one_member is
-    l_id number;
-    l_code varchar2(6);
-  begin
-    open_channels;
-    l_id := linked(g_a, 'SLACK', 'U-SHARED');
-    as_member(g_b);
-    l_code := oan_channel_pkg.start_link('SLACK');
-    oan_channel_pkg.handle_inbound('SLACK', 'ut-dup-' || g_b, 'U-SHARED', 'link ' || l_code, '{}', 'Y');
-    select count(*) into l_id from oan_channel_identities where user_id = g_b and status = 'LINKED';
-    ut.expect(l_id, 'second member not linked to the same Slack user').to_equal(0);
-  end one_identity_one_member;
-
-  procedure inbound_answered is
-    l_id     number;
-    l_cnt    number;
-    l_intent varchar2(40);
-  begin
-    open_channels;
-    l_id := linked(g_a, 'SLACK', 'U-ASK');
-    oan_channel_pkg.handle_inbound('SLACK', 'ut-ask-' || g_a, 'U-ASK', 'I want to update my cv', '{}', 'Y');
-    select count(*) into l_cnt from oan_channel_messages where identity_id = l_id and body like '%http%';
-    ut.expect(l_cnt, 'answered with a link').to_equal(1);
-    select intent_code into l_intent from oan_channel_events where event_key = 'ut-ask-' || g_a;
-    ut.expect(l_intent).to_equal('KEEP_CV_CURRENT');
-  end inbound_answered;
 
   ------------------------------------------------------------ notifications --
   procedure read_notification_retention is

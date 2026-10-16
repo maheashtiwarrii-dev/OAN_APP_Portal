@@ -1,7 +1,7 @@
 role ADMIN (
     name: Platform Admin
     description {
-        description: Runs the platform: approvals, members, staff roles, settings, reports (NFR-01: identity provider + 2-step verification in production).
+        description: Runs the platform: approvals, members, staff roles, settings, reports (verified email, re-authentication for sensitive actions, annual access review; Q37).
     }
 )
 

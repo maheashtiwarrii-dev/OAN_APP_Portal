@@ -309,3 +309,14 @@
 | I27-2 | Closed | W0.20 Build Option wiring (integration options; unused options removed), W0.21/W0.22 verified on dev, W2.9 (privacy jobs scheduled), W5.1 S30 (company registration drafted from the member profile) |
 | I27-3 | % complete | W0 76%, W1 100%, W2 100%, W3 100%, W4 59%, W5 96%, W6 86%, W7 100%; W0-W7 85% (61 of 68 tasks); whole plan 68% |
 | I27-4 | Published | Board: wave completion panel (computed from the task data) and CI/CD pipeline panel; status report wave table; README status with CI badges; PDFs; GitHub Project #1 readme and status update |
+
+## Iteration 28 — Google OAuth and Slack/WhatsApp removed; WS0 completed (16 Oct 2026)
+| Step | Action | Result |
+|---|---|---|
+| I28-1 | User request | Remove the Google OAuth requirements (anyone signs in with a Gmail or other e-mail address), remove Slack and WhatsApp, complete WS0 |
+| I28-2 | Q37 | Google sign-in button, scheme, credential, linking and re-auth removed; staff roles need a verified e-mail, re-authentication and an annual access review (no IdP); NFR-01 rewritten; test updated |
+| I28-3 | Q38 | Page 43, page 42 channel setting, dashboard channel region, `oan_channel_pkg`, channel tables, jobs, views, config, secrets, ORDS module, CHANNELS option and J-21 removed (`110_remove_channels.sql`); FR-48 withdrawn; gate G-CH and 11 tasks removed from plan and board |
+| I28-4 | WS0 | 0.3 network access reduced to the SMTP relay (12 entries removed on dev); 0.7 e-mail script ready, waits for OAN's SMTP credential; 0.9 CI and deploy (Liquibase, all suites); 0.15 secrets register; 0.16a Liquibase changelog generated from install.sql, dev baselined, execution proven; 0.1b and 0.16c removed (single ADB); 0.18 gated (G-AI). WS0 14 of 16 |
+| I28-5 | Checks | 160/160 (17 suites + page smoke); harness 148 queries / 200 blocks; links, base tables, brand, page security, APEXLang validation pass; app 200 imported (92 pages); public pages checked over HTTP, no Google/Slack/WhatsApp mentions |
+| I28-6 | Progress | W0-W7 91% (61 of 66 tasks); whole plan 74% of person-days |
+| I28-7 | Security note | Staff accounts now have no second factor; in-app 2-step verification recommended before go-live (decision for the product owner) |

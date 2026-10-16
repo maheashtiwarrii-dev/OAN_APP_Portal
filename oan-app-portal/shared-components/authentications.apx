@@ -14,34 +14,7 @@ authentication oan-local (
         authFunctionName: oan_auth_pkg.authenticate
     }
     comments {
-        comments: Local email/password accounts (NFR-01). PBKDF2-HMAC-SHA512, lockout per account and IP. APP_USER becomes the immutable generated username in post-auth.
-    }
-)
-
-authentication oan-google (
-    name: OAN_GOOGLE
-    type: socialSignIn
-    loginProcessing {
-        switchInSession: true
-        postAuthenticationProcedureName: oan_auth_pkg.post_auth_google
-    }
-    sessionNotValid {
-        redirectTo: loginPage
-    }
-    postLogout {
-        redirectTo: homePage
-    }
-    settings {
-        authProvider: google
-        credentialStore: @OAN_Google_OAuth
-        scope: openid email profile
-        username: #sub#
-        additionalUserAttrs: email,email_verified,given_name,family_name
-        verifyAttrs: true
-        convertUsernameToUpperCase: false
-    }
-    comments {
-        comments: Google OIDC (NFR-01; plan 0.6 - required in Sprint 0). Started from the login page with request APEX_AUTHENTICATION=OAN_GOOGLE.
+        comments: Local email/password accounts for everyone, any email provider including Gmail (NFR-01 as amended by Q37: no Google OAuth). PBKDF2-HMAC-SHA512, lockout per account and IP. APP_USER becomes the immutable generated username in post-auth.
     }
 )
 

@@ -156,7 +156,7 @@ page 101 (
             reportColumnQueryId: 7
             derivedColumn: N
             heading {
-                heading: 2-step verification attested
+                heading: Access review recorded
             }
             layout {
                 sequence: 7

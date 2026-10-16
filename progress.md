@@ -290,3 +290,14 @@
 | I25-4 | Checks | `ut_oan_w7` 4/4; harness 148 queries / 189 blocks; links, base tables, brand, page security, APEXLang validation pass |
 | I25-5 | Not built | XLSX/PDF report formats (CSV only); W6.7 Marketplace and W6.9 badges stay in the descope lane |
 | I25-6 | Project status (user request) | Board data, status report and both PDFs updated to iteration 25 (74 of 155 tasks done, 205 of 320 pd); GitHub Project #1 reloaded with a status update: ready for UAT, not yet for go-live (gate 8.0) |
+
+## Iteration 26 — W0-W7 completion and test readiness; project start 12 Oct 2026 (16 Oct 2026)
+| Step | Action | Result |
+|---|---|---|
+| I26-1 | User request | Finish W0-W7, confirm readiness for testing, and show the project start as 12 Oct 2026 on the board and GitHub Project |
+| I26-2 | Decisions | Q36 dev-only admin exception (tester.bala admin, tester.asha staff roles); GitHub Project date fields renamed back to Start date / Target date |
+| I26-3 | Defects found and fixed | (1) every public page except Sign In returned HTTP 400 "Access Denied": the app-wide authorization `mustNotBePublicUser` also applies to public pages - removed, page schemes remain and CI now fails if it returns; (2) app 200 had no ACL roles, so no staff role could ever work - 14 roles added and OAN_CTX also reads OAN_STAFF_SCOPES (1.30); (3) R18 referral opt-in was missing - added (default off) |
+| I26-4 | Built | W0.16 pages 124-126, W0.17 pages 9000/9001, W1.2 route cards, W1.3 search scopes (opportunities, events, groups, trainings, initiatives), referral setting on page 26, company journeys J-09..J-19 land on page 72 |
+| I26-5 | Checks | 18 suites + page smoke (194 page queries x 5 personas) = 168/168; harness 151 queries / 204 blocks; links, base tables, brand, page security, APEXLang validation pass; 10 public pages render in headless Edge; app 200 imported (93 pages) |
+| I26-6 | Test readiness | `docs/test-readiness.md` generated from the export: every page with its tester and dev account |
+| I26-7 | Calendar | Project start 12 Oct 2026: S0 12-23 Oct 2026 ... S13 gate 8.0 12-23 Apr 2027, S15 ends 21 May 2027 (plan, board, report, GitHub Project) |

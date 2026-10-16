@@ -2,7 +2,7 @@
 -- oan_search_pkg (FR-02 P1, P31, Q06): CONTAINS on base tables, then filtered by
 -- joining the secure views, so visibility, blocks and status apply before results return.
 --------------------------------------------------------------------------------
-create or replace type oan_search_row as object (
+create type if not exists oan_search_row as object (
   result_type varchar2(20),
   object_id   number,
   title       varchar2(300),
@@ -11,7 +11,7 @@ create or replace type oan_search_row as object (
   score       number
 );
 /
-create or replace type oan_search_tab as table of oan_search_row;
+create type if not exists oan_search_tab as table of oan_search_row;
 /
 
 create or replace package oan_search_pkg authid definer as
@@ -43,6 +43,7 @@ create or replace package body oan_search_pkg as
 
   function search(p_query in varchar2, p_max_rows in number default 60) return oan_search_tab pipelined is
     l_expr varchar2(4000) := to_contains(p_query);
+    l_q    varchar2(100)  := upper(substr(trim(p_query), 1, 100));
   begin
     if l_expr is null or sys_context('OAN_CTX','VIEWER_TYPE') != 'MEMBER' then
       return;
@@ -82,6 +83,38 @@ create or replace package body oan_search_pkg as
                order by score(4) desc
                fetch first p_max_rows rows only) loop
       pipe row (oan_search_row('MEMBER', r.user_id, r.display_name, r.headline, 22, r.sc));
+    end loop;
+
+    -- W1.3 scopes added per wave. Each source is a secure view, so only what the viewer may see is returned.
+    -- Opportunities (W5): CONTAINS on the job description, re-checked by OAN_OPPORTUNITIES_V (open, published)
+    for r in (select v.id, v.title, v.company_name snippet, score(5) sc
+                from oan_jobs j
+                join oan_opportunities_v v on v.id = j.id
+               where contains(j.description, l_expr, 5) > 0
+               order by score(5) desc
+               fetch first 20 rows only) loop
+      pipe row (oan_search_row('OPPORTUNITY', r.id, r.title, r.snippet, 51, r.sc));
+    end loop;
+
+    -- Events (W3), groups (W6.1; private groups appear only to members and invitees), open trainings (W6.4)
+    -- and open initiatives (W6.8): title match
+    for r in (select id, title, to_char(starts_at, 'DD Mon YYYY') || nvl2(chapter_name, ' - ' || chapter_name, null) snippet
+                from oan_events_v
+               where status = 'PUBLISHED' and is_past = 'N' and instr(upper(title), l_q) > 0
+               order by starts_at fetch first 10 rows only) loop
+      pipe row (oan_search_row('EVENT', r.id, r.title, r.snippet, 33, 40));
+    end loop;
+    for r in (select id, name, substr(description, 1, 200) snippet from oan_group_directory_v
+               where instr(upper(name), l_q) > 0 order by name fetch first 10 rows only) loop
+      pipe row (oan_search_row('GROUP', r.id, r.name, r.snippet, 61, 35));
+    end loop;
+    for r in (select id, title, kind_label snippet from oan_trainings_v
+               where status = 'OPEN' and instr(upper(title), l_q) > 0 order by title fetch first 10 rows only) loop
+      pipe row (oan_search_row('TRAINING', r.id, r.title, r.snippet, 67, 30));
+    end loop;
+    for r in (select id, title, substr(summary, 1, 200) snippet from oan_initiatives_v
+               where status = 'OPEN' and instr(upper(title), l_q) > 0 order by created_at desc fetch first 10 rows only) loop
+      pipe row (oan_search_row('INITIATIVE', r.id, r.title, r.snippet, 77, 30));
     end loop;
     return;
   end search;

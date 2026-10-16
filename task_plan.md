@@ -73,17 +73,17 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
   - The gap is held by the **S11 descope lane** (W6.9, W6.7, W0.9, W4.4, W5.7 feed ≈ 21 pd; S24).
   - **2-developer fallback:** S0 + ~17 build sprints + 3, with the R23 descope applied.
 
-### Calendar (S27)
+### Calendar (S27; project start moved to 12 Oct 2026 on 16 Oct 2026)
 | Sprint | Dates | Sprint | Dates |
 |---|---|---|---|
-| S0 | 19–30 Oct 2026 | S8 | 8–19 Feb 2027 |
-| S1 | 2–13 Nov | S9 | 22 Feb–5 Mar |
-| S2 | 16–27 Nov | S10 | 8–19 Mar |
-| S3 | 30 Nov–11 Dec | S11 | 22 Mar–2 Apr |
-| S4 (18 pd) | 14–25 Dec | S12 | 5–16 Apr |
-| S5 (18 pd) | 28 Dec 2026–8 Jan 2027 | S13 (gate 8.0) | 19–30 Apr |
-| S6 | 11–22 Jan 2027 | S14 (pilot) | 3–14 May |
-| S7 | 25 Jan–5 Feb | S15 (hypercare) | 17–28 May 2027 |
+| S0 | 12–23 Oct 2026 | S8 | 1–12 Feb 2027 |
+| S1 | 26 Oct–6 Nov | S9 | 15–26 Feb |
+| S2 | 9–20 Nov | S10 | 1–12 Mar |
+| S3 | 23 Nov–4 Dec | S11 | 15–26 Mar |
+| S4 (18 pd) | 7–18 Dec | S12 | 29 Mar–9 Apr |
+| S5 (18 pd) | 21 Dec 2026–1 Jan 2027 | S13 (gate 8.0) | 12–23 Apr |
+| S6 | 4–15 Jan 2027 | S14 (pilot) | 26 Apr–7 May |
+| S7 | 18–29 Jan | S15 (hypercare) | 10–21 May 2027 |
 
 ### Build order and rules
 - **Build order (S13), per wave:**
@@ -280,7 +280,7 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 | 1.32 | `OAN_LU_CODE` (intents with `live_yn`, request types, statuses) + seed | R06, S29 | 0.5 | [A] 13 Oct: `oan_lu_codes` (065) with ONBOARD_STEP, INTENT J01–J21 (landing pages, `live_yn` N), ONBOARD_ROLE; request types/statuses follow with W5/W6 |
 | 1.33 | PD registry retention rules + **injectable clock `oan_util.now`** (S08); purge framework | R12 | 1 | [x] 14 Oct: `oan_util.now` + test clock; retention rules in `oan_pd_tables` (login attempts 30d, job runs 90d, read notifications 365d, closed applications 365d, chat 90d); `oan_retention_pkg` daily, audited |
 | 1.34 | **Jobs (S17):**<br>• §B5 job → automation map: 10-min `CHANNELS`, 15-min, hourly (SLA, reminders, nudge, digest), daily 02:00, daily 03:00 analytics;<br>• `DBMS_LOCK` run locks (`release_on_commit => false`);<br>• send state QUEUED → SENDING → SENT/FAILED; rows stuck > 15 min become FAILED_UNKNOWN and are never auto-resent;<br>• `last_sent_on` DST guard;<br>• synchronous transactional mail. | R26 | 1.5 | [x] 14 Oct: DBMS_LOCK run locks (SKIPPED status); automations every 15 min (send sweeper) and daily 03:00 (analytics) added to hourly/daily/weekly; send states QUEUED/SENDING/SENT/FAILED/FAILED_UNKNOWN (never re-sent); digest one per local date (DST guard). 10-min CHANNELS job arrives with W4 |
-| 1.35 | Settings: messaging permission (R08), referral opt-in (R18), directory switch (Q28) | R08/R18 | 0.5 | [ ] |
+| 1.35 | Settings: messaging permission (R08), referral opt-in (R18), directory switch (Q28) | R08/R18 | 0.5 | [A] 16 Oct: directory switch, messaging permission, followers and the R18 "Accept referral requests" setting (default off; never suggested when off, AC4 test) |
 | 1.36 | `oan_export_pkg` + `OAN_EXPORT_LOG` (R14) | R14 | 1 | [x] 14 Oct: `oan_export_pkg` (aggregate reports only, counts < 5 suppressed, admin/privacy officer) + `oan_export_log` |
 | 1.37 | **`oan_util.option_live(p_option)`** (S03): Build Option + audited DPIA sign-off + gate flag | R12 | 0.75 | [x] 14 Oct: `oan_feature_options` + `oan_util.option_ready/option_live` + audited `sign_option_dpia`/`set_option_gate` |
 
@@ -302,10 +302,10 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 | W0.13 | 1040 Lookups/Taxonomy (incl. `OAN_LU_CODE.live_yn`) | FR-28 | 2 | 4.5 | [A] 13 Oct: filters; add term (new `add_term`), approve/reject suggestions, merge with synonym; lookup codes are seeded (live switch via wave close) |
 | W0.14 | 1050 Moderation (basic, CoI); 1051 Appeals | FR-25 | 2.5 | 4.6 | [A] 13 Oct: one queue for Library review, member reports and IP reports with type-specific decisions; appeals with final decision |
 | W0.15 | 1080 Audit log; 80 Report modal; 81 My decisions + appeal | NFR-05, FR-25 | 2 | 3.14/4.8 | [A] 13 Oct: 1080 filtered read-only log; 80 report (resolves links from 11/21/37); 81 my decisions + one appeal |
-| W0.16 | 1071 Terms versions; 1072 Deny-list; 1073 Breached passwords | FR-19, NFR-01 | 0.75 | 4.8 | [ ] |
-| W0.17 | 9000, 9001 health pages | NFR-08 | 0.25 | 3.16 | [ ] |
-| W0.18 | **Shared components + security baseline (S01).**<br>• Already authored: auth schemes, authorizations, app items/processes, email templates, automations, LOVs, lists.<br>• Text Messages; all email templates (v2 2.8).<br>• **Security baseline:** SSP/checksums; escaping; deep-linking off except landing/login/register; CSP (self + allow-list, incl. Ajax polling, no third-party script), HSTS, XFO DENY, Referrer-Policy; cookies Secure/HttpOnly/SameSite=Lax; debug off; Advisor zero findings; ORDS module inventory.<br>• Error handler; cookie notice.<br>• 5.7 rows. | NFR-04/13, FR-23 | 7.5 | 2.1–2.11 | [~] partly `[A]` |
-| W0.19 | 70 Suggest taxonomy term; 71 Request a chapter | FR-28/16 | 0.5 | 3.11 | [ ] |
+| W0.16 | 1071 Terms versions; 1072 Deny-list; 1073 Breached passwords | FR-19, NFR-01 | 0.75 | 4.8 | [A] 16 Oct: pages 124 Legal texts (drafts, publish retires the previous version, re-acceptance), 125 Screening deny-list, 126 Breached passwords (SHA-1 only); `oan_admin_pkg`, re-auth + audit; `ut_oan_w7` |
+| W0.17 | 9000, 9001 health pages | NFR-08 | 0.25 | 3.16 | [A] 16 Oct: 9000 public health (OK/DEGRADED only, verified in a browser) and 9001 system health for admins (invalid objects, job freshness, failures, stuck runs, e-mail failures, index backlog, options) |
+| W0.18 | **Shared components + security baseline (S01).**<br>• Already authored: auth schemes, authorizations, app items/processes, email templates, automations, LOVs, lists.<br>• Text Messages; all email templates (v2 2.8).<br>• **Security baseline:** SSP/checksums; escaping; deep-linking off except landing/login/register; CSP (self + allow-list, incl. Ajax polling, no third-party script), HSTS, XFO DENY, Referrer-Policy; cookies Secure/HttpOnly/SameSite=Lax; debug off; Advisor zero findings; ORDS module inventory.<br>• Error handler; cookie notice.<br>• 5.7 rows. | NFR-04/13, FR-23 | 7.5 | 2.1–2.11 | [~] 16 Oct: 14 APEX ACL roles; OAN_CTX reads staff roles from OAN_STAFF_SCOPES (1.30); deep linking off except reviewed public and deep-link pages; app-wide `mustNotBePublicUser` removed (it blocked every public page except login) with a CI guard; security headers in place. Open: Advisor scan, cookie notice review, CSP tightening |
+| W0.19 | 70 Suggest taxonomy term; 71 Request a chapter | FR-28/16 | 0.5 | 3.11 | [A] pages 90 Suggest a term and 91 Request a chapter (14 Oct) |
 | W0.21 | **Build Pack API contracts (Q31):** `OAN_CHAT_API` (start_session, add_message, log_user_turn, map_intent, route_intent, get_transcript, close_session, register_from_chat, respond_and_route; channel and profile-update routines with W4/W2) and `OAN_NOTIFY_API` (notify, notify_many, unread_count, mark_read, mark_all_read, wants_channel, send_pending_emails; event helpers with their waves) over `oan_chat_pkg` / `oan_notify_pkg` | FR-34, FR-23 | 2 | — | [A] 13 Oct: `296_oan_chat_api.sql`, `297_oan_notify_api.sql`, suite `ut_oan_bp_api` (7 tests). Codes-only transcript (R21), live-only routing (R05), viewer-only read state; event helpers raise "not available yet" until their wave |
 | W0.22 | **Build Pack conventions (Q31):** `AI_MEMBER_ID`, `AI_ORG_ID`, `AI_MEMBER_ROLES`, `AI_PRIVACY_VISIBILITY`, `AI_UNREAD_NOTIFICATIONS` (display only; security from `OAN_CTX`); IS_* scheme names; Build Options OAN_ADMIN, OAN_AI_ASSISTANT, OAN_PARTNER_WORKSPACE, OAN_RECOGNITION | NFR-02 | 0.75 | — | [A] 13 Oct: AI_ items (set after login from `oan_my_shell_v`), the four Build Pack options plus wave options W2_DIRECTORY / W4_MESSAGING / W5_OPPORTUNITIES; the 9 schemes per PRD B2 (IS_ACTIVE, IS_ADMIN, IS_MODERATOR existing; IS_TRAINER, IS_MENTOR, IS_EXPERT, IS_PARTNER_CONTACT, IS_CUSTOMER_CONTACT, IS_SUPPORT added, ACL roles until task 1.30) |
 | W0.20 | **Build Option wiring (S03):**<br>• replace `PHASE_2/3/4` with `CHANNELS`, `AI_ASSISTANT`, `CAREERS_FEED`, `CV_PDF`, `ORACLE_IDP` (no `HR_INTEGRATION`, Q29) (exclude, onUpgradeKeepStatus);<br>• `oan_config_pkg.enable_feature` (audited);<br>• 5.7 row: option on in Builder without sign-off → nothing processed. | R12 | 1.5 | 2.6 | [ ] |
@@ -314,8 +314,8 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 | ID | Page(s) / task | Delivers | Est | Status |
 |---|---|---|---|---|
 | W1.1 | 0 Global page: rail, profile card, badge, search box, 4 breakpoints | FR-29, NFR-11 | 1.5 | [A] 13 Oct: 7-destination rail (Directory, Messages, Opportunities hidden by wave options until built), profile card, badge with 60s refresh (`OAN_UNREAD_COUNT`), search box; `oan-shell.js/.css`; breakpoints use Universal Theme defaults, search box hidden under 640px |
-| W1.2 | 10 Home: greeting, leadership-letter carousel, What's new; intent route cards driven by `live_yn` with fallback | FR-29, R05 | 2 | [~] 13 Oct: greeting, carousel (Ink panel, max 6, pause on hover, dots; `oan_leadership_letters_v`), What's new (`oan_whats_new_v`), checklist, recent posts. Route cards wait for the first live journey |
-| W1.3 | 40 Global search results (scopes added per wave; never messages or private groups) | FR-02, R20 | 1.5 | [ ] |
+| W1.2 | 10 Home: greeting, leadership-letter carousel, What's new; intent route cards driven by `live_yn` with fallback | FR-29, R05 | 2 | [A] 16 Oct: route cards from live intents (member's chosen intent first), greeting, letters, events, What's new |
+| W1.3 | 40 Global search results (scopes added per wave; never messages or private groups) | FR-02, R20 | 1.5 | [A] 16 Oct: page 19 searches library, insights, open-group posts, members, opportunities, events, groups, trainings and initiatives; never messages or private-group posts (R20) |
 
 ### W2 — Directory, profile, CV, work profile, connections (S4–S5)
 | ID | Page(s) / task | Delivers | Est | Status |

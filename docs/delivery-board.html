@@ -160,7 +160,7 @@ table.gtable { border-collapse: collapse; width: 100%; font-size: 0.86rem; }
 
 <div class="wrap">
   <header>
-    <div class="eyebrow">OAN Portal v1 · Plan v3.2 · APEX Build Pack v1.1 (Q31) · APEX 26.1.5 (Q32) · updated 15 Oct 2026 · iteration 25</div>
+    <div class="eyebrow">OAN Portal v1 · Plan v3.2 · APEX Build Pack v1.1 (Q31) · APEX 26.1.5 (Q32) · updated 16 Oct 2026 · iteration 26 · project start 12 Oct 2026</div>
     <h1>OAN Portal Delivery Board</h1>
     <p class="sub">The 16 sprints and 11 gates of the merged FSD scope, built in APEX Build Pack wave order with Build Pack page numbers (Q31; no Oracle HR brokering, Q29; no Oracle logos, Q30), from the S0 setup through the S14 pilot and S15 hypercare. Card status comes from <span class="mono">task_plan.md</span> in the GitHub repository.</p>
   </header>
@@ -221,12 +221,12 @@ table.gtable { border-collapse: collapse; width: 100%; font-size: 0.86rem; }
 
 <script>
 const SPRINTS = [
-  ["S0","19–30 Oct","Setup","setup"],["S1","2–13 Nov","Build","build"],["S2","16–27 Nov","Build","build"],
-  ["S3","30 Nov–11 Dec","Build","build"],["S4","14–25 Dec","Build · 18 pd","build"],["S5","28 Dec–8 Jan","Build · 18 pd","build"],
-  ["S6","11–22 Jan","Build","build"],["S7","25 Jan–5 Feb","Build","build"],["S8","8–19 Feb","Build","build"],
-  ["S9","22 Feb–5 Mar","Build","build"],["S10","8–19 Mar","Build","build"],["S11","22 Mar–2 Apr","Build + descope","build"],
-  ["S12","5–16 Apr","Hardening + UAT","harden"],["S13","19–30 Apr","Go-live gate","release"],["S14","3–14 May","Pilot","release"],
-  ["S15","17–28 May","Hypercare","release"]
+  ["S0","12–23 Oct","Setup","setup"],["S1","26 Oct–6 Nov","Build","build"],["S2","9–20 Nov","Build","build"],
+  ["S3","23 Nov–4 Dec","Build","build"],["S4","7–18 Dec","Build · 18 pd","build"],["S5","21 Dec–1 Jan","Build · 18 pd","build"],
+  ["S6","4–15 Jan","Build","build"],["S7","18–29 Jan","Build","build"],["S8","1–12 Feb","Build","build"],
+  ["S9","15–26 Feb","Build","build"],["S10","1–12 Mar","Build","build"],["S11","15–26 Mar","Build + descope","build"],
+  ["S12","29 Mar–9 Apr","Hardening + UAT","harden"],["S13","12–23 Apr","Go-live gate","release"],["S14","26 Apr–7 May","Pilot","release"],
+  ["S15","10–21 May","Hypercare","release"]
 ];
 const SPRINT_FOCUS = {
   S0:"Toolchain, spikes, migrations", S1:"First shared DB deploy", S2:"DB tests, W0 auth + admin", S3:"W0 onboarding, W1 shell",
@@ -236,7 +236,7 @@ const SPRINT_FOCUS = {
 };
 // [id, name, sprint, status(x done|p in progress|b blocked|n not started), condition]
 const GATES = [
-  ["G0","S0","p","Done: toolchain, dev ADB aiatp on APEX 26.1.5 (Q32), ADMIN bootstrap, install, utPLSQL, spikes (13 Oct); app 200 live on dev with 88 pages and W0-W7 built (15 Oct). Open: Google OAuth set aside (Q33), staffing decision."],
+  ["G0","S0","p","Done: toolchain, dev ADB aiatp on APEX 26.1.5 (Q32), ADMIN bootstrap, install, utPLSQL, spikes (13 Oct); app 200 live on dev with 93 pages and W0-W7 built and ready for testing (16 Oct); project start 12 Oct 2026. Open: Google OAuth set aside (Q33), staffing decision."],
   ["G1","S2","n","Content inventory + owner; product owner signs off the Must/Should/Could AC list."],
   ["G-RB","S2","n","Re-baseline: S1–S2 velocity and offline-rework actuals vs plan; invoke descope lane if < 20 pd/sprint."],
   ["G-AI","S3","n","AI_ASSISTANT DPIA annex + GenAI DPA signed."],
@@ -296,12 +296,12 @@ const T = [
  ["1.31","Staff scopes + single authz + one grant API","S1","WS1","x",1.5,"P0","oan_staff_scopes + authz + one grant API (ef99de5)"],
  ["1.32","OAN_LU_CODE intents with live_yn","S1","WS1","a",0.5,"P1","Seeded J01–J21 + roles"],
  ["1.37","option_live(): Build Option + DPIA sign-off","S1","WS1","x",0.75,"P0","option_ready / option_live with DPIA sign-off"],
- ["1.26","utPLSQL suites (R01, R16, R19/20, R26, secrets)","S2","WS1","p",4,"P0","15 suites, 160+ tests incl. W2, W3, W4, orgs, messaging, page content"],
+ ["1.26","utPLSQL suites (R01, R16, R19/20, R26, secrets)","S2","WS1","p",4,"P0","18 suites + page smoke (5 personas x 194 queries) = 168 tests"],
  ["1.27","Throttle package","S2","WS1","x",1,"P0","Used for login, CV, connections"],
  ["1.28","Synthetic data: 100k profiles, 1M posts, 20k jobs","S2","WS1","p",2.5,"","Dev: 265 alumni, 6 testers, 23 CV personas, sample content"],
  ["1.33","Retention rules + injectable clock","S2","WS1","x",1,"P0","Retention rules in registry + oan_util.now test clock"],
  ["1.34","Automations map, DBMS_LOCK run locks, send state machine","S2","WS1","x",1.5,"P0","Run locks, 15-minute and analytics automations, send state machine"],
- ["1.35","Messaging permission, referral opt-in, directory switch","S2","WS1","x",0.5,"P1","Directory switch, messaging permission, followers"],
+ ["1.35","Messaging permission, referral opt-in, directory switch","S2","WS1","x",0.5,"P1","Directory switch, messaging permission, followers, referral opt-in (R18)"],
  ["1.36","oan_export_pkg (person-level exports)","S2","WS1","x",1,"P0","oan_export_pkg: aggregate exports, small counts suppressed"],
  ["W0.1","Login, create account, confirm email, reset password","S2","W0","x",2.5,"P0","Pages 1, 3, 7, 8 on dev (email delivery pending, 0.7)"],
  ["W0.2","Welcome, legal, IP report","S2","W0","x",1.5,"P0","Pages 11, 12, 13 on dev"],
@@ -309,25 +309,25 @@ const T = [
  ["W0.4","Link existing account, confirm identity","S2","W0","x",1.5,"P0","Pages 9, 15 on dev"],
  ["W0.5","Membership application","S2","W0","x",1,"P0","Page 6 on dev"],
  ["W0.6","Access denied","S2","W0","x",0.25,"P0","Page 4 on dev"],
- ["W0.10","Approval queue + application review","S2","W0","a",2,"P0","Pages 114, 115 on dev · untested: no admin sign-in (0.6)"],
- ["W0.11","Members, staff roles, scopes","S2","W0","a",3,"P0","Pages 101, 116 on dev · untested: no admin sign-in (0.6)"],
- ["W0.17","Health pages","S2","W0","n",0.25,"",""],
- ["W0.18","Shared components + security baseline","S2","W0","p",7.5,"P0","Partly authored"],
+ ["W0.10","Approval queue + application review","S2","W0","x",2,"P0","Pages 114, 115 · ready for testing as tester.bala (Q36)"],
+ ["W0.11","Members, staff roles, scopes","S2","W0","x",3,"P0","Pages 101, 116 · ready for testing as tester.bala (Q36)"],
+ ["W0.17","Health pages","S2","W0","x",0.25,"","Pages 9000 (public OK) and 9001 (admin checks)"],
+ ["W0.18","Shared components + security baseline","S2","W0","p",7.5,"P0","ACL roles, staff roles from scopes, deep-link baseline, public-page fix; Advisor + cookie notice open"],
  ["W0.7","oan_chat_pkg onboarding logic","S3","W0","x",3,"P0","9 tests pass"],
  ["W0.8","Onboarding conversation","S3","W0","x",2.5,"P0","Page 2 on dev"],
  ["W0.9","AI assistant (read-only, opt-in)","S3","W0","g",3,"P4","G-AI; may move to S11"],
- ["W0.12","Chapters + chapter requests","S3","W0","a",1.5,"P0","Pages 117, 118 on dev · untested: no admin sign-in"],
- ["W0.13","Lookups / taxonomy admin","S3","W0","a",2,"P0","Page 106 on dev · untested: no admin sign-in"],
- ["W0.14","Moderation queue + appeals","S3","W0","a",2.5,"P0","Pages 107, 119 on dev · untested: no admin sign-in"],
- ["W0.15","Audit log, report modal, my decisions","S3","W0","p",2,"P0","Pages 80, 81 on dev; 110 needs admin sign-in"],
- ["W0.16","Terms versions, deny-list, breached passwords","S3","W0","n",0.75,"P0","Pages 124, 125, 126"],
+ ["W0.12","Chapters + chapter requests","S3","W0","x",1.5,"P0","Pages 117, 118 · ready for testing as tester.bala / tester.asha (Q36)"],
+ ["W0.13","Lookups / taxonomy admin","S3","W0","x",2,"P0","Page 106 · ready for testing as tester.bala (Q36)"],
+ ["W0.14","Moderation queue + appeals","S3","W0","x",2.5,"P0","Pages 107, 119 · ready for testing as tester.asha (Q36)"],
+ ["W0.15","Audit log, report modal, my decisions","S3","W0","x",2,"P0","Pages 80, 81, 110 · audit log as tester.asha/bala"],
+ ["W0.16","Terms versions, deny-list, breached passwords","S3","W0","x",0.75,"P0","Pages 124 legal texts, 125 deny-list, 126 breached passwords"],
  ["W0.19","Suggest term, request a chapter","S3","W0","x",0.5,"P1","Pages 90, 91 on dev · 14 Oct"],
  ["W0.20","Build Option wiring + enable_feature","S3","W0","n",1.5,"P0",""],
  ["W0.21","OAN_CHAT_API + OAN_NOTIFY_API (Build Pack contracts)","S3","W0","a",2,"P0","Codes-only transcript, live-only routing · 7 tests · 13 Oct"],
  ["W0.22","Build Pack conventions: AI_ items, IS_* names, Build Pack options","S3","W0","a",0.75,"P0","AI_ items, 9 IS_* schemes, Build Pack options · 13 Oct"],
  ["W1.1","Global page: rail, profile card, badge, search","S3","W1","x",1.5,"P1","Page 0 on dev; header fix (HTTP 500) 13 Oct"],
- ["W1.2","Home: greeting, letters carousel, What's new, route cards","S3","W1","x",2,"P1","Page 10: greeting, letters, upcoming events strip, What's new; mockup styling"],
- ["W1.3","Global search results","S3","W1","x",1.5,"P1","Page 19 on dev · 13 Oct"],
+ ["W1.2","Home: greeting, letters carousel, What's new, route cards","S3","W1","x",2,"P1","Page 10 incl. route cards from live intents"],
+ ["W1.3","Global search results","S3","W1","x",1.5,"P1","Page 19: 9 scopes incl. opportunities, events, groups, trainings, initiatives"],
  ["W2.1","Profile, CV and career-status tables","S4","W2","x",2.5,"P1","Profile, CV, CV sections, update requests, shares, intros, KPI, directory index tables"],
  ["W2.2","Profile package extensions","S4","W2","x",1.5,"P1","Completeness incl. career and CV; career status never to partners"],
  ["W2.3","Directory index (sync tightening, 2-min refresh)","S4","W2","x",5.5,"P1","oan_directory_pkg: queue triggers, sync tightening, 2-min job, consistency check"],
@@ -382,8 +382,8 @@ const T = [
  ["W6.9","Recognition and badges (descope lane)","S11","W6","p",3,"P4","Endorsements on page 22; badges and contribution scores descoped"],
  ["5.2","Security test (ZAP, bypass, leaks)","S11","WS5","n",3,"",""],
  ["5.7","Security and privacy test matrix","S11","WS5","n",8,"","Rows written in each sprint"],
- ["5.8","Test identities per role and context","S11","WS5","n",1,"",""],
- ["9.1","UAT plan by role and journey","S11","WS9","n",1.5,"",""],
+ ["5.8","Test identities per role and context","S11","WS5","p",1,"","Dev identities: member, admin, staff, expert/trainer, pending, partner, company (Q36); IdP holders at G3"],
+ ["9.1","UAT plan by role and journey","S11","WS9","p",1.5,"","docs/test-readiness.md: every page with tester and dev account"],
  ["5.1","Full AC regression + evidence pack","S12","WS5","n",4,"",""],
  ["5.3c","Load test re-run","S12","WS5","n",1,"",""],
  ["5.4","Full WCAG 2.2 AA audit","S12","WS5","n",2,"",""],
@@ -428,7 +428,7 @@ function renderSummary() {
   const stats = [
     ["16", "Sprints, S0–S15"], ["11", "Gates incl. go-live 8.0"], [String(T.length), "Tracked tasks"],
     [fmt(total) + " pd", "Dev estimate on board"], [String(by("a") + by("x")), "Done or authored offline"],
-    [String(by("b")), "Blocked (mostly on G0)"], ["28 May 2027", "Planned end of S15"]
+    [String(by("b")), "Blocked (mostly on G0)"], ["21 May 2027", "Planned end of S15"]
   ];
   const box = document.getElementById("summary");
   stats.forEach(([v, l]) => { const s = el("div", "stat"); s.append(el("b", null, v), el("span", null, l)); box.append(s); });

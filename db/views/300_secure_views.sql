@@ -545,6 +545,7 @@ select u.id user_id,
                 'VISIBLE') directory_mode,
        coalesce(s.messaging_mode, 'ANYONE') messaging_mode,
        coalesce(s.followers_enabled, 'Y') followers_enabled,
+       coalesce(s.accept_referrals, 'N') accept_referrals,
        coalesce(s.row_version, 0) row_version,
        s.updated_at
   from oan_users u
@@ -1136,11 +1137,13 @@ select a.id application_id, a.job_id, j.title job_title, a.user_id, p.first_name
    and oan_job_pkg.can_manage_job(a.job_id) = 'Y';
 
 -- Suggested referrers for a job: directory-visible members at the hiring company who accept messages (FR-37 AC1)
+-- and have turned on "Accept referral requests" (R18, AC4: default off, never suggested when off)
 create or replace view oan_referral_candidates_v as
 select j.id job_id, d.user_id, d.display_name, d.headline, d.current_org
   from oan_jobs j
   join oan_directory_v d on d.current_org is not null
                         and (instr(upper(d.current_org), upper(j.company_name)) > 0 or instr(upper(j.company_name), upper(d.current_org)) > 0)
+  join oan_privacy_settings ps on ps.user_id = d.user_id and ps.accept_referrals = 'Y'
  where j.status = 'OPEN'
    and oan_message_pkg.can_message(d.user_id) = 'Y';
 

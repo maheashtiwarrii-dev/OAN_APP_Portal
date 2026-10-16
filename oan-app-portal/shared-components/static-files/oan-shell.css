@@ -196,3 +196,12 @@ a.oan-event:hover { border-color: var(--oan-accent); }
 .oan-queues li:last-child { border-bottom: 0; }
 .oan-queue-count { min-width: 28px; text-align: center; border-radius: 12px; background: var(--oan-canvas); padding: 0 8px; }
 .oan-queue-count.is-busy { background: var(--oan-accent); color: #fff; }
+
+/* -------------------------------------------- Home route cards (W1.2) -- */
+.oan-routes { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+.oan-route { display: block; padding: 12px 14px; border: 1px solid var(--oan-border); border-radius: var(--oan-radius);
+             background: var(--oan-surface); color: var(--oan-ink); font-weight: 600; text-decoration: none; }
+.oan-route:hover, .oan-route:focus-visible { border-color: var(--oan-accent); }
+.oan-route.is-primary { border-left: 4px solid var(--oan-accent); }
+.oan-route span { display: block; margin-top: 4px; font-size: 12px; font-weight: 400; color: var(--oan-muted); }
+.oan-health { font-size: 18px; text-align: center; }

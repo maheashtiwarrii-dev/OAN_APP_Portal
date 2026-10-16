@@ -71,7 +71,6 @@ app OAN-APP-PORTAL (
     }
     authorization {
         sourceForRoleOrGroupSchemes: accessControlUserRoleAssignments
-        scheme: mustNotBePublicUser
     }
     sessionManagement {
         maxSessionLength: 28800

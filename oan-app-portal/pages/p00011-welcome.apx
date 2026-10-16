@@ -10,6 +10,7 @@ page 11 (
         cursorFocus: doNotFocusCursor
     }
     security {
+        deepLinking: true
         authentication: public
         pageAccessProtection: argumentsMustHaveChecksum
         formAutoComplete: false

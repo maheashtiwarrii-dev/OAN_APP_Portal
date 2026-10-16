@@ -1,0 +1,41 @@
+page 9000 (
+    name: Health
+    alias: HEALTH
+    title: OAN Portal health
+    appearance {
+        pageTemplate: @/login
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    security {
+        deepLinking: true
+        authentication: public
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: W0.17 public health page (NFR-08, Build Pack 9000) for OCI Health Checks (task 5.6). Shows OK or DEGRADED from OAN_ADMIN_PKG.PING (one config lookup) and nothing else: no data, no versions, no counts.
+    }
+
+    region r9000_status (
+        name: Status
+        type: dynamicContent
+        source {
+            plsqlFunctionBody:
+                ```plsql
+                return '<p class="oan-health">OAN Portal: <strong>' || oan_admin_pkg.ping || '</strong></p>';
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
+)

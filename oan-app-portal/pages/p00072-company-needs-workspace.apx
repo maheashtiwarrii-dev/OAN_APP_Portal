@@ -11,6 +11,7 @@ page 72 (
         warnOnUnsavedChanges: false
     }
     security {
+        deepLinking: true
         authorizationScheme: @is-org-contact
         pageAccessProtection: unrestricted
         formAutoComplete: false

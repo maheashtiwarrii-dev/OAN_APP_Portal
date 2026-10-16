@@ -1,0 +1,97 @@
+role ADMIN (
+    name: Platform Admin
+    description {
+        description: Runs the platform: approvals, members, staff roles, settings, reports (NFR-01: identity provider + 2-step verification in production).
+    }
+)
+
+role MODERATOR (
+    name: Moderator
+    description {
+        description: Reviews reports, library items, opportunities, groups, trainings and company needs; never their own (P25).
+    }
+)
+
+role CHAPTER_ADMIN (
+    name: Chapter Admin
+    description {
+        description: Runs a chapter tree: approvals, chapter requests, expert decisions for the tree.
+    }
+)
+
+role PRIVACY_OFFICER (
+    name: Privacy Officer
+    description {
+        description: Handles privacy requests (export, correction, deletion) within the SLA.
+    }
+)
+
+role SUPPORT (
+    name: Support agent
+    description {
+        description: Works the helpdesk queue (page 55).
+    }
+)
+
+role CONTENT_EDITOR (
+    name: Content Editor
+    description {
+        description: Publishes insights and Oracle role links; approves member-requested groups.
+    }
+)
+
+role EVENT_MANAGER (
+    name: Event Manager
+    description {
+        description: Creates and runs events, check-in and attendance (own events only, R14).
+    }
+)
+
+role EXPERT (
+    name: Expert
+    description {
+        description: Verified expert who answers Ask-an-expert requests (FR-07/21).
+    }
+)
+
+role TRAINER (
+    name: Trainer
+    description {
+        description: Verified trainer who publishes trainings and mock projects (FR-40).
+    }
+)
+
+role MENTOR (
+    name: Mentor
+    description {
+        description: Member listed as a mentor or coach (FR-39).
+    }
+)
+
+role PARTNER_CONTACT (
+    name: Partner contact
+    description {
+        description: Contact of a verified partner organisation (company workspace, ORG context).
+    }
+)
+
+role CUSTOMER_CONTACT (
+    name: Customer contact
+    description {
+        description: Contact of a verified customer organisation (company workspace, ORG context).
+    }
+)
+
+role MEMBER (
+    name: Member
+    description {
+        description: Active alumni member.
+    }
+)
+
+role PARTNER (
+    name: Partner user
+    description {
+        description: Active partner user (not an alumni member).
+    }
+)

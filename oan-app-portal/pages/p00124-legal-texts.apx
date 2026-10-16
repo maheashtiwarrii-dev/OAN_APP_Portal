@@ -1,0 +1,539 @@
+page 124 (
+    name: Legal Texts
+    alias: LEGAL-TEXTS
+    title: Legal texts
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    security {
+        authorizationScheme: @administration-rights
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: W0.16 Terms versions (FR-19, Build Pack 1071). Platform Admins draft and publish versions of the terms, privacy notice, community guidelines, partner terms and cookie notice. Publishing retires the previous version; when the version requires re-acceptance, members accept it at their next sign-in (page 14). Changes need a recent re-authentication and are audited (OAN_ADMIN_PKG). The real v1 texts are loaded at go-live (task 8.5) after legal review (7.3).
+    }
+
+    region r124_versions (
+        name: Versions
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select id, case doc_type when 'TERMS' then 'Terms of use' when 'PRIVACY' then 'Privacy notice' when 'GUIDELINES' then 'Community guidelines'
+                                         when 'PARTNER_TERMS' then 'Partner terms' else 'Cookie notice' end doc_label,
+                       version_no, title, initcap(status) status_label, case requires_reaccept when 'Y' then 'Yes' else 'No' end reaccept_label,
+                       effective_from,
+                       case when status = 'DRAFT' then 'Edit' end edit_label,
+                       case when status = 'DRAFT' and :P124_REAUTH_OK = 'Y' then 'Publish' end publish_label
+                  from oan_admin_terms_v
+                 order by doc_type, version_no desc
+                ```
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: No legal texts yet.
+        }
+
+        column ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column DOC_LABEL (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Document
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column VERSION_NO (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Version
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column TITLE (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Title
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column STATUS_LABEL (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Status
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+        column REACCEPT_LABEL (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Members accept again
+            }
+            layout {
+                sequence: 6
+            }
+        )
+
+        column EFFECTIVE_FROM (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: In force since
+            }
+            layout {
+                sequence: 7
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+        column EDIT_LABEL (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Edit
+            }
+            layout {
+                sequence: 8
+            }
+            link {
+                target: {
+                    page: 124
+                    items: {
+                        P124_ID: \#ID#\
+                    }
+                }
+                linkText: #EDIT_LABEL#
+            }
+        )
+
+        column PUBLISH_LABEL (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Publish
+            }
+            layout {
+                sequence: 9
+            }
+            link {
+                target: {
+                    page: 124
+                    items: {
+                        P124_ID: \#ID#\
+                    }
+                    request: PUBLISH
+                }
+                linkText: #PUBLISH_LABEL#
+            }
+        )
+
+    )
+
+    region r124_edit (
+        name: Draft a version
+        type: staticContent
+        source {
+            htmlCode: <p>Drafts are not shown to anyone until published. Leave the version empty to start a new draft.</p>
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/collapsible
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: item=value
+            item: P124_REAUTH_OK
+            value: Y
+        }
+    )
+
+    pageItem P124_ID (
+        type: hidden
+        layout {
+            sequence: 1
+            region: @r124_edit
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P124_REAUTH_OK (
+        type: hidden
+        layout {
+            sequence: 90
+            region: @r124_versions
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P124_DOC_TYPE (
+        type: selectList
+        label {
+            label: Document
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:Terms of use;TERMS,Privacy notice;PRIVACY,Community guidelines;GUIDELINES,Partner terms;PARTNER_TERMS,Cookie notice;COOKIES
+            displayExtraValues: false
+            displayNullValue: false
+        }
+        layout {
+            sequence: 10
+            region: @r124_edit
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P124_TITLE (
+        type: textField
+        label {
+            label: Title
+        }
+        layout {
+            sequence: 20
+            region: @r124_edit
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 200
+        }
+    )
+
+    pageItem P124_BODY (
+        type: textarea
+        label {
+            label: Text
+        }
+        layout {
+            sequence: 30
+            region: @r124_edit
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 32000
+        }
+    )
+
+    pageItem P124_REACCEPT (
+        type: switch
+        label {
+            label: Members must accept this version again
+        }
+        layout {
+            sequence: 40
+            region: @r124_edit
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    button save (
+        buttonName: SAVE
+        label: Save draft
+        layout {
+            sequence: 10
+            region: @r124_edit
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button new (
+        buttonName: NEW
+        label: New draft
+        layout {
+            sequence: 20
+            region: @r124_edit
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--simple
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 124
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button confirm-identity (
+        buttonName: CONFIRM_IDENTITY
+        label: Confirm my identity to make changes
+        layout {
+            sequence: 90
+            region: @r124_versions
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: item=value
+            item: P124_REAUTH_OK
+            value: N
+        }
+    )
+
+    button settings (
+        buttonName: SETTINGS
+        label: Settings
+        layout {
+            sequence: 80
+            region: @r124_versions
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--simple
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 122
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button dashboard (
+        buttonName: DASHBOARD
+        label: Admin dashboard
+        layout {
+            sequence: 81
+            region: @r124_versions
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--simple
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 100
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process reauth-state (
+        name: Re-authentication state
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                :P124_REAUTH_OK := case when oan_auth_pkg.is_recently_reauthenticated(5) then 'Y' else 'N' end;
+                ```
+        }
+        execution {
+            sequence: 1
+            point: beforeHeader
+        }
+    )
+
+    process remember-return (
+        name: Remember return page
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                :REAUTH_RETURN_PAGE := 124;
+                ```
+        }
+        execution {
+            sequence: 90
+        }
+        serverSideCondition {
+            whenButtonPressed: @confirm-identity
+        }
+    )
+
+    process load (
+        name: Load the draft
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                for t in (select doc_type, title, body, requires_reaccept from oan_admin_terms_v where id = to_number(:P124_ID) and status = 'DRAFT') loop
+                    :P124_DOC_TYPE := t.doc_type; :P124_TITLE := t.title; :P124_BODY := t.body; :P124_REACCEPT := t.requires_reaccept;
+                end loop;
+                ```
+        }
+        execution {
+            sequence: 2
+            point: beforeHeader
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P124_ID
+        }
+    )
+
+    process publish (
+        name: Publish a draft
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                oan_admin_pkg.publish_terms(to_number(:P124_ID));
+                apex_util.redirect_url(apex_page.get_url(p_page => 124));
+                ```
+        }
+        execution {
+            sequence: 3
+            point: beforeHeader
+        }
+        serverSideCondition {
+            type: request=Value
+            value: PUBLISH
+        }
+    )
+
+    process save (
+        name: Save the draft
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                :P124_ID := oan_admin_pkg.save_terms_draft(:P124_DOC_TYPE, :P124_TITLE, :P124_BODY, nvl(:P124_REACCEPT, 'N'), to_number(:P124_ID));
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        serverSideCondition {
+            whenButtonPressed: @save
+        }
+        successMessage {
+            successMessage: Draft saved.
+        }
+    )
+
+    branch to-reauth (
+        name: To identity confirmation
+        behavior {
+            type: pageOrUrl
+            target: {
+                page: 15
+            }
+        }
+        execution {
+            point: afterProcessing
+            sequence: 5
+        }
+        serverSideCondition {
+            whenButtonPressed: @confirm-identity
+        }
+    )
+
+    branch back (
+        name: Back to this page
+        behavior {
+            type: pageOrUrl
+            target: {
+                page: 124
+                items: {
+                    P124_ID: &P124_ID.
+                }
+            }
+        }
+        execution {
+            point: afterProcessing
+            sequence: 10
+        }
+    )
+
+)

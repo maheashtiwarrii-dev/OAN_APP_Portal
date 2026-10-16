@@ -17,7 +17,7 @@ create or replace package ut_oan_w5 as
   procedure apply_and_cv_share;
   --%test(FR-36: withdrawing or declining ends the CV share)
   procedure withdraw_revokes_share;
-  --%test(FR-37: referral limits - 1 per target per job and 5 per week)
+  --%test(FR-37 / R18: referral opt-in (default off), 1 per target per job and 5 per week)
   procedure referral_limits;
   --%test(FR-44: reference, consent and the sensitive-data check; HR documents are not a request type)
   procedure helpdesk_submit;
@@ -164,6 +164,14 @@ create or replace package body ut_oan_w5 as
     l_id  number;
     l_ref number;
   begin
+    as_member(g_a);
+    -- R18 / AC4: a member who has not turned on "Accept referral requests" cannot be asked
+    expect_error(-20403, 'opt-in required (R18)',
+      'declare l number; begin l := oan_job_pkg.request_referral(' || l_job || ', ' || g_b || ', ''x''); end;');
+    as_member(g_b);
+    oan_job_pkg.set_accept_referrals('Y');
+    as_member(g_admin);
+    oan_job_pkg.set_accept_referrals('Y');
     as_member(g_a);
     l_ref := oan_job_pkg.request_referral(l_job, g_b, 'Could you refer me?');
     expect_error(-20409, 'one per target per job',

@@ -17,7 +17,7 @@ create or replace package oan_ctx_pkg authid definer as
   -- utPLSQL only: impersonate a viewer without an APEX session (never reachable from OAN_APP)
   procedure set_test_viewer(p_user_id in number, p_type in varchar2, p_is_admin in varchar2 default 'N',
                             p_roles in varchar2 default null)
-    accessible by (package ut_oan_vis, package ut_oan_registry, package ut_oan_auth, package ut_oan_chat, package ut_oan_bp_api, package ut_oan_directory, package ut_oan_career, package ut_oan_network, package ut_oan_page_content, package ut_oan_platform, package ut_oan_w2, package ut_oan_messaging, package ut_oan_w3, package ut_oan_orgs, package ut_oan_w4, package ut_oan_w5, package ut_oan_w6, package ut_oan_w7);
+    accessible by (package ut_oan_vis, package ut_oan_registry, package ut_oan_auth, package ut_oan_chat, package ut_oan_bp_api, package ut_oan_directory, package ut_oan_career, package ut_oan_network, package ut_oan_page_content, package ut_oan_platform, package ut_oan_w2, package ut_oan_messaging, package ut_oan_w3, package ut_oan_orgs, package ut_oan_w4, package ut_oan_w5, package ut_oan_w6, package ut_oan_w7, package ut_oan_page_smoke);
   function  has_role(p_username in varchar2, p_role in varchar2) return boolean;
   -- 'Y' when the current viewer holds p_role (from the ROLES attribute; usable in SQL)
   function  viewer_has_role(p_role in varchar2) return varchar2;
@@ -114,6 +114,14 @@ create or replace package body oan_ctx_pkg as
     end;
 
     l_roles := acl_roles(l_username);
+    -- 1.30: staff roles come from OAN_STAFF_SCOPES (written only by the audited grant API, revoked in place) in
+    -- addition to APEX ACL roles, so access never depends on the ACL copy being in sync.
+    for r in (select distinct role_code from oan_staff_scopes
+               where user_id = l_user.id and revoked_at is null order by role_code) loop
+      if instr(nvl(l_roles, ':'), ':' || r.role_code || ':') = 0 then
+        l_roles := nvl(l_roles, ':') || r.role_code || ':';
+      end if;
+    end loop;
     l_type := case
                 when l_user.status = 'ACTIVE' and l_user.account_type = 'MEMBER'  then 'MEMBER'
                 when l_user.status = 'ACTIVE' and l_user.account_type = 'PARTNER' then 'PARTNER'
@@ -156,7 +164,7 @@ create or replace package body oan_ctx_pkg as
 
   procedure set_test_viewer(p_user_id in number, p_type in varchar2, p_is_admin in varchar2 default 'N',
                             p_roles in varchar2 default null)
-    accessible by (package ut_oan_vis, package ut_oan_registry, package ut_oan_auth, package ut_oan_chat, package ut_oan_bp_api, package ut_oan_directory, package ut_oan_career, package ut_oan_network, package ut_oan_page_content, package ut_oan_platform, package ut_oan_w2, package ut_oan_messaging, package ut_oan_w3, package ut_oan_orgs, package ut_oan_w4, package ut_oan_w5, package ut_oan_w6, package ut_oan_w7) is
+    accessible by (package ut_oan_vis, package ut_oan_registry, package ut_oan_auth, package ut_oan_chat, package ut_oan_bp_api, package ut_oan_directory, package ut_oan_career, package ut_oan_network, package ut_oan_page_content, package ut_oan_platform, package ut_oan_w2, package ut_oan_messaging, package ut_oan_w3, package ut_oan_orgs, package ut_oan_w4, package ut_oan_w5, package ut_oan_w6, package ut_oan_w7, package ut_oan_page_smoke) is
   begin
     clear_viewer;
     if p_user_id is not null then

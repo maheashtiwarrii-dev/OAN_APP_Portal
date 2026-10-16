@@ -195,6 +195,49 @@ page 10 (
         }
     )
 
+    region r10_routes (
+        name: What would you like to do?
+        type: dynamicContent
+        source {
+            plsqlFunctionBody:
+                ```plsql
+                -- W1.2 / R05: route cards come from live INTENT codes only (live_yn = Y), the member's chosen intent first,
+                -- then the rest in journey order. Company journeys (pages 70/72) are offered in the company workspace instead.
+                declare
+                    l_html    varchar2(32767);
+                    l_primary varchar2(30);
+                begin
+                    for s in (select primary_intent from oan_my_onboarding_chat_v) loop
+                        l_primary := s.primary_intent;
+                    end loop;
+                    for r in (select d, r code, landing_page
+                                from oan_intents_lov_v
+                               where live_yn = 'Y' and landing_page is not null and landing_page not in (70, 72)
+                               order by case when r = l_primary then 0 else 1 end, sort_order
+                               fetch first 6 rows only) loop
+                        l_html := l_html || '<a class="oan-route' || case when r.code = l_primary then ' is-primary' end || '" href="'
+                            || apex_page.get_url(p_page => r.landing_page) || '">' || apex_escape.html(r.d)
+                            || case when r.code = l_primary then '<span>You chose this when you joined</span>' end || '</a>';
+                    end loop;
+                    return case when l_html is not null then '<nav class="oan-routes" aria-label="Suggested next steps">' || l_html || '</nav>' end;
+                end;
+                ```
+        }
+        layout {
+            sequence: 16
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: expression
+            language: plsql
+            plsqlExpression: sys_context('OAN_CTX','VIEWER_TYPE') = 'MEMBER'
+        }
+    )
+
     region r10_role_offers (
         name: You told us you can help
         type: dynamicContent

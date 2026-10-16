@@ -140,6 +140,16 @@ begin
     insert into oan_endorsements (endorser_id, member_id, term_id) values (l_asha, l_tm, s.term_id);
     insert into oan_endorsements (endorser_id, member_id, term_id) values (l_chen, l_tm, s.term_id);
   end loop;
+  -- R18: referral opt-in (default off). Testers Asha and Chen and about a third of the synthetic alumni with a
+  -- current organisation accept referral requests, so referral suggestions on page 51 have candidates.
+  merge into oan_privacy_settings s
+  using (select u.id uid_ from oan_users u join oan_profiles p on p.user_id = u.id
+          where u.email like '%' || c_dom and u.status = 'ACTIVE' and u.account_type = 'MEMBER'
+            and (u.id in (l_asha, l_chen) or (p.current_org is not null and mod(u.id, 3) = 0))) x
+     on (s.user_id = x.uid_)
+   when matched then update set s.accept_referrals = 'Y'
+   when not matched then insert (user_id, directory_mode, messaging_mode, accept_referrals)
+                         values (x.uid_, 'VISIBLE', 'ANYONE', 'Y');
   commit;
 end;
 /

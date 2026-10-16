@@ -349,6 +349,102 @@ page 122 (
         }
     )
 
+    button legal-texts (
+        buttonName: LEGAL_TEXTS
+        label: Legal texts
+        layout {
+            sequence: 30
+            region: @r122_config
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--simple
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 124
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button deny-list (
+        buttonName: DENY_LIST
+        label: Screening deny-list
+        layout {
+            sequence: 40
+            region: @r122_config
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--simple
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 125
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button breached (
+        buttonName: BREACHED
+        label: Breached passwords
+        layout {
+            sequence: 50
+            region: @r122_config
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--simple
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 126
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button health (
+        buttonName: HEALTH
+        label: System health
+        layout {
+            sequence: 60
+            region: @r122_config
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--simple
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 9001
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
     process load (
         name: Load the setting and re-authentication state
         type: executeCode

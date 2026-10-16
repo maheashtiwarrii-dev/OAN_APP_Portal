@@ -1,0 +1,166 @@
+page 9001 (
+    name: System Health
+    alias: SYSTEM-HEALTH
+    title: System health
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    security {
+        authorizationScheme: @administration-rights
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: W0.17 system health (NFR-08, Build Pack 9001): invalid objects, job freshness and failures, stuck runs, e-mail send failures, search index backlog, breached-password list, integration options and the synthetic-data switch (OAN_ADMIN_PKG.SYSTEM_HEALTH, Platform Admins only, counts only).
+    }
+
+    region r9001_checks (
+        name: Checks
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select metric, value, status,
+                       case status when 'OK' then 'OK' when 'WARN' then 'Check' else 'Action needed' end status_label
+                  from table(oan_admin_pkg.system_health)
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: No checks returned.
+        }
+
+        column METRIC (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: Check
+            }
+            layout {
+                sequence: 1
+            }
+        )
+
+        column VALUE (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Value
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column STATUS (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 3
+            }
+        )
+
+        column STATUS_LABEL (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Result
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+    )
+
+    button settings (
+        buttonName: SETTINGS
+        label: Settings
+        layout {
+            sequence: 80
+            region: @r9001_checks
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--simple
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 122
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button dashboard (
+        buttonName: DASHBOARD
+        label: Admin dashboard
+        layout {
+            sequence: 81
+            region: @r9001_checks
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--simple
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 100
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button job-runs (
+        buttonName: JOB_RUNS
+        label: Job runs
+        layout {
+            sequence: 82
+            region: @r9001_checks
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--simple
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 123
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+)

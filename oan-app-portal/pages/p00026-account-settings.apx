@@ -82,7 +82,7 @@ page 26 (
             templateOptions: #DEFAULT#
         }
         comments {
-            comments: FR-35 directory switch and FSD FR-03 messaging permission (W2.5). Saved by oan_profile_pkg.set_privacy_settings with a row-version check; each change is audited.
+            comments: FR-35 directory switch, FSD FR-03 messaging permission (W2.5) and the R18 referral opt-in (1.35, default off). Saved by oan_profile_pkg.set_privacy_settings with a row-version check; each change is audited.
         }
     )
 
@@ -238,6 +238,25 @@ page 26 (
         }
     )
 
+    pageItem P26_ACCEPT_REFERRALS (
+        type: switch
+        label {
+            label: Accept referral requests
+        }
+        layout {
+            sequence: 27
+            region: @privacy-settings
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        help {
+            inlineHelpText: When on, members applying to roles at your organisation may ask you for a referral (at most 5 requests a week). Off by default; when off you are never suggested.
+        }
+    )
+
     pageItem P26_PRIVACY_VERSION (
         type: hidden
         layout {
@@ -389,10 +408,11 @@ page 26 (
                     :P26_EMAIL := r.email;
                     :P26_PROVIDERS := r.providers;
                 end loop;
-                for s in (select directory_mode, messaging_mode, followers_enabled, row_version from oan_my_privacy_settings_v) loop
+                for s in (select directory_mode, messaging_mode, followers_enabled, accept_referrals, row_version from oan_my_privacy_settings_v) loop
                     :P26_DIRECTORY_MODE  := s.directory_mode;
                     :P26_MESSAGING_MODE  := s.messaging_mode;
                     :P26_FOLLOWERS_ENABLED := s.followers_enabled;
+                    :P26_ACCEPT_REFERRALS := s.accept_referrals;
                     :P26_PRIVACY_VERSION := s.row_version;
                 end loop;
                 ```
@@ -483,6 +503,7 @@ page 26 (
                 ```plsql
                 oan_profile_pkg.set_privacy_settings(:P26_DIRECTORY_MODE, :P26_MESSAGING_MODE, :P26_PRIVACY_VERSION);
                 oan_network_pkg.set_followers_enabled(nvl(:P26_FOLLOWERS_ENABLED, 'N'));
+                oan_job_pkg.set_accept_referrals(nvl(:P26_ACCEPT_REFERRALS, 'N'));
                 ```
         }
         execution {

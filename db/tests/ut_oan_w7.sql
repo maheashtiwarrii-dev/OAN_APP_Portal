@@ -17,6 +17,12 @@ create or replace package ut_oan_w7 as
   procedure aggregate_reports;
   --%test(FR-24 / NFR-05: queue counts and job health are visible to Platform Admins only)
   procedure admin_views;
+  --%test(FR-19 / W0.16: legal-text drafts publish with re-auth and retire the previous version)
+  procedure legal_texts;
+  --%test(FR-19 / NFR-01 / W0.16: deny-list changes and breached-password hashes refuse matching passwords)
+  procedure lists_and_breached;
+  --%test(NFR-08 / W0.17: public ping says OK only; system health is for Platform Admins)
+  procedure health;
 end ut_oan_w7;
 /
 
@@ -115,6 +121,58 @@ create or replace package body ut_oan_w7 as
     select failures_7d into l_cnt from oan_admin_job_health_v where job_name = 'UT_W7_STEP';
     ut.expect(l_cnt, 'failure counted').to_equal(1);
   end admin_views;
+
+  procedure legal_texts is
+    l_d1 number;
+    l_d2 number;
+    l_st varchar2(20);
+  begin
+    oan_ctx_pkg.set_test_viewer(g_member, 'MEMBER');
+    expect_error(-20403, 'members cannot draft', 'declare n number; begin n := oan_admin_pkg.save_terms_draft(''COOKIES'', ''t'', ''b''); end;');
+    oan_ctx_pkg.set_test_viewer(g_admin, 'MEMBER', 'Y');
+    expect_error(-20401, 're-auth needed', 'declare n number; begin n := oan_admin_pkg.save_terms_draft(''COOKIES'', ''t'', ''b''); end;');
+    oan_auth_pkg.set_test_reauth(g_admin);
+    l_d1 := oan_admin_pkg.save_terms_draft('COOKIES', 'UT cookies v-a', to_clob('Text A'), 'N');
+    oan_admin_pkg.publish_terms(l_d1);
+    l_d2 := oan_admin_pkg.save_terms_draft('COOKIES', 'UT cookies v-b', to_clob('Text B'), 'Y');
+    oan_admin_pkg.publish_terms(l_d2);
+    select status into l_st from oan_terms_versions where id = l_d1;
+    ut.expect(l_st, 'previous version retired').to_equal('RETIRED');
+    select status into l_st from oan_terms_versions where id = l_d2;
+    ut.expect(l_st, 'new version published').to_equal('PUBLISHED');
+    expect_error(-20409, 'published text cannot be republished', 'oan_admin_pkg.publish_terms(' || l_d2 || ');');
+  end legal_texts;
+
+  procedure lists_and_breached is
+    l_id  number;
+    l_n   number;
+    l_hex varchar2(40) := rawtohex(dbms_crypto.hash(utl_i18n.string_to_raw('UtW7-Breached-Pass-9', 'AL32UTF8'), dbms_crypto.hash_sh1));
+  begin
+    oan_ctx_pkg.set_test_viewer(g_admin, 'MEMBER', 'Y');
+    oan_auth_pkg.set_test_reauth(g_admin);
+    oan_admin_pkg.add_deny_term('UT-W7 SECRET MARKER', 'MARKER');
+    expect_error(-20409, 'duplicate term refused', 'oan_admin_pkg.add_deny_term(''ut-w7 secret marker'', ''MARKER'');');
+    select id into l_id from oan_screen_denylist where upper(term) = 'UT-W7 SECRET MARKER';
+    oan_admin_pkg.remove_deny_term(l_id);
+    l_n := oan_admin_pkg.add_breached_hashes(to_clob(lower(l_hex) || ':12' || chr(10) || 'not-a-hash' || chr(10) || l_hex));
+    ut.expect(l_n, 'one new hash, junk and duplicates skipped').to_equal(1);
+    expect_error(-20400, 'breached password refused', 'oan_auth_pkg.validate_password_policy(''UtW7-Breached-Pass-9'');');
+  end lists_and_breached;
+
+  procedure health is
+    l_cnt number;
+  begin
+    oan_ctx_pkg.set_test_viewer(null, 'NONE');
+    ut.expect(oan_admin_pkg.ping, 'public ping').to_equal('OK');
+    select count(*) into l_cnt from table(oan_admin_pkg.system_health);
+    ut.expect(l_cnt, 'anonymous sees no health detail').to_equal(0);
+    oan_ctx_pkg.set_test_viewer(g_member, 'MEMBER');
+    select count(*) into l_cnt from table(oan_admin_pkg.system_health);
+    ut.expect(l_cnt, 'members see no health detail').to_equal(0);
+    oan_ctx_pkg.set_test_viewer(g_admin, 'MEMBER', 'Y');
+    select count(*) into l_cnt from table(oan_admin_pkg.system_health);
+    ut.expect(l_cnt, 'admins see the checks').to_be_greater_than(5);
+  end health;
 
 end ut_oan_w7;
 /

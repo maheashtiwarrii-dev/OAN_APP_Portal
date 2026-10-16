@@ -10,6 +10,7 @@ page 7 (
         warnOnUnsavedChanges: false
     }
     security {
+        deepLinking: true
         authentication: public
         pageAccessProtection: unrestricted
         formAutoComplete: false

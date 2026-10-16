@@ -10,6 +10,7 @@ page 69 (
         warnOnUnsavedChanges: false
     }
     security {
+        deepLinking: true
         authorizationScheme: @is-active
         pageAccessProtection: unrestricted
         formAutoComplete: false

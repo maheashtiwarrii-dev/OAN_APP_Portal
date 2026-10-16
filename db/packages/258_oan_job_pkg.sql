@@ -25,6 +25,7 @@ create or replace package oan_job_pkg authid definer as
   function can_manage_job(p_job_id in number) return varchar2;              -- Y / N for the viewer
   function match_score(p_job_id in number, p_user_id in number) return number;
   function request_referral(p_job_id in number, p_referrer_id in number, p_note in varchar2) return number;
+  procedure set_accept_referrals(p_yn in varchar2);                           -- R18: viewer's own setting, default N
   procedure decide_referral(p_referral_id in number, p_accept in varchar2);
   procedure expire_referrals;                                                 -- daily
   procedure close_expired_jobs;                                               -- daily
@@ -260,6 +261,9 @@ create or replace package body oan_job_pkg as
     select count(*) into l_cnt from oan_directory_v where user_id = p_referrer_id;
     oan_util.assert(l_cnt = 1 and oan_message_pkg.can_message(p_referrer_id) = 'Y',
                     'That member cannot be asked for a referral.', oan_util.c_err_forbidden);
+    -- R18 / FR-37 AC4: only members who turned on "Accept referral requests"
+    select count(*) into l_cnt from oan_privacy_settings where user_id = p_referrer_id and accept_referrals = 'Y';
+    oan_util.assert(l_cnt = 1, 'That member cannot be asked for a referral.', oan_util.c_err_forbidden);
     select count(*) into l_cnt from oan_referrals where requester_id = l_me and created_at > systimestamp - interval '7' day;
     oan_util.assert(l_cnt < oan_util.get_config_num('REFERRALS_PER_WEEK', 5),
                     'You can ask for ' || oan_util.get_config_num('REFERRALS_PER_WEEK', 5) || ' referrals a week.',
@@ -277,6 +281,29 @@ create or replace package body oan_job_pkg as
   exception
     when no_data_found then oan_util.raise_error(oan_util.c_err_conflict, 'This opportunity is closed.');
   end request_referral;
+
+  procedure set_accept_referrals(p_yn in varchar2) is
+    l_me  number := me;
+    l_old varchar2(1);
+    l_dir varchar2(20);
+  begin
+    oan_util.assert(p_yn in ('Y','N'), 'Choose on or off.');
+    l_dir := oan_vis.directory_mode(l_me);
+    begin
+      select accept_referrals into l_old from oan_privacy_settings where user_id = l_me;
+    exception
+      when no_data_found then l_old := 'N';
+    end;
+    if l_old = p_yn then
+      return;
+    end if;
+    merge into oan_privacy_settings s
+    using (select l_me u from dual) x on (s.user_id = x.u)
+     when matched then update set s.accept_referrals = p_yn, s.row_version = s.row_version + 1, s.updated_at = systimestamp
+     when not matched then insert (user_id, directory_mode, messaging_mode, accept_referrals)
+                           values (x.u, l_dir, 'ANYONE', p_yn);
+    oan_audit_pkg.log('PRIVACY_SETTING_CHANGED', 'USER', l_me, l_me, json_object('accept_referrals' value p_yn));
+  end set_accept_referrals;
 
   procedure decide_referral(p_referral_id in number, p_accept in varchar2) is
     l_me  number := me;

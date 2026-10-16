@@ -10,6 +10,7 @@ page 3 (
         warnOnUnsavedChanges: false
     }
     security {
+        deepLinking: true
         authentication: public
         pageAccessProtection: argumentsMustHaveChecksum
         formAutoComplete: false

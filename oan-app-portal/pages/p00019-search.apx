@@ -10,12 +10,13 @@ page 19 (
         warnOnUnsavedChanges: false
     }
     security {
+        deepLinking: true
         authorizationScheme: @is-active
         pageAccessProtection: unrestricted
         formAutoComplete: false
     }
     comments {
-        comments: Build Pack page 19 Global search results (FR-02). The page 0 search box opens this page with P19_Q in the URL, so the page and item are unrestricted; P19_Q is only ever bound, never concatenated. Results come from OAN_SEARCH_PKG.SEARCH, which filters through the secure views (members: name and headline only, P31).
+        comments: Build Pack page 19 Global search results (FR-02). The page 0 search box opens this page with P19_Q in the URL, so the page and item are unrestricted; P19_Q is only ever bound, never concatenated. Results come from OAN_SEARCH_PKG.SEARCH, which filters through the secure views (members: name and headline only, P31): library, insights, open-group posts, members, opportunities, events, groups, trainings and initiatives (W1.3); never messages or private-group posts (R20).
     }
 
     region search (
@@ -42,6 +43,11 @@ page 19 (
                 select case s.result_type when 'LIBRARY' then 'Library'
                                           when 'INSIGHT' then 'Insight'
                                           when 'POST'    then 'Discussion'
+                                          when 'OPPORTUNITY' then 'Opportunity'
+                                          when 'EVENT'   then 'Event'
+                                          when 'GROUP'   then 'Group'
+                                          when 'TRAINING' then 'Training'
+                                          when 'INITIATIVE' then 'Initiative'
                                           else 'Member' end type_label,
                        s.title,
                        s.snippet,
@@ -50,8 +56,13 @@ page 19 (
                            p_items  => case s.result_type when 'LIBRARY' then 'P35_ID'
                                                           when 'INSIGHT' then 'P31_ID'
                                                           when 'POST'    then 'P62_ID'
+                                                          when 'OPPORTUNITY' then 'P51_ID'
+                                                          when 'EVENT'   then 'P33_EVENT_ID'
+                                                          when 'GROUP'   then 'P61_ID'
+                                                          when 'INITIATIVE' then 'P77_ID'
+                                                          when 'TRAINING' then null
                                                           else 'P22_USER_ID' end,
-                           p_values => s.object_id) link_url
+                           p_values => case when s.result_type != 'TRAINING' then to_char(s.object_id) end) link_url
                   from table(oan_search_pkg.search(:P19_Q)) s
                  order by s.score desc
                 ```

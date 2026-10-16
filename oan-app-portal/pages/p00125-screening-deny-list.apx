@@ -1,0 +1,399 @@
+page 125 (
+    name: Screening Deny List
+    alias: SCREENING-DENY-LIST
+    title: Screening deny-list
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    security {
+        authorizationScheme: @administration-rights
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: W0.16 Deny-list (FR-19 item 3, Build Pack 1072). Confidentiality markers and customer names that flag a library upload for manual review (OAN_LIBRARY_PKG.SCREEN). Changes need a recent re-authentication and are audited (OAN_ADMIN_PKG).
+    }
+
+    region r125_list (
+        name: Terms
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select id, term, case term_type when 'MARKER' then 'Confidentiality marker' else 'Customer name' end type_label, added_at,
+                       case when :P125_REAUTH_OK = 'Y' then 'Remove' end remove_label
+                  from oan_denylist_v
+                 order by term_type, upper(term)
+                ```
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: The deny-list is empty.
+        }
+
+        column ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column TERM (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Term
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column TYPE_LABEL (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Type
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column ADDED_AT (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Added
+            }
+            layout {
+                sequence: 4
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+        column REMOVE_LABEL (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Remove
+            }
+            layout {
+                sequence: 5
+            }
+            link {
+                target: {
+                    page: 125
+                    items: {
+                        P125_ID: \#ID#\
+                    }
+                    request: REMOVE
+                }
+                linkText: #REMOVE_LABEL#
+            }
+        )
+
+    )
+
+    region r125_add (
+        name: Add a term
+        type: staticContent
+        source {
+            htmlCode: <p>Matching ignores case. Uploads that contain a term are held for a moderator.</p>
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: item=value
+            item: P125_REAUTH_OK
+            value: Y
+        }
+    )
+
+    pageItem P125_ID (
+        type: hidden
+        layout {
+            sequence: 1
+            region: @r125_list
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P125_REAUTH_OK (
+        type: hidden
+        layout {
+            sequence: 90
+            region: @r125_list
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P125_TERM (
+        type: textField
+        label {
+            label: Term
+        }
+        layout {
+            sequence: 10
+            region: @r125_add
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 200
+        }
+    )
+
+    pageItem P125_TYPE (
+        type: selectList
+        label {
+            label: Type
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:Confidentiality marker;MARKER,Customer name;CUSTOMER
+            displayExtraValues: false
+            displayNullValue: false
+        }
+        layout {
+            sequence: 20
+            region: @r125_add
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    button add (
+        buttonName: ADD
+        label: Add
+        layout {
+            sequence: 10
+            region: @r125_add
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button confirm-identity (
+        buttonName: CONFIRM_IDENTITY
+        label: Confirm my identity to make changes
+        layout {
+            sequence: 90
+            region: @r125_list
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: item=value
+            item: P125_REAUTH_OK
+            value: N
+        }
+    )
+
+    button settings (
+        buttonName: SETTINGS
+        label: Settings
+        layout {
+            sequence: 80
+            region: @r125_list
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--simple
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 122
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button dashboard (
+        buttonName: DASHBOARD
+        label: Admin dashboard
+        layout {
+            sequence: 81
+            region: @r125_list
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--simple
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 100
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process reauth-state (
+        name: Re-authentication state
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                :P125_REAUTH_OK := case when oan_auth_pkg.is_recently_reauthenticated(5) then 'Y' else 'N' end;
+                ```
+        }
+        execution {
+            sequence: 1
+            point: beforeHeader
+        }
+    )
+
+    process remember-return (
+        name: Remember return page
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                :REAUTH_RETURN_PAGE := 125;
+                ```
+        }
+        execution {
+            sequence: 90
+        }
+        serverSideCondition {
+            whenButtonPressed: @confirm-identity
+        }
+    )
+
+    process remove (
+        name: Remove a term
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                oan_admin_pkg.remove_deny_term(to_number(:P125_ID));
+                apex_util.redirect_url(apex_page.get_url(p_page => 125));
+                ```
+        }
+        execution {
+            sequence: 3
+            point: beforeHeader
+        }
+        serverSideCondition {
+            type: request=Value
+            value: REMOVE
+        }
+    )
+
+    process add (
+        name: Add a term
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                oan_admin_pkg.add_deny_term(:P125_TERM, :P125_TYPE);
+                :P125_TERM := null;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        serverSideCondition {
+            whenButtonPressed: @add
+        }
+        successMessage {
+            successMessage: Term added.
+        }
+    )
+
+    branch to-reauth (
+        name: To identity confirmation
+        behavior {
+            type: pageOrUrl
+            target: {
+                page: 15
+            }
+        }
+        execution {
+            point: afterProcessing
+            sequence: 5
+        }
+        serverSideCondition {
+            whenButtonPressed: @confirm-identity
+        }
+    )
+
+    branch back (
+        name: Back to this page
+        behavior {
+            type: pageOrUrl
+            target: {
+                page: 125
+            }
+        }
+        execution {
+            point: afterProcessing
+            sequence: 10
+        }
+    )
+
+)

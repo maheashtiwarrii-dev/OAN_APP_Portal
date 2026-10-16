@@ -10,6 +10,7 @@ page 76 (
         warnOnUnsavedChanges: false
     }
     security {
+        deepLinking: true
         authentication: public
         pageAccessProtection: argumentsMustHaveChecksum
         formAutoComplete: false

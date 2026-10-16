@@ -10,6 +10,7 @@ page 51 (
         warnOnUnsavedChanges: false
     }
     security {
+        deepLinking: true
         authorizationScheme: @is-signed-in
         pageAccessProtection: unrestricted
         formAutoComplete: false

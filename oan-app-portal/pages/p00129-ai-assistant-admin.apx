@@ -1,0 +1,173 @@
+page 129 (
+    name: AI Assistant Admin
+    alias: AI-ASSISTANT-ADMIN
+    title: AI assistant
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    security {
+        authorizationScheme: @administration-rights
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: W0.9 / R15 administration (Q41): whether the assistant is available (DPIA sign-off, gate, Build Option), whether an APEX Generative AI service is connected for LLM wording, and usage counts only - never questions or answers.
+    }
+
+    region r129_status (
+        name: Status
+        type: dynamicContent
+        source {
+            plsqlFunctionBody:
+                ```plsql
+                declare
+                    l_html varchar2(4000);
+                    function cfg(p_key in varchar2) return varchar2 is
+                        l_v varchar2(4000);
+                    begin
+                        select max(config_value) into l_v from oan_config_v where config_key = p_key;
+                        return l_v;
+                    end cfg;
+                    procedure row_(p_k in varchar2, p_v in varchar2) is
+                    begin
+                        l_html := l_html || '<tr><th scope="row">' || p_k || '</th><td>' || apex_escape.html(p_v) || '</td></tr>';
+                    end row_;
+                begin
+                    for o in (select dpia_reference, dpia_signed_at, gate_open from oan_admin_feature_options_v where option_code = 'AI_ASSISTANT') loop
+                        row_('Privacy impact assessment', nvl(o.dpia_reference, 'not signed') || case when o.dpia_signed_at is not null then ' (' || to_char(o.dpia_signed_at, 'DD Mon YYYY') || ')' end);
+                        row_('Gate G-AI', case o.gate_open when 'Y' then 'Open' else 'Closed' end);
+                    end loop;
+                    row_('Available to members', case oan_ai_pkg.available when 'Y' then 'Yes' else 'No' end);
+                    row_('LLM wording', case oan_ai_pkg.llm_configured when 'Y' then 'On (APEX Generative AI service ' || cfg('AI_SERVICE_STATIC_ID') || ')'
+                                             else 'Off - answers are built from OAN data only. Add an APEX Generative AI service with static id '
+                                                  || cfg('AI_SERVICE_STATIC_ID') || ' in the workspace to turn it on.' end);
+                    row_('Questions per member per day', cfg('AI_QUESTIONS_PER_DAY'));
+                    return '<table class="t-Report-report" style="width:auto">' || l_html || '</table>';
+                end;
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region r129_usage (
+        name: Usage (counts only)
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select topic, answer_mode, answers_7d, answers_30d, members_30d
+                  from oan_admin_ai_usage_v
+                 order by answers_30d desc
+                ```
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: No questions yet.
+        }
+
+        column TOPIC (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: Topic
+            }
+            layout {
+                sequence: 1
+            }
+        )
+
+        column ANSWER_MODE (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Answer
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column ANSWERS_7D (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Last 7 days
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column ANSWERS_30D (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Last 30 days
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column MEMBERS_30D (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Members
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+    )
+
+    button settings (
+        buttonName: SETTINGS
+        label: Settings
+        layout {
+            sequence: 10
+            region: @r129_usage
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--simple
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 122
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+)

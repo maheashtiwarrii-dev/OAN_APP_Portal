@@ -1,6 +1,6 @@
 --------------------------------------------------------------------------------
 -- oan_registration_pkg (FR-01, FR-25 approval queues, P11, NFR-17 consents)
---   Local:  create_local_account (UNVERIFIED) -> verify_email (PENDING_REGISTRATION)
+--   Local:  create_local_account (PENDING_REGISTRATION at once, Q40: no e-mail confirmation step)
 --   Both:   submit_application (PENDING) -> decide (ACTIVE | REJECTED | MORE_INFO)
 --------------------------------------------------------------------------------
 create or replace package oan_registration_pkg authid definer as
@@ -63,33 +63,27 @@ create or replace package body oan_registration_pkg as
     l_token   varchar2(64);
     l_exists  number;
   begin
-    oan_throttle_pkg.enforce('REGISTER:IP:' || oan_util.client_ip, 5, 60);
+    if oan_util.client_ip is not null then            -- per-IP limit for web requests only
+      oan_throttle_pkg.enforce('REGISTER:IP:' || oan_util.client_ip, 5, 60);
+    end if;
     oan_util.assert(p_age_18 = 'Y', 'You must confirm that you are 18 or older.');
     oan_util.assert(p_accept_terms = 'Y', 'You must accept the Terms, Privacy Notice and Community Guidelines.');
     oan_util.assert(regexp_like(l_email, '^[^@[:space:]]+@[^@[:space:]]+\.[^@[:space:]]+$'), 'Enter a valid email address.');
     oan_auth_pkg.validate_password_policy(p_password, l_email);
 
     select count(*) into l_exists from oan_users where lower(email) = l_email;
-    if l_exists > 0 then
-      -- Generic outcome (no enumeration): tell the existing owner instead of the requester
-      oan_notify_pkg.send_email(l_email, 'OAN sign-up attempt',
-        'Someone tried to create an OAN account with this email address. If it was you, sign in or reset your password.',
-        oan_notify_pkg.page_url(1), 'Sign in');
-      return;
-    end if;
+    -- Q40: without e-mail there is no way to tell the existing owner, so say it plainly
+    oan_util.assert(l_exists = 0, 'An account already uses this email address. Sign in, or ask an OAN administrator to reset your password.',
+                    oan_util.c_err_conflict);
 
     insert into oan_users (username, email, email_verified, status, account_type)
-    values ('u_' || lower(rawtohex(dbms_crypto.randombytes(8))), l_email, 'N', 'UNVERIFIED', 'MEMBER')
+    values ('u_' || lower(rawtohex(dbms_crypto.randombytes(8))), l_email, 'N', 'PENDING_REGISTRATION', 'MEMBER')
     returning id into l_user_id;
     oan_auth_pkg.set_local_password(l_user_id, p_password);
     insert into oan_profiles (user_id, first_name, last_name) values (l_user_id, trim(p_first_name), trim(p_last_name));
     insert into oan_consents (user_id, consent_type, granted) values (l_user_id, 'AGE_18', 'Y');
     record_terms_consents(l_user_id);
 
-    l_token := oan_auth_pkg.create_token(l_user_id, 'VERIFY', 1440);
-    oan_notify_pkg.send_email(l_email, 'Verify your email for OAN Portal',
-      'Confirm your email address within 24 hours to continue your OAN registration.',
-      oan_notify_pkg.page_url(7, 'P7_TOKEN,P7_KIND:' || l_token || ',VERIFY'), 'Verify email');
     oan_audit_pkg.log('USER_CREATED', 'USER', l_user_id, l_user_id, json_object('via' value 'LOCAL'));
   end create_local_account;
 

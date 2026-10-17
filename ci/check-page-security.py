@@ -15,7 +15,7 @@ import re
 import sys
 
 PUBLIC = {0, 1, 3, 7, 8, 9, 11, 12, 13, 44, 76, 9000}
-UNRESTRICTED_PAGES = {7, 8, 19, 29, 31, 33, 40, 44, 51, 55, 61, 69, 72, 77}
+UNRESTRICTED_PAGES = {7, 8, 19, 29, 31, 33, 40, 44, 51, 55, 61, 69, 72, 77, 79, 791}
 UNRESTRICTED_ITEM_PAGES = UNRESTRICTED_PAGES | {20, 21, 30, 32}
 ADMIN_SCHEMES = {'@administration-rights', '@can-moderate-queue', '@is-moderator', '@can-approve', '@is-privacy-officer'}
 

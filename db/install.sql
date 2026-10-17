@@ -34,6 +34,7 @@ prompt == DDL
 @@ddl/108_community_w6.sql
 @@ddl/109_w0_w7_completion.sql
 @@ddl/110_remove_channels.sql
+@@ddl/111_ai_assistant_volunteering.sql
 
 prompt == Packages (bodies with forward references compile at the end)
 whenever sqlerror continue
@@ -64,6 +65,8 @@ whenever sqlerror continue
 @@packages/245_oan_message_pkg.sql
 @@packages/246_oan_expert_pkg.sql
 @@packages/247_oan_training_pkg.sql
+@@packages/248_oan_volunteer_pkg.sql
+@@packages/249_oan_ai_pkg.sql
 @@packages/250_oan_moderation_pkg.sql
 @@packages/255_oan_org_pkg.sql
 @@packages/257_oan_talent_pkg.sql
@@ -125,5 +128,6 @@ whenever sqlerror continue
 @@tests/ut_oan_w5.sql
 @@tests/ut_oan_w6.sql
 @@tests/ut_oan_w7.sql
+@@tests/ut_oan_w8.sql
 
 prompt Install complete. Run 20_app_synonyms.sql as OAN_APP, then 30_assert_no_table_grants.sql.

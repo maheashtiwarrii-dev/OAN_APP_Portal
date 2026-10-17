@@ -1,0 +1,450 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OAN APEX Page Catalogue</title>
+<style>
+:root { --ink:#201e1c; --muted:#6b625b; --line:#e2ddd7; --accent:#b84a2e; --surface:#fff; --canvas:#f6f4f1; --soft:#f3ece6; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --ink:#ece7e1; --muted:#a59d94; --line:#403a35; --accent:#e08a72; --surface:#252220; --canvas:#1b1917; --soft:#3d2620; } }
+:root[data-theme="dark"] { --ink:#ece7e1; --muted:#a59d94; --line:#403a35; --accent:#e08a72; --surface:#252220; --canvas:#1b1917; --soft:#3d2620; }
+* { box-sizing: border-box; }
+body { margin:0; background:var(--canvas); color:var(--ink); font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+main { max-width: 1000px; margin: 0 auto; padding: 28px 16px 48px; }
+.eyebrow { font: 600 11px/1.4 ui-monospace, Consolas, monospace; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); }
+h1 { font-size: 28px; margin: 6px 0 4px; }
+h2 { font-size: 18px; margin: 28px 0 10px; padding-bottom: 6px; border-bottom: 2px solid var(--line); }
+.sub { color: var(--muted); max-width: 75ch; }
+.summary { display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:8px; margin: 16px 0; }
+.summary div { background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:10px 12px; }
+.summary b { display:block; font-size: 20px; }
+.summary span { color: var(--muted); font-size: 12px; }
+.page { background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:12px 14px; margin: 0 0 8px; break-inside: avoid; }
+.page header { display:flex; gap:10px; align-items:baseline; flex-wrap:wrap; }
+.num { font: 600 13px ui-monospace, Consolas, monospace; background: var(--soft); color: var(--accent); border-radius: 6px; padding: 1px 8px; }
+.page h3 { margin:0; font-size: 15px; }
+.tags { display:flex; gap:6px; flex-wrap:wrap; margin-left:auto; }
+.tag { font-size: 11px; border:1px solid var(--line); border-radius: 10px; padding: 1px 8px; color: var(--muted); }
+.page p { margin: 6px 0 0; font-size: 13px; }
+.regions { margin-top: 6px; font-size: 12px; color: var(--muted); }
+.toc { columns: 2; column-gap: 24px; font-size: 13px; padding-left: 18px; }
+@media (max-width: 600px) { .toc { columns: 1; } .tags { margin-left: 0; } }
+@media print { body { background:#fff; } main { max-width:none; padding: 0; } h2 { break-after: avoid; } }
+</style></head><body><main>
+<div class="eyebrow">OAN Portal · Oracle APEX application 200 · 17 October 2026</div>
+<h1>APEX page catalogue</h1>
+<p class="sub">Every page in the application, generated from the APEXLang export in the repository, grouped by area: who can open it,
+how it is reached, what it is for and its main sections. All pages are deployed to the dev environment. OAN is an independent alumni
+community; this document uses no Oracle logos.</p>
+<div class="summary">
+  <div><b>96</b><span>pages including the global page</span></div>
+  <div><b>11</b><span>public pages</span></div>
+  <div><b>22</b><span>administration pages</span></div>
+  <div><b>539</b><span>page items · 276 buttons</span></div>
+</div>
+<h2>Contents</h2><ol class="toc">
+<li>Sign-in, registration and onboarding (14)</li>
+<li>Home, navigation and notifications (6)</li>
+<li>Profile, CV, directory and network (16)</li>
+<li>Insights, library and events (9)</li>
+<li>Conversations and the AI assistant (2)</li>
+<li>Opportunities, referrals and helpdesk (7)</li>
+<li>Community, experts, learning and volunteering (13)</li>
+<li>Companies (4)</li>
+<li>Reports and decisions (2)</li>
+<li>Administration and moderation (22)</li>
+<li>Health (1)</li>
+</ol>
+<h2>Sign-in, registration and onboarding</h2>
+<section class="page"><header><span class="num">1</span><h3>OAN Portal - Sign In</h3>
+<div class="tags"><span class="tag">Anyone (signed out)</span><span class="tag">Opens from links</span><span class="tag">2 items · 2 buttons</span></div></header>
+
+<div class="regions"><strong>Sections:</strong> Sign in to OAN Portal, Other options</div></section>
+<section class="page"><header><span class="num">2</span><h3>Welcome to OAN</h3>
+<div class="tags"><span class="tag">Pending applicant</span><span class="tag">13 items · 13 buttons</span></div></header>
+<p>FR-34 conversational onboarding (R21, S30). Between 102 (email verified, status PENDING_REGISTRATION) and 110 (membership application). Deterministic; no LLM. Answers go straight to the draft profile through OAN_CHAT_PKG; the transcript keeps step and option codes only (90 days). Resumable at the last unanswered step (AC4). Page submit per step for v1; Ajax send is a follow-up after live validation.</p>
+<div class="regions"><strong>Sections:</strong> Your welcome conversation, Ready?, Your name, Your current role, Where you are based, Your skills, What brought you here, Other ways to take part, Check your answers</div></section>
+<section class="page"><header><span class="num">3</span><h3>Create your OAN account</h3>
+<div class="tags"><span class="tag">Anyone (signed out)</span><span class="tag">Opens from links</span><span class="tag">7 items · 1 buttons</span></div></header>
+
+<div class="regions"><strong>Sections:</strong> Create your OAN account</div></section>
+<section class="page"><header><span class="num">4</span><h3>You do not have access to this page</h3>
+<div class="tags"><span class="tag">Any signed-in user</span><span class="tag">0 items · 0 buttons</span></div></header>
+<p>W0.6 (NFR-02 deny by default). Shown when a signed-in user opens a page their role or account status does not allow. It never says which role would be needed.</p>
+<div class="regions"><strong>Sections:</strong> You do not have access to this page</div></section>
+<section class="page"><header><span class="num">5</span><h3>Your OAN membership application</h3>
+<div class="tags"><span class="tag">Pending applicant</span><span class="tag">4 items · 4 buttons</span></div></header>
+<p>FR-29 pending home: status, more-info response, withdraw, deletion grace-period cancel (FR-26 AC3), links to profile and privacy centre.</p>
+<div class="regions"><strong>Sections:</strong> Application status, The reviewer asked for more information, Account deletion scheduled, Meanwhile</div></section>
+<section class="page"><header><span class="num">6</span><h3>OAN membership application</h3>
+<div class="tags"><span class="tag">Pending applicant</span><span class="tag">14 items · 1 buttons</span></div></header>
+<p>FR-01 registration form (local after email verification, social on first login). Routed to the nearest chapter admin (P11).</p>
+<div class="regions"><strong>Sections:</strong> About you, Your Oracle tenure, Consent</div></section>
+<section class="page"><header><span class="num">7</span><h3>Confirm your email address</h3>
+<div class="tags"><span class="tag">Anyone (signed out)</span><span class="tag">Opens from links</span><span class="tag">3 items · 0 buttons</span></div></header>
+<p>Target of emailed links (verify / email change). Arguments come from email, so no URL checksum; the single-use hashed token is the protection (NFR-01).</p>
+<div class="regions"><strong>Sections:</strong> Email confirmation</div></section>
+<section class="page"><header><span class="num">8</span><h3>Reset your OAN password</h3>
+<div class="tags"><span class="tag">Anyone (signed out)</span><span class="tag">Opens from links</span><span class="tag">3 items · 2 buttons</span></div></header>
+<p>FR-01 forgot password. Request mode (no token) and reset mode (token from email). Generic responses only (no account enumeration).</p>
+<div class="regions"><strong>Sections:</strong> Forgot your password?, Choose a new password</div></section>
+<section class="page"><header><span class="num">9</span><h3>Existing OAN account</h3>
+<div class="tags"><span class="tag">Anyone (signed out)</span><span class="tag">Opens from links</span><span class="tag">0 items · 0 buttons</span></div></header>
+<p>FR-01 AC6 / P07: social sign-in whose verified email matches an existing account never links automatically.</p>
+<div class="regions"><strong>Sections:</strong> You already have an OAN account</div></section>
+<section class="page"><header><span class="num">11</span><h3>Oracle Alumni Network</h3>
+<div class="tags"><span class="tag">Anyone (signed out)</span><span class="tag">Opens from links</span><span class="tag">0 items · 2 buttons</span></div></header>
+
+<div class="regions"><strong>Sections:</strong> Oracle Alumni Network, What you get as a member</div></section>
+<section class="page"><header><span class="num">12</span><h3>Terms, Privacy and Guidelines</h3>
+<div class="tags"><span class="tag">Anyone (signed out)</span><span class="tag">Opens from links</span><span class="tag">0 items · 0 buttons</span></div></header>
+<p>GOV-03 / NFR-17 / FR-26: published legal texts (oan_terms_v is public) + privacy contact.</p>
+<div class="regions"><strong>Sections:</strong> Terms, Privacy and Community Guidelines, Privacy contact</div></section>
+<section class="page"><header><span class="num">13</span><h3>Report an IP or confidentiality issue</h3>
+<div class="tags"><span class="tag">Anyone (signed out)</span><span class="tag">Opens from links</span><span class="tag">5 items · 1 buttons</span></div></header>
+<p>FR-19 item 4 notice-and-takedown, usable without login. Throttled 5/IP/day; triage-first (Q19).</p>
+<div class="regions"><strong>Sections:</strong> Report an IP or confidentiality concern</div></section>
+<section class="page"><header><span class="num">14</span><h3>Updated terms and policies</h3>
+<div class="tags"><span class="tag">Any signed-in user</span><span class="tag">0 items · 1 buttons</span></div></header>
+
+<div class="regions"><strong>Sections:</strong> We have updated these documents, Read before accepting</div></section>
+<section class="page"><header><span class="num">15</span><h3>Confirm your identity</h3>
+<div class="tags"><span class="tag">Any signed-in user</span><span class="tag">1 items · 1 buttons</span></div></header>
+<p>NFR-01 re-authentication gate (export, deletion, email/password change, Members+Partners visibility, role grants). Valid 5 minutes for this session.</p>
+<div class="regions"><strong>Sections:</strong> Confirm with your password, Confirm with your sign-in provider</div></section>
+<h2>Home, navigation and notifications</h2>
+<section class="page"><header><span class="num">0</span><h3>Global Page</h3>
+<div class="tags"><span class="tag">Every page (global page)</span><span class="tag">0 items · 0 buttons</span></div></header>
+
+<div class="regions"><strong>Sections:</strong> Legal footer, Global search, Profile card, Cookie notice</div></section>
+<section class="page"><header><span class="num">10</span><h3>OAN Portal</h3>
+<div class="tags"><span class="tag">Any signed-in user</span><span class="tag">0 items · 1 buttons</span></div></header>
+<p>Build Pack §3.2 Home (W1) with FR-29: greeting, onboarding checklist, leadership-letter carousel, What&#x27;s new (announcements + insights), recent community posts. Unread notifications live in the navigation-bar badge. Non-members are routed to their status page.</p>
+<div class="regions"><strong>Sections:</strong> Hello, &amp;APP_USER_DISPLAY., Get started, From OAN leadership, Upcoming events, What would you like to do?, You told us you can help, What&#x27;s new, Recent posts</div></section>
+<section class="page"><header><span class="num">19</span><h3>Search</h3>
+<div class="tags"><span class="tag">Active member</span><span class="tag">Opens from links</span><span class="tag">1 items · 2 buttons</span></div></header>
+<p>Build Pack page 19 Global search results (FR-02). The page 0 search box opens this page with P19_Q in the URL, so the page and item are unrestricted; P19_Q is only ever bound, never concatenated. Results come from OAN_SEARCH_PKG.SEARCH, which filters through the secure views (members: name and headline only, P31): library, insights, open-group posts, members, opportunities, events, groups, trainings and initiatives (W1.3); never messages or private-group posts (R20).</p>
+<div class="regions"><strong>Sections:</strong> Search OAN, Results</div></section>
+<section class="page"><header><span class="num">41</span><h3>Notifications</h3>
+<div class="tags"><span class="tag">Any signed-in user</span><span class="tag">1 items · 2 buttons</span></div></header>
+<p>Build Pack notification bell target (FR-23). The viewer&#x27;s own notifications only (OAN_MY_NOTIFICATIONS_V). Open marks the item read and goes to its target page when that page exists in this build, otherwise stays here.</p>
+<div class="regions"><strong>Sections:</strong> Your notifications</div></section>
+<section class="page"><header><span class="num">42</span><h3>Notification settings</h3>
+<div class="tags"><span class="tag">Any signed-in user</span><span class="tag">3 items · 1 buttons</span></div></header>
+<p>Build Pack W4 page 42 (FR-23, W4.3). Per notification type - in-app is always on; email Instant / Daily digest / Off (required types stay Instant); Saved through OAN_NOTIFY_PKG.SET_PREF. Every email also has a one-click unsubscribe link (page 44).</p>
+<div class="regions"><strong>Sections:</strong> Notification types, Change a notification type</div></section>
+<section class="page"><header><span class="num">44</span><h3>Unsubscribe</h3>
+<div class="tags"><span class="tag">Anyone (signed out)</span><span class="tag">Opens from links</span><span class="tag">4 items · 0 buttons</span></div></header>
+<p>One-click unsubscribe (FR-23, P30; Build Pack page 44). Every OAN email links here with the member id, the notification type and an HMAC token (OAN_NOTIFY_PKG.UNSUBSCRIBE_URL). The token is checked server-side; a valid link turns email for that type Off without sign-in. Required types (security, account) cannot be switched off. The items are unrestricted because they arrive from email links; the HMAC token is the protection.</p>
+<div class="regions"><strong>Sections:</strong> Email preferences</div></section>
+<h2>Profile, CV, directory and network</h2>
+<section class="page"><header><span class="num">20</span><h3>Alumni directory</h3>
+<div class="tags"><span class="tag">Active member</span><span class="tag">1 items · 3 buttons</span></div></header>
+<p>Build Pack page 20 Directory search (FR-35, W2.5). A search box and a browse-all entry into page 21. Only people whose directory switch lets this viewer find them are counted or returned (oan_directory_v).</p>
+<div class="regions"><strong>Sections:</strong> Find alumni, Search the directory, Your directory listing</div></section>
+<section class="page"><header><span class="num">21</span><h3>Alumni directory</h3>
+<div class="tags"><span class="tag">Active member</span><span class="tag">2 items · 0 buttons</span></div></header>
+<p>Build Pack page 21 Directory results (FR-35 AC1-AC3, W2.5). Faceted search over OAN_DIRECTORY_V only. Every facet value is already masked by its section level, so filtering cannot reveal a hidden value. Missing values show as a dash (FSD BR-05). Availability is CAREER_STATUS-masked (connections only by default, R13), so members only filter on what they may see.</p>
+<div class="regions"><strong>Sections:</strong> Button Bar, People, Search</div></section>
+<section class="page"><header><span class="num">22</span><h3>OAN member profile</h3>
+<div class="tags"><span class="tag">Active member</span><span class="tag">11 items · 12 buttons</span></div></header>
+<p>FR-01 view: only OAN_PROFILE_V (section-masked, NFR-03). FR-03 connect/follow/block via OAN_NETWORK_PKG; relationship from OAN_RELATIONSHIP_V. Hidden sections arrive as NULL and show &quot;Not shared with you&quot;. W2.1/W2.2 sections read the masked OAN_PROFILE_*_V views (WORK, EDUCATION, SKILLS, CAREER_STATUS; R13 never partners).</p>
+<div class="regions"><strong>Sections:</strong> Profile, Career status, Oracle tenure, Experience, Education, Certifications and achievements, Languages, industries and interests, Connect, Ask for an introduction, Recommend to a connection …</div></section>
+<section class="page"><header><span class="num">23</span><h3>My OAN profile</h3>
+<div class="tags"><span class="tag">Any signed-in user</span><span class="tag">31 items · 8 buttons</span></div></header>
+<p>FR-01 basic profile (P1), section visibility (Q9/P02), skills, chapters, photo (FR-33), followed tags (FR-23). All writes via oan_profile_pkg (Q07).</p>
+<div class="regions"><strong>Sections:</strong> Profile completeness: &amp;P23_COMPLETENESS.%, Basic profile, Skills, chapters and interests, Your CV, Oracle tenure, Experience outside Oracle, Education, Certifications and achievements, Current work profile, Who can see each section</div></section>
+<section class="page"><header><span class="num">24</span><h3>My CV</h3>
+<div class="tags"><span class="tag">Any signed-in user</span><span class="tag">12 items · 7 buttons</span></div></header>
+<p>Build Pack page 24 My CV (FR-47, R13; W2.6/W2.7/W2.11). Upload PDF/DOCX (last 3 versions, one current), confirm it is still current, structured CV sections with a printable view (browser print or save as PDF; server PDF behind CV_PDF), share the current CV with one connection at a time (expires after CV_SHARE_DAYS, revocable, audited) and open CVs connections shared with you. Downloads go through OAN_DOWNLOAD_V.</p>
+<div class="regions"><strong>Sections:</strong> Is your CV still current?, Upload your CV, Your CV versions, Structured CV, Add or edit a section, Printable CV, Share your current CV, Who can see your CV, CVs shared with you</div></section>
+<section class="page"><header><span class="num">25</span><h3>Current work profile</h3>
+<div class="tags"><span class="tag">Any signed-in user</span><span class="tag">10 items · 3 buttons</span></div></header>
+<p>Build Pack page 25 Current work profile (W2.2, R13 / B10.11). Employer and designation update the profile card. Availability and open-to are CAREER_STATUS (connections only by default, never partners). Confirm still current stamps the next review date (WORK_PROFILE_REVIEW_CADENCE_MONTHS).</p>
+<div class="regions"><strong>Sections:</strong> Please confirm your work profile, Current work, Career status</div></section>
+<section class="page"><header><span class="num">26</span><h3>Your account settings</h3>
+<div class="tags"><span class="tag">Any signed-in user</span><span class="tag">10 items · 4 buttons</span></div></header>
+<p>FR-01 account management (P07): change password, change email (re-auth + confirmation at both addresses), sign-in is email and password for everyone (Q37); FR-35 directory switch and messaging permission.</p>
+<div class="regions"><strong>Sections:</strong> Sign-in methods, Change password, Change email address, Who can find and message you</div></section>
+<section class="page"><header><span class="num">27</span><h3>Privacy centre</h3>
+<div class="tags"><span class="tag">Any signed-in user</span><span class="tag">12 items · 7 buttons</span></div></header>
+<p>Build Pack page 27 Privacy centre (FR-26, P20, NFR-17; W2.9). Optional consents (history kept), data export (re-auth, 7-day download), account deletion (re-auth, 30-day grace, cancellable), nominee, and other privacy requests (30-day due date). Everything goes through OAN_PRIVACY_PKG; the page reads only viewer-scoped views.</p>
+<div class="regions"><strong>Sections:</strong> Your choices, Your data, Your account is scheduled for deletion, Your privacy requests, Your nominee, Other privacy requests</div></section>
+<section class="page"><header><span class="num">28</span><h3>My network</h3>
+<div class="tags"><span class="tag">Active member</span><span class="tag">5 items · 2 buttons</span></div></header>
+<p>Build Pack page 28 Connections (FR-03, W2.8 first slice). Requests received and sent, connections (searchable), followers, following and blocked members. All rows come from viewer-scoped views; every action goes through OAN_NETWORK_PKG (members only, audited). Introductions and recommendations follow with messaging (FR-18, W4).</p>
+<div class="regions"><strong>Sections:</strong> Introductions you were asked to make, Your introduction requests, Recommended for you, Requests for you, Requests you sent, My connections, Followers, Following, Blocked members</div></section>
+<section class="page"><header><span class="num">29</span><h3>Help Me Connect</h3>
+<div class="tags"><span class="tag">Active member</span><span class="tag">Opens from links</span><span class="tag">10 items · 4 buttons</span></div></header>
+<p>Help Me Connect (FR-04, W4.5; PRD-only page 29). Ask the network for help reaching someone; members respond with an offer to connect, an introduction, a pointer to another member, or a private reply that opens a conversation (page 40). Contact details are masked in public responses (AC1); requests expire after 30 days (AC2). Notifications link here, so P29_ID is unrestricted; OAN_HELP_REQUESTS_V and OAN_HELP_PKG decide access.</p>
+<div class="regions"><strong>Sections:</strong> Request, Responses, Can you help?, Ask the network, Requests from the network</div></section>
+<section class="page"><header><span class="num">90</span><h3>Suggest a term</h3>
+<div class="tags"><span class="tag">Active member</span><span class="tag">2 items · 2 buttons</span></div></header>
+<p>PRD-only page 90 Suggest a term (FR-28). Members suggest a skill, industry, topic or language; it is used only after review (page 106). Throttled to 20 a day in OAN_TAXONOMY_PKG.SUGGEST.</p>
+<div class="regions"><strong>Sections:</strong> Suggest a new term, Your suggestions</div></section>
+<section class="page"><header><span class="num">91</span><h3>Request a chapter</h3>
+<div class="tags"><span class="tag">Active member</span><span class="tag">3 items · 2 buttons</span></div></header>
+<p>PRD-only page 91 Request a chapter (FR-16, Q11). Members propose a new chapter under an existing one; only Platform Admins create chapters, after review on page 118.</p>
+<div class="regions"><strong>Sections:</strong> Request a new chapter, Your chapter requests</div></section>
+<section class="page"><header><span class="num">231</span><h3>Oracle tenure</h3>
+<div class="tags"><span class="tag">Any signed-in user</span><span class="tag">7 items · 3 buttons</span></div></header>
+<p>W2.1 dialog from page 23: one Oracle stint (WORK section). Saves through oan_career_pkg (own rows only, row-version checked, audited).</p>
+<div class="regions"><strong>Sections:</strong> Oracle tenure, Buttons</div></section>
+<section class="page"><header><span class="num">232</span><h3>Experience</h3>
+<div class="tags"><span class="tag">Any signed-in user</span><span class="tag">8 items · 3 buttons</span></div></header>
+<p>W2.1 dialog from page 23: experience outside Oracle (WORK section). Saves through oan_career_pkg.</p>
+<div class="regions"><strong>Sections:</strong> Experience, Buttons</div></section>
+<section class="page"><header><span class="num">233</span><h3>Education</h3>
+<div class="tags"><span class="tag">Any signed-in user</span><span class="tag">7 items · 3 buttons</span></div></header>
+<p>W2.1 dialog from page 23: one qualification (EDUCATION section). Saves through oan_career_pkg.</p>
+<div class="regions"><strong>Sections:</strong> Education, Buttons</div></section>
+<section class="page"><header><span class="num">234</span><h3>Certification or achievement</h3>
+<div class="tags"><span class="tag">Any signed-in user</span><span class="tag">8 items · 3 buttons</span></div></header>
+<p>W2.1 dialog from page 23: a certification or achievement (SKILLS section). Saves through oan_career_pkg.</p>
+<div class="regions"><strong>Sections:</strong> Certification or achievement, Buttons</div></section>
+<h2>Insights, library and events</h2>
+<section class="page"><header><span class="num">30</span><h3>Insights and perspectives</h3>
+<div class="tags"><span class="tag">Active member</span><span class="tag">3 items · 4 buttons</span></div></header>
+<p>Build Pack W3 page 30 (FR-43 AC1/AC2). Tabs Insights (curated by content editors), Perspectives (written by alumni), Saved and My articles. Reads OAN_INSIGHTS_V / OAN_MY_SAVED_V / OAN_MY_ARTICLES_V, so Library visibility, chapter scope and blocks apply. Saving goes through OAN_INSIGHT_PKG.</p>
+<div class="regions"><strong>Sections:</strong> Insights tabs, Search insights, Articles, My articles</div></section>
+<section class="page"><header><span class="num">31</span><h3>Article</h3>
+<div class="tags"><span class="tag">Active member</span><span class="tag">Opens from links</span><span class="tag">2 items · 5 buttons</span></div></header>
+<p>Build Pack W3 page 31 Article detail (FR-43). Search results and notifications link here, so P31_ID is unrestricted; OAN_ARTICLE_V only returns articles the viewer may read. Text is escaped and paragraphs come from blank lines; Insight source links open the public original (rel noopener). A view is recorded once per member per day; the aggregate ARTICLE_VIEW KPI has no user id.</p>
+<div class="regions"><strong>Sections:</strong> Article, More to read</div></section>
+<section class="page"><header><span class="num">32</span><h3>Events</h3>
+<div class="tags"><span class="tag">Active member</span><span class="tag">1 items · 1 buttons</span></div></header>
+<p>Build Pack W3 page 32 Events (FR-22). Upcoming / Past / My events over OAN_EVENTS_V (published and cancelled events in the member&#x27;s chapter scope; times in each event&#x27;s own time zone). Event managers also see drafts and a New event button (page 331).</p>
+<div class="regions"><strong>Sections:</strong> Event tabs, Event actions, Events, Events you manage</div></section>
+<section class="page"><header><span class="num">33</span><h3>Event</h3>
+<div class="tags"><span class="tag">Active member</span><span class="tag">Opens from links</span><span class="tag">6 items · 7 buttons</span></div></header>
+<p>Build Pack W3 page 33 Event detail (FR-22; W3.4/W3.6). Register (GOING or WAITLIST when full), cancel, not going, Add to calendar (.ics with the joining link only for GOING members), attendee list (blocked or inactive members drop out), resources after the event, and check-in for managers. Notifications link here, so P33_EVENT_ID is unrestricted; OAN_EVENTS_V and OAN_EVENT_PKG decide access. Aggregate KPIs EVENT_VIEW and EVENT_RETURN_VISIT have no user id.</p>
+<div class="regions"><strong>Sections:</strong> Event, Who is going, Check-in (event managers)</div></section>
+<section class="page"><header><span class="num">34</span><h3>OAN Knowledge Library</h3>
+<div class="tags"><span class="tag">Active member</span><span class="tag">0 items · 1 buttons</span></div></header>
+<p>FR-19 Knowledge Library (+ FR-08 training in P1). Faceted search over OAN_LIBRARY_V only (Q07); facets never see unpublished/out-of-scope items.</p>
+<div class="regions"><strong>Sections:</strong> Button Bar, Library, Search</div></section>
+<section class="page"><header><span class="num">35</span><h3>Knowledge Library item</h3>
+<div class="tags"><span class="tag">Active member</span><span class="tag">4 items · 4 buttons</span></div></header>
+<p>FR-19 item detail. Data from OAN_LIBRARY_V; download through OAN_DOWNLOAD_V (FR-33 single authorized path).</p>
+<div class="regions"><strong>Sections:</strong> &amp;P35_TITLE.</div></section>
+<section class="page"><header><span class="num">36</span><h3>Submit an item to the Knowledge Library</h3>
+<div class="tags"><span class="tag">Active member</span><span class="tag">16 items · 1 buttons</span></div></header>
+<p>FR-19 submission with P21 IP/confidentiality controls (rights basis + attestation). Pre-moderated; Sales/Product and screening hits need a second admin.</p>
+<div class="regions"><strong>Sections:</strong> Item, Rights and confidentiality, Training details (optional)</div></section>
+<section class="page"><header><span class="num">301</span><h3>Write an article</h3>
+<div class="tags"><span class="tag">Active member</span><span class="tag">7 items · 2 buttons</span></div></header>
+<p>W3 (FR-43) editor from page 30. Members write Perspectives in their own words; Content Editors curate Insights (own-words summary plus https source link, never copied text). Everything goes through OAN_INSIGHT_PKG.WRITE_ARTICLE, so attestation, screening and pre-moderation (pages 107/81) apply.</p>
+<div class="regions"><strong>Sections:</strong> Your article</div></section>
+<section class="page"><header><span class="num">331</span><h3>Event</h3>
+<div class="tags"><span class="tag">Active member</span><span class="tag">18 items · 4 buttons</span></div></header>
+<p>W3.3/W3.5 event editor for Platform Admins, Event Managers and the chapter&#x27;s admins (FR-22). Times are entered in the event&#x27;s time zone. New events are drafts until published; changes to a published event notify registered members; cancelling asks for a reason and notifies them. All checks are in OAN_EVENT_PKG.</p>
+<div class="regions"><strong>Sections:</strong> Event details, Cancel this event</div></section>
+<h2>Conversations and the AI assistant</h2>
+<section class="page"><header><span class="num">40</span><h3>Conversations</h3>
+<div class="tags"><span class="tag">Active member</span><span class="tag">Opens from links</span><span class="tag">7 items · 3 buttons</span></div></header>
+<p>Build Pack Messages / Conversations (FR-18, R08, R27; W4.1/W4.2 first slice, 14 Oct 2026). Two panes: All / Unread / Groups with Announcements, Pinned and Conversations; the open thread with its messages and a reply box. Everything is read through OAN_MY_THREADS_V and OAN_THREAD_MESSAGES_V (participants only) and changed through OAN_MESSAGE_PKG, which checks messaging permission, blocks and the daily limit. The URL items are unprotected because notifications link here; the views and the package decide access. Bodies are escaped. New messages are checked every 20 seconds (OAN_CHAT_POLL); …</p>
+<div class="regions"><strong>Sections:</strong> Conversations, Reply, Start a group conversation, Search messages, Messages found</div></section>
+<section class="page"><header><span class="num">48</span><h3>Ask OAN</h3>
+<div class="tags"><span class="tag">Active member</span><span class="tag">2 items · 5 buttons</span></div></header>
+<p>W0.9 AI assistant (R15; DPIA approved 17 Oct 2026, Q41). Conversation page: the member turns the assistant on (consent AI_ASSISTANT), asks questions and gets answers built only from what they can already see in OAN, with links. Read-only; injection attempts are refused; people appear only with consent AI_INCLUSION; history is private and kept 30 days. OAN_AI_PKG does the work; LLM wording is used when an APEX Generative AI service exists.</p>
+<div class="regions"><strong>Sections:</strong> Meet your OAN assistant, Conversation, Your question, Your assistant history</div></section>
+<h2>Opportunities, referrals and helpdesk</h2>
+<section class="page"><header><span class="num">50</span><h3>Opportunities</h3>
+<div class="tags"><span class="tag">Active member</span><span class="tag">4 items · 4 buttons</span></div></header>
+<p>Build Pack W5 page 50 Opportunities (FR-36; journeys J-01, J-08, J-18). Oracle roles (Careers deep links), roles from verified companies (Oracle partners, customers, other companies) and member gig/contract posts, best skills match first. Filters combine with AND (AC2). Reads OAN_OPPORTUNITIES_V.</p>
+<div class="regions"><strong>Sections:</strong> Find opportunities, Opportunities</div></section>
+<section class="page"><header><span class="num">51</span><h3>Opportunity</h3>
+<div class="tags"><span class="tag">Any signed-in user</span><span class="tag">Opens from links</span><span class="tag">6 items · 5 buttons</span></div></header>
+<p>Build Pack W5 page 51 Opportunity detail (FR-36, FR-37, R13). Members apply in-portal (non-Oracle roles) with a note and, if they choose, their current CV (an APPLICATION share for the posting organisation only); Oracle roles open Oracle Careers and record an aggregate click only (AC4). Members can ask a directory-visible member at the hiring company for a referral (5 a week). Posters and their company contacts see applicants, shortlist, decline or mark hired, and open CVs sent with applications. Notifications link here, so P51_ID is unrestricted; OAN_OPPORTUNITIES_V, OAN_JOB_APPLICANTS_V and …</p>
+<div class="regions"><strong>Sections:</strong> Opportunity, Apply, Ask for a referral, Applicants</div></section>
+<section class="page"><header><span class="num">52</span><h3>My applications</h3>
+<div class="tags"><span class="tag">Active member</span><span class="tag">0 items · 2 buttons</span></div></header>
+<p>Build Pack W5 page 52 (FR-36 AC3). The member&#x27;s applications with status, and the gigs or contracts they posted with applicant counts (open page 51 to manage applicants).</p>
+<div class="regions"><strong>Sections:</strong> My applications, Opportunities I posted, Actions</div></section>
+<section class="page"><header><span class="num">53</span><h3>Post an opportunity</h3>
+<div class="tags"><span class="tag">Any signed-in user</span><span class="tag">13 items · 2 buttons</span></div></header>
+<p>Build Pack W5 page 53 (FR-36). Members post gig or contract work (live at once, post-moderated); contacts of a verified company post full-time, part-time, contract or gig roles (pre-moderated); content editors add Oracle roles as Careers links. OAN_JOB_PKG.POST_JOB decides what the viewer may post.</p>
+<div class="regions"><strong>Sections:</strong> Opportunity</div></section>
+<section class="page"><header><span class="num">54</span><h3>Referrals</h3>
+<div class="tags"><span class="tag">Active member</span><span class="tag">1 items · 0 buttons</span></div></header>
+<p>Build Pack W5 page 54 Referrals (FR-37, R18). Requests other members sent you (accept or decline) and requests you sent (status). Five requests per 7 days, one per member per job; unanswered requests expire after 14 days.</p>
+<div class="regions"><strong>Sections:</strong> Asked of you, Asked by you</div></section>
+<section class="page"><header><span class="num">55</span><h3>Helpdesk</h3>
+<div class="tags"><span class="tag">Any signed-in user</span><span class="tag">Opens from links</span><span class="tag">9 items · 6 buttons</span></div></header>
+<p>Build Pack W5 page 55 Helpdesk (FR-44, Q29). Members raise expert-connection, RFP, feedback or general support requests (reference OAN-SR-YYYY-NNNNNN, consent, no ID/bank/salary numbers) and follow them; support agents see the queue, take requests, add internal or member notes and change status. HR documents are out of scope: OAN neither requests, signposts nor stores them (Q29; user, 15 Oct 2026). Notifications link here, so P55_ID is unrestricted; OAN_SERVICE_REQUESTS_V and OAN_HELPDESK_PKG decide access.</p>
+<div class="regions"><strong>Sections:</strong> New request, Requests, Request</div></section>
+<section class="page"><header><span class="num">56</span><h3>Skills in demand</h3>
+<div class="tags"><span class="tag">Active member</span><span class="tag">1 items · 0 buttons</span></div></header>
+<p>Build Pack W5 page 56 Skills and demand (FR-38; journeys J-02, J-03). Top 20 skills asked for by open opportunities this week, with trend against last week, how many members list each skill, whether you have it (add it to your profile in one step), and Library items tagged with it. Experts and training links arrive with W6. Aggregate data only (OAN_SKILL_DEMAND, nightly).</p>
+<div class="regions"><strong>Sections:</strong> Top skills this week</div></section>
+<h2>Community, experts, learning and volunteering</h2>
+<section class="page"><header><span class="num">60</span><h3>Community groups</h3>
+<div class="tags"><span class="tag">Active member</span><span class="tag">1 items · 5 buttons</span></div></header>
+<p>FR-41 community groups and post feed (R29: formerly Discussions/forums). Q&amp;A, stories and announcements. Data from OAN_GROUPS_V / OAN_POSTS_V (group access and blocks applied). Group governance and the group thread page 61 arrive in W6.1 (Build Pack numbering, Q31).</p>
+<div class="regions"><strong>Sections:</strong> Groups, Posts, More in the community</div></section>
+<section class="page"><header><span class="num">61</span><h3>Groups</h3>
+<div class="tags"><span class="tag">Active member</span><span class="tag">Opens from links</span><span class="tag">7 items · 7 buttons</span></div></header>
+<p>W6.1 Groups (FR-41, R19/R20). Without P61_ID: the group directory (open and ask-to-join groups, private groups only for members and invitees) and a form to propose a new group (reviewed by moderators). With P61_ID: join, ask to join, accept an invitation or leave; owners and moderators approve requests, invite members, change roles and remove members. Notifications link here, so P61_ID is unrestricted; OAN_GROUP_DIRECTORY_V and OAN_COMMUNITY_PKG decide access.</p>
+<div class="regions"><strong>Sections:</strong> All groups, Propose a new group, Group, Members, Invite a member</div></section>
+<section class="page"><header><span class="num">62</span><h3>Post</h3>
+<div class="tags"><span class="tag">Active member</span><span class="tag">5 items · 8 buttons</span></div></header>
+<p>FR-41 post detail (Build Pack page 62; R29/Q31: formerly Topic 31, then 37). Post, comments, @mentions, accepted answer (asker only), report (FR-25). Data from OAN_POSTS_V / OAN_POST_COMMENTS_V (group access and blocks applied).</p>
+<div class="regions"><strong>Sections:</strong> &amp;P62_TITLE., Comments, Add a comment, Accept an answer, Reactions</div></section>
+<section class="page"><header><span class="num">63</span><h3>Experts and trainers</h3>
+<div class="tags"><span class="tag">Active member</span><span class="tag">12 items · 4 buttons</span></div></header>
+<p>W6.2 Experts (FR-07/13/21; journeys J-05, J-14). Verified experts and trainers who accept messages; Ask an expert (5 a week; accepting opens a conversation); requests to me; apply as an expert or trainer (decided by a Chapter Admin of your chapter tree or a Platform Admin, never yourself; reviewed every 24 months); decision queue for those who may decide.</p>
+<div class="regions"><strong>Sections:</strong> Experts and trainers, Ask an expert, Requests, Apply as an expert or trainer, My applications, Applications to decide</div></section>
+<section class="page"><header><span class="num">65</span><h3>Mentoring</h3>
+<div class="tags"><span class="tag">Active member</span><span class="tag">14 items · 4 buttons</span></div></header>
+<p>W6.3 Mentoring (FR-39, R17; journey J-05). Find a mentor or coach with free capacity and send a goal (5 requests a week); become a mentor (capacity, listing pause); accept or decline requests (blocked when full - accepting opens a conversation); log sessions with private notes; complete; mentees leave private feedback visible to the mentor and Platform Admins only (no public ratings).</p>
+<div class="regions"><strong>Sections:</strong> Mentors and coaches, Ask for mentoring, My mentorships, Log a session or leave feedback, Become a mentor</div></section>
+<section class="page"><header><span class="num">67</span><h3>Training and mock projects</h3>
+<div class="tags"><span class="tag">Active member</span><span class="tag">12 items · 2 buttons</span></div></header>
+<p>W6.4 Training (FR-40/08/10; journey J-06). Open courses, workshops and mock projects with seats; enrol (waitlist when full) or withdraw; my learning and certificate codes; verify a certificate; verified trainers publish (moderated), see their roster and mark completion, which issues a certificate.</p>
+<div class="regions"><strong>Sections:</strong> Open trainings, My learning, Verify a certificate, Publish a training (verified trainers), My participants</div></section>
+<section class="page"><header><span class="num">69</span><h3>Company needs</h3>
+<div class="tags"><span class="tag">Active member</span><span class="tag">Opens from links</span><span class="tag">2 items · 1 buttons</span></div></header>
+<p>W6.5 member view (FR-42; journeys J-09..J-19, J-18). Open needs from verified companies - talent, bids, problems, team training, domain experts, rollouts, expansion, solution interest, non-Oracle partners and funded work - best skills match first. Respond with a note; only the posting company sees responses (R11). Shareable feedback companies left for you. Notifications link here, so P69_ID is unrestricted.</p>
+<div class="regions"><strong>Sections:</strong> Open needs, Need, Feedback companies shared with you</div></section>
+<section class="page"><header><span class="num">73</span><h3>New post</h3>
+<div class="tags"><span class="tag">Active member</span><span class="tag">6 items · 1 buttons</span></div></header>
+
+<div class="regions"><strong>Sections:</strong> Start a post</div></section>
+<section class="page"><header><span class="num">74</span><h3>Chapters</h3>
+<div class="tags"><span class="tag">Active member</span><span class="tag">1 items · 1 buttons</span></div></header>
+<p>W6.6 Chapters for members (FR-16): browse active chapters with member counts and upcoming events, join or leave (the primary chapter is kept on My profile), and request a new chapter (page 91).</p>
+<div class="regions"><strong>Sections:</strong> Chapters</div></section>
+<section class="page"><header><span class="num">77</span><h3>Initiatives</h3>
+<div class="tags"><span class="tag">Active member</span><span class="tag">Opens from links</span><span class="tag">6 items · 2 buttons</span></div></header>
+<p>W6.8 Initiatives (FR-06; journeys J-04, J-07): members start community initiatives (all members or a chapter), others register interest, the owner shortlists and closes. Notifications link here, so P77_ID is unrestricted; OAN_INITIATIVES_V and OAN_COMMUNITY_PKG decide access.</p>
+<div class="regions"><strong>Sections:</strong> Initiatives, People interested, Start an initiative</div></section>
+<section class="page"><header><span class="num">78</span><h3>Success stories</h3>
+<div class="tags"><span class="tag">Active member</span><span class="tag">0 items · 1 buttons</span></div></header>
+<p>W6.8 Success stories (FR-12): STORY posts from groups the viewer can read (R19/R20), newest first, with a link to share your own story (page 73, post type Story).</p>
+<div class="regions"><strong>Sections:</strong> Stories from the network, Actions</div></section>
+<section class="page"><header><span class="num">79</span><h3>Volunteering</h3>
+<div class="tags"><span class="tag">Active member</span><span class="tag">Opens from links</span><span class="tag">3 items · 2 buttons</span></div></header>
+<p>W6.10 Volunteering by city and cause (Q42): each one educate one, free nutrition in government schools, free medical camps and dental checks, mother and child welfare in rural areas, tree plantation. Filter by city and cause, sign up (waitlist when full) or withdraw, see your hours. Organisers use page 791. Notifications and the AI assistant link here with P79_ID, so the page and its filter items are unrestricted; OAN_VOLUNTEER_DRIVES_V and OAN_VOLUNTEER_PKG decide access.</p>
+<div class="regions"><strong>Sections:</strong> Causes, Drive, Upcoming drives, My volunteering</div></section>
+<section class="page"><header><span class="num">791</span><h3>Organise a volunteering drive</h3>
+<div class="tags"><span class="tag">Active member</span><span class="tag">Opens from links</span><span class="tag">14 items · 4 buttons</span></div></header>
+<p>W6.10 organiser page (Q42). Propose a drive (moderators, Chapter Admins and Platform Admins publish directly; other proposals wait for a moderator), see your drives, the volunteers who signed up, record attendance and hours, close or cancel (volunteers are told). Notifications link here with P791_ID, so it is unrestricted; OAN_VOLUNTEER_ROSTER_V and OAN_VOLUNTEER_PKG check that you organise the drive.</p>
+<div class="regions"><strong>Sections:</strong> Propose a drive, My drives, Volunteers, Record attendance, Cancel this drive</div></section>
+<h2>Companies</h2>
+<section class="page"><header><span class="num">70</span><h3>Company workspace</h3>
+<div class="tags"><span class="tag">Company contact</span><span class="tag">5 items · 4 buttons</span></div></header>
+<p>Build Pack W6 partner workspace landing (page 70; FR-42), first slice pulled forward on 14 Oct 2026 with company registration. Organisation page group, so the viewer runs as ORG (R01). Shows the verified organisation and its contacts. Owners invite and remove up to five colleagues (FR-20). Opportunities and applicants are on page 71; partner talent requests follow in W6.</p>
+<div class="regions"><strong>Sections:</strong> Your company, What you can do with OAN, Actions, Company contacts, Invite a colleague</div></section>
+<section class="page"><header><span class="num">71</span><h3>Company opportunities</h3>
+<div class="tags"><span class="tag">Company contact</span><span class="tag">0 items · 2 buttons</span></div></header>
+<p>Company workspace (FR-36/FR-42; organisation page group, ORG viewer). The company&#x27;s postings with review status and applicants; applicants are managed on page 51. New postings from page 53 are reviewed by an OAN moderator first.</p>
+<div class="regions"><strong>Sections:</strong> Actions, Our opportunities</div></section>
+<section class="page"><header><span class="num">72</span><h3>Our needs and responses</h3>
+<div class="tags"><span class="tag">Company contact</span><span class="tag">Opens from links</span><span class="tag">11 items · 3 buttons</span></div></header>
+<p>W6.5 partner workspace (FR-42, R01/R07/R11; organisation page group, ORG viewer). Post a need (eleven journey types J-09..J-19; reviewed by a moderator), see responses from members (only ours), shortlist or decline, record candidate feedback (never a rating; shared with the member only when marked shareable; purged after 12 months) and close a need as filled or not pursued. Notifications link here, so P72_ID is unrestricted; OAN_ORG_NEEDS_V and OAN_TALENT_PKG decide access.</p>
+<div class="regions"><strong>Sections:</strong> Post a need, Our needs, Responses, Candidate feedback</div></section>
+<section class="page"><header><span class="num">76</span><h3>Register your company with OAN</h3>
+<div class="tags"><span class="tag">Anyone (signed out)</span><span class="tag">Opens from links</span><span class="tag">16 items · 1 buttons</span></div></header>
+<p>Organisation application (PRD B10.19 / FR-20, R22; Build Pack page 76 per Q31; pulled forward 14 Oct 2026 on user request). Public form for any company - IT CXOs, Oracle partners, customers and other companies - to offer OAN members full-time roles, gig and contract work, business opportunities and collaboration. OAN_ORG_PKG.SUBMIT_APPLICATION validates, rate-limits, refuses ID numbers and notifies Platform Admins (page 112). Companies see only what members choose to share (Members+Partners sections, CVs shared with them, R13).</p>
+<div class="regions"><strong>Sections:</strong> Work with OAN alumni, Company registration, Thank you</div></section>
+<h2>Reports and decisions</h2>
+<section class="page"><header><span class="num">80</span><h3>Report a concern</h3>
+<div class="tags"><span class="tag">Active member</span><span class="tag">4 items · 2 buttons</span></div></header>
+<p>W0.15 (FR-25, FR-19). Reached from the Report buttons on pages 22 (profile), 35 (Library item) and 62 (post). Creates a report through OAN_MODERATION_PKG.REPORT (throttled 20 per day; harassment is high priority with a 1-business-day SLA). &quot;Remove my contribution&quot; applies to Library items only. Links to the Community Guidelines on page 12.</p>
+<div class="regions"><strong>Sections:</strong> Report a concern</div></section>
+<section class="page"><header><span class="num">81</span><h3>Moderation decisions about you</h3>
+<div class="tags"><span class="tag">Any signed-in user</span><span class="tag">3 items · 1 buttons</span></div></header>
+<p>W0.15 (FR-25). The member&#x27;s own moderation decisions (OAN_MY_MOD_DECISIONS_V) with one appeal per decision within 14 days (OAN_MODERATION_PKG.APPEAL). Appeals go to a Platform Admin who did not make the original decision. Notification links for MODERATION_DECISION and APPEAL_OUTCOME point here. Whether a suspended member can sign in to appeal depends on the authentication rules (checked at live validation).</p>
+<div class="regions"><strong>Sections:</strong> Decisions about your content or account, Appeal this decision</div></section>
+<h2>Administration and moderation</h2>
+<section class="page"><header><span class="num">100</span><h3>Admin dashboard</h3>
+<div class="tags"><span class="tag">Platform Admin</span><span class="tag">1 items · 4 buttons</span></div></header>
+<p>W7.1 Admin dashboard (FR-24/27, R25, NFR-05). Aggregate figures only - no member names or contact details: goal KPI tiles (OAN_ADMIN_DASHBOARD_V), work waiting in each queue with a link to the page that handles it (OAN_ADMIN_QUEUES_V), job health (OAN_ADMIN_JOB_HEALTH_V), usage counters for the last 30 days (OAN_ADMIN_KPI_V) and aggregate report downloads (W7.2, OAN_EXPORT_PKG: small counts suppressed, every export logged).</p>
+<div class="regions"><strong>Sections:</strong> Key figures, Waiting for action, Job health, Usage in the last 30 days, Volunteering by cause and city, Aggregate reports</div></section>
+<section class="page"><header><span class="num">101</span><h3>Members</h3>
+<div class="tags"><span class="tag">Platform Admin</span><span class="tag">2 items · 1 buttons</span></div></header>
+<p>W0.11 (FR-24, NFR-01/02, R16). Platform Admin member search. Data from OAN_ADMIN_USERS_V (Platform Admin only; SYSTEM rows excluded). Opens 116 for roles, MFA attestation, suspension and reactivation.</p>
+<div class="regions"><strong>Sections:</strong> Find a member, Members</div></section>
+<section class="page"><header><span class="num">106</span><h3>Skills, industries and topics</h3>
+<div class="tags"><span class="tag">Platform Admin</span><span class="tag">11 items · 5 buttons</span></div></header>
+<p>W0.13 (FR-28, NFR-10). Platform Admin management of the controlled vocabularies through OAN_TAXONOMY_PKG: add a term, approve or reject members&#x27; suggestions (page 90), and merge duplicates. A merge re-points every profile skill, Library tag and tag follow to the surviving term and keeps the old name as a synonym (FR-28 AC1/AC2). Journey intents and onboarding roles (OAN_LU_CODES) are seeded; their live switch follows each wave close.</p>
+<div class="regions"><strong>Sections:</strong> Find terms, Terms, Manage: &amp;P106_TERM_NAME., Add a term</div></section>
+<section class="page"><header><span class="num">107</span><h3>Moderation queue</h3>
+<div class="tags"><span class="tag">Moderator</span><span class="tag">14 items · 2 buttons</span></div></header>
+<p>W0.14 (FR-25, FR-19, Q12 hybrid moderation, P25 conflict of interest). One queue for Library pre-moderation, member reports and IP/confidentiality reports (OAN_MOD_QUEUE_V; your own items and reports naming you are filtered out). Decisions go through OAN_LIBRARY_PKG.REVIEW, OAN_MODERATION_PKG.ACT and OAN_LIBRARY_PKG.TRIAGE_IP, which audit and notify. Sales/Product and flagged Library items need a second, different Platform Admin.</p>
+<div class="regions"><strong>Sections:</strong> Queue at a glance, Waiting for a decision, Decide: &amp;P107_ITEM_TITLE., Opportunities waiting for review, Groups, trainings, partner needs and volunteering drives waiting for review</div></section>
+<section class="page"><header><span class="num">110</span><h3>Audit log</h3>
+<div class="tags"><span class="tag">Moderator</span><span class="tag">3 items · 1 buttons</span></div></header>
+<p>W0.15 (NFR-05, PRD 4). Read-only view of the append-only audit trail for Platform Admins and Moderators (OAN_AUDIT_V). Deleted members appear only by pseudonym (FR-26). No export from this page (R14: person-level exports go through OAN_EXPORT_PKG).</p>
+<div class="regions"><strong>Sections:</strong> Filter, Events</div></section>
+<section class="page"><header><span class="num">112</span><h3>Company registrations</h3>
+<div class="tags"><span class="tag">Platform Admin</span><span class="tag">6 items · 3 buttons</span></div></header>
+<p>Organisation verification (FR-20, R22, B10.19). Platform Admins review company registrations from page 76 and approve (verified organisation + PARTNER owner, or an organisation scope for an existing member), reject or ask for more information. Decisions need a recent re-authentication (page 15) and are audited by OAN_ORG_PKG.</p>
+<div class="regions"><strong>Sections:</strong> Registrations, Review registration, Verified organisations</div></section>
+<section class="page"><header><span class="num">114</span><h3>Membership approvals</h3>
+<div class="tags"><span class="tag">Admin or Chapter Admin</span><span class="tag">0 items · 0 buttons</span></div></header>
+<p>W0.10 (FR-01, FR-25, Q3). Applications waiting for a decision, oldest and overdue first. Platform Admins see all; Chapter Admins see their chapter tree; nobody sees their own application (OAN_APPROVAL_QUEUE_V). SLA is 3 business days.</p>
+<div class="regions"><strong>Sections:</strong> Queue at a glance, Applications</div></section>
+<section class="page"><header><span class="num">115</span><h3>Review application</h3>
+<div class="tags"><span class="tag">Admin or Chapter Admin</span><span class="tag">18 items · 2 buttons</span></div></header>
+<p>W0.10 (FR-01, FR-25). One application with the applicant&#x27;s onboarding answers (FR-34). Decision via OAN_REGISTRATION_PKG.DECIDE (approve / ask for more information / reject; reason required except for approval; row_version lost-update check). Conflict of interest and chapter scope are enforced by the view and by CAN_DECIDE.</p>
+<div class="regions"><strong>Sections:</strong> &amp;P115_APPLICANT_NAME., Your decision</div></section>
+<section class="page"><header><span class="num">116</span><h3>Member</h3>
+<div class="tags"><span class="tag">Platform Admin</span><span class="tag">15 items · 8 buttons</span></div></header>
+<p>W0.11 (FR-24, NFR-01/02, R16, P08). Platform Admin actions on one member through OAN_SECURITY_PKG: grant/revoke role (re-authentication required; privileged roles need a verified email and the annual access review; never on yourself), record the access review, suspend (ends all sessions) and reactivate. Every action is audited by the package.</p>
+<div class="regions"><strong>Sections:</strong> &amp;P116_DISPLAY_NAME., Roles, Annual access review, Account status</div></section>
+<section class="page"><header><span class="num">117</span><h3>Chapters</h3>
+<div class="tags"><span class="tag">Platform Admin</span><span class="tag">10 items · 4 buttons</span></div></header>
+<p>W0.12 (FR-16, Q11, P11, NFR-01). Region &gt; Country &gt; City chapter tree (materialized path). Platform Admins create chapters and assign Chapter Admins through OAN_CHAPTER_PKG / OAN_SECURITY_PKG; Chapter Admins need a verified email and the annual access review (Q37). Registration approvals route to the nearest ancestor chapter with an active Chapter Admin.</p>
+<div class="regions"><strong>Sections:</strong> Chapter tree, Create a chapter, Chapter Admins</div></section>
+<section class="page"><header><span class="num">118</span><h3>Chapter requests</h3>
+<div class="tags"><span class="tag">Platform Admin</span><span class="tag">6 items · 1 buttons</span></div></header>
+<p>W0.12 (FR-16). Members&#x27; requests for a new chapter (made on page 91). Platform Admins approve or decline with a note (OAN_CHAPTER_PKG.DECIDE_REQUEST; never their own request). Approving records the decision and notifies the requester; the chapter itself is then created on page 117.</p>
+<div class="regions"><strong>Sections:</strong> Requests, Decide: &amp;P118_PROPOSED_NAME.</div></section>
+<section class="page"><header><span class="num">119</span><h3>Moderation appeals</h3>
+<div class="tags"><span class="tag">Platform Admin</span><span class="tag">7 items · 1 buttons</span></div></header>
+<p>W0.14 (FR-25). One appeal per moderation decision, filed within 14 days. Decided by a Platform Admin who is neither the original decision maker nor the appellant (OAN_APPEALS_V filter + OAN_MODERATION_PKG.DECIDE_APPEAL checks). Overturning a hide or removal restores the content (status OVERTURNED); keeping it records UPHELD. The decision is final.</p>
+<div class="regions"><strong>Sections:</strong> Appeals, Decide the appeal</div></section>
+<section class="page"><header><span class="num">120</span><h3>Library import</h3>
+<div class="tags"><span class="tag">Platform Admin</span><span class="tag">1 items · 1 buttons</span></div></header>
+<p>W3.5 / FR-19 (P21): Platform Admins import LINK and VIDEO items from a CSV (header row; columns title, summary, item_type, url, category, owner_type, rights_basis, rights_note, tags, skill_level, provider, duration_minutes, delivery_format, source_owner_confirmed). Every row needs a rights basis and an https link; rows land as PENDING_REVIEW in the moderation queue (107). OAN_LIBRARY_PKG.IMPORT_CSV validates row by row and keeps a batch report.</p>
+<div class="regions"><strong>Sections:</strong> Import a CSV, Import batches</div></section>
+<section class="page"><header><span class="num">121</span><h3>Privacy requests</h3>
+<div class="tags"><span class="tag">Privacy Officer</span><span class="tag">4 items · 2 buttons</span></div></header>
+<p>W2.10 / FR-26 (Q22): Privacy Officer and Platform Admin work member privacy requests (objection, rectification, grievance, nominee, regulator, removal, access) within their due date; exports run automatically. Never their own requests (view filter). Changes go through OAN_PRIVACY_PKG.UPDATE_REQUEST and are audited.</p>
+<div class="regions"><strong>Sections:</strong> Requests, Request</div></section>
+<section class="page"><header><span class="num">122</span><h3>Settings</h3>
+<div class="tags"><span class="tag">Platform Admin</span><span class="tag">4 items · 9 buttons</span></div></header>
+<p>W7.3 Settings (FR-24, NFR-05). Platform Admins review every configuration value and change unlocked ones after confirming their identity (page 15, 5 minutes). OAN_ADMIN_PKG checks the value type, refuses locked keys (application id, phase, public URL, synthetic-data switch, e-mail sender and digest, channel identifiers - set by deployment or a release gate) and audits the old and new value.</p>
+<div class="regions"><strong>Sections:</strong> Configuration, Change a setting</div></section>
+<section class="page"><header><span class="num">123</span><h3>Job runs</h3>
+<div class="tags"><span class="tag">Platform Admin</span><span class="tag">2 items · 3 buttons</span></div></header>
+<p>W7.3 Job runs (FR-24, NFR-05). Health of every scheduled job step (15-minute, hourly, daily, weekly and analytics automations) and the latest 200 runs, filtered by step and result. Counts and messages only; job messages never contain personal data.</p>
+<div class="regions"><strong>Sections:</strong> Job health, Runs</div></section>
+<section class="page"><header><span class="num">124</span><h3>Legal texts</h3>
+<div class="tags"><span class="tag">Platform Admin</span><span class="tag">6 items · 5 buttons</span></div></header>
+<p>W0.16 Terms versions (FR-19, Build Pack 1071). Platform Admins draft and publish versions of the terms, privacy notice, community guidelines, partner terms and cookie notice. Publishing retires the previous version; when the version requires re-acceptance, members accept it at their next sign-in (page 14). Changes need a recent re-authentication and are audited (OAN_ADMIN_PKG). The real v1 texts are loaded at go-live (task 8.5) after legal review (7.3).</p>
+<div class="regions"><strong>Sections:</strong> Versions, Draft a version</div></section>
+<section class="page"><header><span class="num">125</span><h3>Screening deny-list</h3>
+<div class="tags"><span class="tag">Platform Admin</span><span class="tag">4 items · 4 buttons</span></div></header>
+<p>W0.16 Deny-list (FR-19 item 3, Build Pack 1072). Confidentiality markers and customer names that flag a library upload for manual review (OAN_LIBRARY_PKG.SCREEN). Changes need a recent re-authentication and are audited (OAN_ADMIN_PKG).</p>
+<div class="regions"><strong>Sections:</strong> Terms, Add a term</div></section>
+<section class="page"><header><span class="num">126</span><h3>Breached passwords</h3>
+<div class="tags"><span class="tag">Platform Admin</span><span class="tag">2 items · 4 buttons</span></div></header>
+<p>W0.16 Breached passwords (NFR-01, Build Pack 1073). New and changed passwords are refused when their SHA-1 hash is on this list (OAN_AUTH_PKG.VALIDATE_PASSWORD_POLICY). Admins paste SHA-1 hashes (one per line, &quot;HASH&quot; or &quot;HASH:count&quot;); passwords themselves are never stored. Loading needs a recent re-authentication and is audited.</p>
+<div class="regions"><strong>Sections:</strong> Breached-password list, Load hashes</div></section>
+<section class="page"><header><span class="num">128</span><h3>Profile update requests</h3>
+<div class="tags"><span class="tag">Platform Admin</span><span class="tag">1 items · 1 buttons</span></div></header>
+<p>W2.10 / FR-47 (W2.11): Platform Admins see the &quot;is your work profile / CV still current?&quot; requests raised at 08:00 local time, how many reminders went out and how each closed (updated, confirmed, account closed). Read-only: members close requests by updating or confirming. Aggregate counts first; never the admin&#x27;s own rows.</p>
+<div class="regions"><strong>Sections:</strong> Summary, Requests</div></section>
+<section class="page"><header><span class="num">129</span><h3>AI assistant</h3>
+<div class="tags"><span class="tag">Platform Admin</span><span class="tag">0 items · 1 buttons</span></div></header>
+<p>W0.9 / R15 administration (Q41): whether the assistant is available (DPIA sign-off, gate, Build Option), whether an APEX Generative AI service is connected for LLM wording, and usage counts only - never questions or answers.</p>
+<div class="regions"><strong>Sections:</strong> Status, Usage (counts only)</div></section>
+<section class="page"><header><span class="num">9001</span><h3>System health</h3>
+<div class="tags"><span class="tag">Platform Admin</span><span class="tag">0 items · 3 buttons</span></div></header>
+<p>W0.17 system health (NFR-08, Build Pack 9001): invalid objects, job freshness and failures, stuck runs, e-mail send failures, search index backlog, breached-password list, integration options and the synthetic-data switch (OAN_ADMIN_PKG.SYSTEM_HEALTH, Platform Admins only, counts only).</p>
+<div class="regions"><strong>Sections:</strong> Checks</div></section>
+<h2>Health</h2>
+<section class="page"><header><span class="num">9000</span><h3>OAN Portal health</h3>
+<div class="tags"><span class="tag">Anyone (signed out)</span><span class="tag">Opens from links</span><span class="tag">0 items · 0 buttons</span></div></header>
+<p>W0.17 public health page (NFR-08, Build Pack 9000) for OCI Health Checks (task 5.6). Shows OK or DEGRADED from OAN_ADMIN_PKG.PING (one config lookup) and nothing else: no data, no versions, no counts.</p>
+<div class="regions"><strong>Sections:</strong> Status</div></section>
+</main></body></html>

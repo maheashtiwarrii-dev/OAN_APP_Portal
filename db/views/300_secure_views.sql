@@ -1418,3 +1418,66 @@ select s.user_id member_id, s.term_id, s.skill, count(e.endorser_id) endorsement
   from oan_profile_skills_v s
   left join oan_endorsements e on e.member_id = s.user_id and e.term_id = s.term_id
  group by s.user_id, s.term_id, s.skill;
+
+------------------------------------------------- volunteering (W6.10, Q42) --
+-- Drives members can see: open and finished drives for everyone active; pending, rejected or cancelled drives
+-- only for their organiser and moderators. Places left counts SIGNED_UP only.
+create or replace view oan_volunteer_drives_v as
+select d.id, d.cause_code, c.label cause_label, c.icon cause_icon, d.city_id, l.name city_name, d.title, d.description, d.venue,
+       d.starts_at, d.ends_at, to_char(d.starts_at, 'Dy DD Mon YYYY, HH24:MI') when_label, d.capacity, d.status,
+       initcap(replace(d.status, '_', ' ')) status_label, d.cancel_reason, d.created_at, d.published_at,
+       (select count(*) from oan_volunteer_signups s where s.drive_id = d.id and s.status in ('SIGNED_UP','ATTENDED')) signed_up,
+       case when d.capacity is not null
+            then greatest(d.capacity - (select count(*) from oan_volunteer_signups s where s.drive_id = d.id and s.status = 'SIGNED_UP'), 0) end places_left,
+       (select s.status from oan_volunteer_signups s
+         where s.drive_id = d.id and s.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID'))) my_status,
+       (select m.display_name from oan_member_card_v m where m.user_id = d.organiser_id) organiser_name,
+       case when d.organiser_id = to_number(sys_context('OAN_CTX','VIEWER_ID')) then 'Y' else 'N' end is_mine
+  from oan_volunteer_drives d
+  join oan_volunteer_causes c on c.code = d.cause_code
+  join oan_locations l on l.id = d.city_id
+ where sys_context('OAN_CTX','VIEWER_TYPE') = 'MEMBER'
+   and (d.status in ('OPEN','CLOSED')
+        or d.organiser_id = to_number(sys_context('OAN_CTX','VIEWER_ID'))
+        or sys_context('OAN_CTX','IS_MODERATOR') = 'Y' or sys_context('OAN_CTX','IS_ADMIN') = 'Y');
+
+-- Cities for filters and forms (W6.10)
+create or replace view oan_cities_lov_v as
+select l.name d, l.id r from oan_locations l where l.loc_level = 'CITY';
+
+create or replace view oan_volunteer_causes_v as
+select c.code, c.label, c.description, c.icon, c.sort_order,
+       (select count(*) from oan_volunteer_drives d where d.cause_code = c.code and d.status = 'OPEN' and d.starts_at > systimestamp) open_drives
+  from oan_volunteer_causes c
+ where c.active_yn = 'Y';
+
+-- The viewer's own sign-ups and hours
+create or replace view oan_my_volunteering_v as
+select s.drive_id, d.title, c.label cause_label, l.name city_name, d.starts_at, s.status, initcap(replace(s.status, '_', ' ')) status_label,
+       s.hours, s.signed_up_at
+  from oan_volunteer_signups s
+  join oan_volunteer_drives d on d.id = s.drive_id
+  join oan_volunteer_causes c on c.code = d.cause_code
+  join oan_locations l on l.id = d.city_id
+ where s.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID'));
+
+-- Volunteers on the drives the viewer organises (name and headline only)
+create or replace view oan_volunteer_roster_v as
+select s.drive_id, s.user_id, m.display_name, m.headline, s.status, initcap(replace(s.status, '_', ' ')) status_label, s.hours, s.signed_up_at
+  from oan_volunteer_signups s
+  join oan_volunteer_drives d on d.id = s.drive_id
+  join oan_member_card_v m on m.user_id = s.user_id
+ where s.status != 'WITHDRAWN'
+   and (d.organiser_id = to_number(sys_context('OAN_CTX','VIEWER_ID')) or sys_context('OAN_CTX','IS_ADMIN') = 'Y');
+
+------------------------------------------------------ AI assistant (W0.9) --
+create or replace view oan_my_ai_conversations_v as
+select c.id, c.title, c.created_at, c.last_at,
+       (select count(*) from oan_ai_messages m where m.conversation_id = c.id and m.role = 'USER') questions
+  from oan_ai_conversations c
+ where c.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID'));
+
+create or replace view oan_my_ai_messages_v as
+select m.id, m.conversation_id, m.role, m.content, m.sources, m.answer_mode, m.topic, m.created_at
+  from oan_ai_messages m
+ where m.user_id = to_number(sys_context('OAN_CTX','VIEWER_ID'));

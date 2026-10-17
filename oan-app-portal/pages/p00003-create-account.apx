@@ -244,7 +244,7 @@ page 3 (
             sequence: 10
         }
         successMessage {
-            successMessage: Check your email. If this address can be used, we have sent you a verification link (valid for 24 hours).
+            successMessage: Your account is ready. Sign in to complete your membership application.
         }
     )
 

@@ -1,4 +1,4 @@
-# Publishes the Kanban delivery board and the status report to GitHub Pages (not the rest of the repo).
+# Publishes the Kanban delivery board, the status report and the APEX page catalogue to GitHub Pages (not the rest of the repo).
 name: Delivery board
 
 on:
@@ -9,6 +9,8 @@ on:
       - docs/OAN-Delivery-Board-landscape.pdf
       - docs/status-report.html
       - docs/OAN-Project-Status-Report.pdf
+      - docs/apex-page-catalogue.html
+      - docs/OAN-APEX-Page-Catalogue.pdf
       - docs/index.html
       - .github/workflows/board.yml
   workflow_dispatch:
@@ -40,8 +42,8 @@ jobs:
             cat docs/delivery-board.html
             echo '</body></html>'
           } > site/delivery-board.html
-          cp docs/index.html docs/status-report.html site/
-          cp docs/OAN-Delivery-Board-landscape.pdf docs/OAN-Project-Status-Report.pdf site/
+          cp docs/index.html docs/status-report.html docs/apex-page-catalogue.html site/
+          cp docs/OAN-Delivery-Board-landscape.pdf docs/OAN-Project-Status-Report.pdf docs/OAN-APEX-Page-Catalogue.pdf site/
           touch site/.nojekyll
 
       - uses: actions/upload-pages-artifact@v3

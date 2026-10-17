@@ -1,0 +1,568 @@
+page 79 (
+    name: Volunteering
+    alias: VOLUNTEERING
+    title: Volunteering
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    security {
+        deepLinking: true
+        authorizationScheme: @is-active
+        pageAccessProtection: unrestricted
+        formAutoComplete: false
+    }
+    comments {
+        comments: W6.10 Volunteering by city and cause (Q42): each one educate one, free nutrition in government schools, free medical camps and dental checks, mother and child welfare in rural areas, tree plantation. Filter by city and cause, sign up (waitlist when full) or withdraw, see your hours. Organisers use page 791. Notifications and the AI assistant link here with P79_ID, so the page and its filter items are unrestricted; OAN_VOLUNTEER_DRIVES_V and OAN_VOLUNTEER_PKG decide access.
+    }
+
+    region r79_causes (
+        name: Causes
+        type: dynamicContent
+        source {
+            plsqlFunctionBody:
+                ```plsql
+                declare
+                    l_html varchar2(32767);
+                begin
+                    for c in (select code, label, description, icon, open_drives from oan_volunteer_causes_v order by sort_order) loop
+                        l_html := l_html || '<a class="oan-cause' || case when c.code = :P79_CAUSE then ' is-current' end || '" href="'
+                            || apex_page.get_url(p_page => 79, p_items => 'P79_CAUSE,P79_CITY', p_values => c.code || ',' || :P79_CITY) || '">'
+                            || '<span class="fa ' || apex_escape.html_attribute(c.icon) || '" aria-hidden="true"></span>'
+                            || '<b>' || apex_escape.html(c.label) || '</b><span>' || apex_escape.html(c.description) || '</span>'
+                            || '<em>' || c.open_drives || case c.open_drives when 1 then ' open drive' else ' open drives' end || '</em></a>';
+                    end loop;
+                    return '<div class="oan-causes">' || l_html || '</div>';
+                end;
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--hideHeader js-addHiddenHeadingRoleDesc
+            ]
+        }
+    )
+
+    region r79_detail (
+        name: Drive
+        type: dynamicContent
+        source {
+            plsqlFunctionBody:
+                ```plsql
+                declare
+                    l_html clob;
+                begin
+                    for d in (select * from oan_volunteer_drives_v where id = to_number(:P79_ID)) loop
+                        l_html := '<h3 style="margin-top:0">' || apex_escape.html(d.title) || '</h3>'
+                            || '<p class="oan-article-meta">' || apex_escape.html(d.cause_label) || ' &middot; ' || apex_escape.html(d.city_name)
+                            || ' &middot; ' || d.when_label || case when d.venue is not null then ' &middot; ' || apex_escape.html(d.venue) end || '</p>'
+                            || '<p>' || replace(apex_escape.html(d.description), chr(10), '<br>') || '</p>'
+                            || '<p>' || d.signed_up || ' signed up' || case when d.places_left is not null then ' &middot; ' || d.places_left || ' places left' end
+                            || case when d.organiser_name is not null then ' &middot; organised by ' || apex_escape.html(d.organiser_name) end || '</p>'
+                            || case when d.status = 'CANCELLED' then '<p><strong>Cancelled:</strong> ' || apex_escape.html(d.cancel_reason) || '</p>' end;
+                    end loop;
+                    return nvl(l_html, '<p>This drive is not available.</p>');
+                end;
+                ```
+        }
+        layout {
+            sequence: 15
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P79_ID
+        }
+    )
+
+    region r79_drives (
+        name: Upcoming drives
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select id, title, cause_label, city_name, when_label, venue, signed_up,
+                       case when places_left is null then 'Open' when places_left = 0 then 'Full - waitlist' else places_left || ' places' end places_label,
+                       case my_status when 'SIGNED_UP' then 'Signed up' when 'WAITLIST' then 'On the waitlist' end my_label,
+                       case when nvl(my_status, 'WITHDRAWN') = 'WITHDRAWN' then 'Sign up' end signup_label,
+                       case when my_status in ('SIGNED_UP','WAITLIST') then 'Withdraw' end withdraw_label,
+                       'Details' details_label
+                  from oan_volunteer_drives_v
+                 where status = 'OPEN' and starts_at > systimestamp
+                   and (:P79_CITY is null or city_id = to_number(:P79_CITY))
+                   and (:P79_CAUSE is null or cause_code = :P79_CAUSE)
+                 order by starts_at
+                ```
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: No upcoming drives here yet. Organise one!
+        }
+
+        column ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column TITLE (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Drive
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column CAUSE_LABEL (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Cause
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column CITY_NAME (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: City
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column WHEN_LABEL (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: When
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+        column VENUE (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Where
+            }
+            layout {
+                sequence: 6
+            }
+        )
+
+        column SIGNED_UP (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: Volunteers
+            }
+            layout {
+                sequence: 7
+            }
+        )
+
+        column PLACES_LABEL (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            heading {
+                heading: Places
+            }
+            layout {
+                sequence: 8
+            }
+        )
+
+        column MY_LABEL (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            heading {
+                heading: You
+            }
+            layout {
+                sequence: 9
+            }
+        )
+
+        column SIGNUP_LABEL (
+            reportColumnQueryId: 10
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Sign up
+            }
+            layout {
+                sequence: 10
+            }
+            link {
+                target: {
+                    page: 79
+                    items: {
+                        P79_ID: \#ID#\
+                        P79_CITY: &P79_CITY.
+                        P79_CAUSE: &P79_CAUSE.
+                    }
+                    request: SIGNUP
+                }
+                linkText: #SIGNUP_LABEL#
+            }
+        )
+
+        column WITHDRAW_LABEL (
+            reportColumnQueryId: 11
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Withdraw
+            }
+            layout {
+                sequence: 11
+            }
+            link {
+                target: {
+                    page: 79
+                    items: {
+                        P79_ID: \#ID#\
+                        P79_CITY: &P79_CITY.
+                        P79_CAUSE: &P79_CAUSE.
+                    }
+                    request: WITHDRAW
+                }
+                linkText: #WITHDRAW_LABEL#
+            }
+        )
+
+        column DETAILS_LABEL (
+            reportColumnQueryId: 12
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Details
+            }
+            layout {
+                sequence: 12
+            }
+            link {
+                target: {
+                    page: 79
+                    items: {
+                        P79_ID: \#ID#\
+                        P79_CITY: &P79_CITY.
+                        P79_CAUSE: &P79_CAUSE.
+                    }
+                }
+                linkText: #DETAILS_LABEL#
+            }
+        )
+
+    )
+
+    region r79_mine (
+        name: My volunteering
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select drive_id, title, cause_label, city_name, starts_at, status_label, hours
+                  from oan_my_volunteering_v
+                 where status != 'WITHDRAWN'
+                 order by starts_at desc
+                ```
+        }
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: rowsReturned
+            sqlQuery: select 1 from oan_my_volunteering_v where status != 'WITHDRAWN'
+        }
+        messages {
+            whenNoDataFound: You have not signed up for a drive yet.
+        }
+
+        column DRIVE_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 1
+            }
+        )
+
+        column TITLE (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Drive
+            }
+            layout {
+                sequence: 2
+            }
+            link {
+                target: {
+                    page: 79
+                    items: {
+                        P79_ID: \#DRIVE_ID#\
+                    }
+                }
+                linkText: #TITLE#
+            }
+        )
+
+        column CAUSE_LABEL (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Cause
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column CITY_NAME (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: City
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column STARTS_AT (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Date
+            }
+            layout {
+                sequence: 5
+            }
+            appearance {
+                formatMask: DD-MON-YYYY
+            }
+        )
+
+        column STATUS_LABEL (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Status
+            }
+            layout {
+                sequence: 6
+            }
+        )
+
+        column HOURS (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: Hours
+            }
+            layout {
+                sequence: 7
+            }
+        )
+
+    )
+
+    pageItem P79_ID (
+        type: hidden
+        layout {
+            sequence: 1
+            region: @r79_drives
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: unrestricted
+        }
+    )
+
+    pageItem P79_CITY (
+        type: selectList
+        label {
+            label: City
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select d, r from oan_cities_lov_v order by d
+                ```
+            displayExtraValues: false
+            displayNullValue: true
+        }
+        layout {
+            sequence: 2
+            region: @r79_drives
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P79_CAUSE (
+        type: selectList
+        label {
+            label: Cause
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select label d, code r from oan_volunteer_causes_v order by sort_order
+                ```
+            displayExtraValues: false
+            displayNullValue: true
+        }
+        layout {
+            sequence: 3
+            region: @r79_drives
+            slot: regionBody
+            newColumn: true
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    button filter (
+        buttonName: FILTER
+        label: Show
+        layout {
+            sequence: 5
+            region: @r79_drives
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button organise (
+        buttonName: ORGANISE
+        label: Organise a drive
+        layout {
+            sequence: 10
+            region: @r79_drives
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--simple
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 791
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process row-actions (
+        name: Sign up or withdraw
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                case :REQUEST
+                    when 'SIGNUP'   then oan_volunteer_pkg.sign_up(to_number(:P79_ID));
+                    when 'WITHDRAW' then oan_volunteer_pkg.withdraw(to_number(:P79_ID));
+                end case;
+                apex_util.redirect_url(apex_page.get_url(p_page => 79, p_items => 'P79_ID,P79_CITY,P79_CAUSE',
+                                                         p_values => :P79_ID || ',' || :P79_CITY || ',' || :P79_CAUSE));
+                ```
+        }
+        execution {
+            sequence: 5
+            point: beforeHeader
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: SIGNUP,WITHDRAW
+        }
+    )
+
+    branch back (
+        name: Back to this page
+        behavior {
+            type: pageOrUrl
+            target: {
+                page: 79
+                items: {
+                    P79_CITY: &P79_CITY.
+                    P79_CAUSE: &P79_CAUSE.
+                }
+            }
+        }
+        execution {
+            point: afterProcessing
+            sequence: 10
+        }
+    )
+
+)

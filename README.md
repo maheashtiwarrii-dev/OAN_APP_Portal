@@ -4,18 +4,20 @@ An Oracle APEX (APEXLang) application for an independent alumni community, plus 
 
 > OAN is an independent alumni community and is not affiliated with or endorsed by Oracle Corporation.
 
-## Status (16 Oct 2026, iteration 28)
+## Status (17 Oct 2026, iteration 29)
 
 [![CI](https://github.com/maheashtiwarrii-dev/OAN_APP_Portal/actions/workflows/ci.yml/badge.svg)](https://github.com/maheashtiwarrii-dev/OAN_APP_Portal/actions/workflows/ci.yml)
 [![Delivery board](https://github.com/maheashtiwarrii-dev/OAN_APP_Portal/actions/workflows/board.yml/badge.svg)](https://github.com/maheashtiwarrii-dev/OAN_APP_Portal/actions/workflows/board.yml)
 
 - **Project start:** 12 Oct 2026. Sprints S0 (12–23 Oct 2026) to S15 (10–21 May 2027); go-live gate 8.0 in S13 (12–23 Apr 2027).
-- **Sign-in:** everyone signs in with an e-mail address and password, any provider including Gmail (Q37). No Google OAuth; Slack and WhatsApp were removed (Q38).
-- **Built on dev:** waves W0–W7, Oracle APEX app 200 with 92 pages; 160/160 automated tests (17 utPLSQL suites plus every page query run as 5 personas); CI green.
-- **WS0 environment:** 14 of 16 done. Open: e-mail delivery (0.7) needs OAN's SMTP credential (script `db/grants/40_email_delivery.sql` ready); AI spike (0.18) waits for gate G-AI.
+- **Sign-in:** anyone creates an account with an e-mail address (Gmail included) and a password and continues straight to the membership application; no e-mail confirmation step (Q40). No Google OAuth (Q37); Slack and WhatsApp removed (Q38).
+- **New:** AI assistant "Ask OAN" (page 48; privacy impact assessment approved, Q41) and volunteering for city-wise social causes (pages 79, 791; Q42).
+- **APEX page catalogue (PDF):** [docs/OAN-APEX-Page-Catalogue.pdf](docs/OAN-APEX-Page-Catalogue.pdf), all 96 pages.
+- **Built on dev:** waves W0–W7, Oracle APEX app 200 with 96 pages; 168/168 automated tests (18 utPLSQL suites plus every page query run as 5 personas); CI green.
+- **WS0 environment:** 15 of 15 done (complete).
 - **Ready for testing:** every page, with its tester and dev account, in [docs/test-readiness.md](docs/test-readiness.md).
-- **Go-live:** not yet. Gate 8.0 still needs e-mail delivery, production on APEX 26.2, security/load/accessibility tests, DPIA and legal texts, and UAT sign-off.
-- **Whole plan:** 90 of 144 tasks done; 224 of 303 person-days (74%), including testing, compliance and release work still to come.
+- **Go-live:** not yet. Gate 8.0 still needs production on APEX 26.2, security/load/accessibility tests, DPIA and legal texts, and UAT sign-off.
+- **Whole plan:** 94 of 144 tasks done; 231 of 305 person-days (76%), including testing, compliance and release work still to come.
 
 ### Build waves W0–W7: % complete
 
@@ -23,15 +25,15 @@ An Oracle APEX (APEXLang) application for an independent alumni community, plus 
 
 | Wave | Scope | Tasks done | % complete | Still open |
 |---|---|---|---|---|
-| W0 | Sign-in, onboarding and admin | 20 of 22 | **76%** | Security baseline review (W0.18); AI assistant waits for gate G-AI |
+| W0 | Sign-in, onboarding and admin | 21 of 22 | **83%** | Security baseline review (W0.18) |
 | W1 | Shell, Home and search | 3 of 3 | **100%** | — |
 | W2 | Profile, directory and CV | 11 of 11 | **100%** | — |
 | W3 | Insights and events | 6 of 6 | **100%** | — |
 | W4 | Conversations and notifications | 4 of 4 | **100%** | — |
 | W5 | Opportunities, helpdesk, companies | 6 of 7 | **96%** | Careers feed waits for gate G-CF (Careers links work) |
-| W6 | Community, experts, training, partners | 7 of 9 | **86%** | Marketplace and badges in the descope lane (Could) |
+| W6 | Community, experts, training, partners | 8 of 10 | **87%** | Marketplace and badges in the descope lane (Could) |
 | W7 | Admin, reports and hardening | 4 of 4 | **100%** | — |
-| **W0–W7** | All build waves | **61 of 66** | **91%** | 162.25 of 178.5 person-days |
+| **W0–W7** | All build waves | **63 of 67** | **93%** | 168.25 of 181.5 person-days |
 
 ### Dashboards
 - **Secrets register:** [docs/secrets-register.md](docs/secrets-register.md) · **Liquibase changelog:** [db/controller.xml](db/controller.xml)

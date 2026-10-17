@@ -41,7 +41,7 @@ create or replace package oan_auth_pkg authid definer as
   function  is_recently_reauthenticated(p_minutes in pls_integer default 5) return boolean;
   procedure require_reauth(p_minutes in pls_integer default 5);
   -- utPLSQL only: treat p_user_id as re-authenticated in this session (no APEX session in tests)
-  procedure set_test_reauth(p_user_id in number) accessible by (package ut_oan_platform, package ut_oan_w2, package ut_oan_orgs, package ut_oan_w6, package ut_oan_w7);
+  procedure set_test_reauth(p_user_id in number) accessible by (package ut_oan_platform, package ut_oan_w2, package ut_oan_orgs, package ut_oan_w6, package ut_oan_w7, package ut_oan_w8);
 end oan_auth_pkg;
 /
 
@@ -413,6 +413,15 @@ create or replace package body oan_auth_pkg as
     select count(*) into l_cnt from oan_users where lower(email) = lower(p_new_email);
     oan_util.assert(l_cnt = 0, 'This email address cannot be used.');
     select email into l_old from oan_users where id = l_user_id;
+    if nvl(oan_util.get_config('EMAIL_ENABLED'), 'N') != 'Y' then
+      -- Q40: no e-mail to confirm with; the re-authentication above is the check
+      update oan_users set email = lower(trim(p_new_email)), email_verified = 'N', row_version = row_version + 1
+       where id = l_user_id;
+      oan_audit_pkg.log('EMAIL_CHANGED', 'USER', l_user_id, l_user_id, json_object('confirmation' value 'reauth'));
+      oan_notify_pkg.notify(l_user_id, 'SECURITY_ALERT', 'Your OAN email address was changed',
+        'If this was not you, contact an OAN administrator straight away.');
+      return;
+    end if;
     l_t_new := create_token(l_user_id, 'EMAIL_CHANGE', 1440, p_new_email);
     l_t_old := create_token(l_user_id, 'EMAIL_CHANGE_OLD', 1440, p_new_email);
     oan_notify_pkg.send_email(p_new_email, 'Confirm your new OAN email address',
@@ -516,7 +525,7 @@ create or replace package body oan_auth_pkg as
                     'Please confirm your identity to continue.', oan_util.c_err_reauth);
   end require_reauth;
 
-  procedure set_test_reauth(p_user_id in number) accessible by (package ut_oan_platform, package ut_oan_w2, package ut_oan_orgs, package ut_oan_w6, package ut_oan_w7) is
+  procedure set_test_reauth(p_user_id in number) accessible by (package ut_oan_platform, package ut_oan_w2, package ut_oan_orgs, package ut_oan_w6, package ut_oan_w7, package ut_oan_w8) is
   begin
     g_test_reauth_user := p_user_id;
   end set_test_reauth;

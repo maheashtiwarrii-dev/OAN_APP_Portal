@@ -71,7 +71,7 @@ buildOption oan-admin (
 buildOption oan-ai-assistant (
     name: OAN_AI_ASSISTANT
     status {
-        status: exclude
+        status: include
         onUpgradeKeepStatus: true
     }
     comments {

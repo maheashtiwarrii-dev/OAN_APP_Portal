@@ -287,6 +287,92 @@ page 100 (
 
     )
 
+    region r100_volunteering (
+        name: Volunteering by cause and city
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select cause_label, city_name, drives, volunteers, hours
+                  from oan_admin_volunteering_v
+                 order by hours desc, volunteers desc
+                ```
+        }
+        layout {
+            sequence: 55
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: No volunteering drives yet.
+        }
+
+        column CAUSE_LABEL (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            heading {
+                heading: Cause
+            }
+            layout {
+                sequence: 1
+            }
+        )
+
+        column CITY_NAME (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: City
+            }
+            layout {
+                sequence: 2
+            }
+        )
+
+        column DRIVES (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Drives
+            }
+            layout {
+                sequence: 3
+            }
+        )
+
+        column VOLUNTEERS (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Volunteers
+            }
+            layout {
+                sequence: 4
+            }
+        )
+
+        column HOURS (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Hours
+            }
+            layout {
+                sequence: 5
+            }
+        )
+
+    )
+
     region r100_reports (
         name: Aggregate reports
         type: staticContent
@@ -322,6 +408,30 @@ page 100 (
         appearance {
             template: @/optional-floating
             templateOptions: #DEFAULT#
+        }
+    )
+
+    button ai-admin (
+        buttonName: AI_ADMIN
+        label: AI assistant
+        layout {
+            sequence: 30
+            region: @r100_jobs
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: [
+                #DEFAULT#
+                t-Button--simple
+            ]
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 129
+            }
+            warnOnUnsavedChanges: doNotCheck
         }
     )
 

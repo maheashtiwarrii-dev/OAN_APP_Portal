@@ -320,3 +320,14 @@
 | I28-5 | Checks | 160/160 (17 suites + page smoke); harness 148 queries / 200 blocks; links, base tables, brand, page security, APEXLang validation pass; app 200 imported (92 pages); public pages checked over HTTP, no Google/Slack/WhatsApp mentions |
 | I28-6 | Progress | W0-W7 91% (61 of 66 tasks); whole plan 74% of person-days |
 | I28-7 | Security note | Staff accounts now have no second factor; in-app 2-step verification recommended before go-live (decision for the product owner) |
+
+## Iteration 29 — AI assistant, volunteering, sign-up without e-mail, page catalogue (17 Oct 2026)
+| Step | Action | Result |
+|---|---|---|
+| I29-1 | User request | AI conversation pages (W0.9, DPIA approved), no OCI Email Delivery, sign-up without the e-mail step, volunteering page for city-wise social causes, all APEX pages published as a PDF |
+| I29-2 | Q40 | Accounts usable straight after sign-up (PENDING_REGISTRATION, approval is the identity check); EMAIL_ENABLED = N; admin temporary password on page 116; e-mail change after re-auth; staff roles need an approved membership; 0.7 removed |
+| I29-3 | Q41 | `111_ai_assistant_volunteering.sql`, `oan_ai_pkg`, page 48 Ask OAN (two-pane conversations, sources as links), page 129 admin; opt-in, read-only, requester-scoped, AI_INCLUSION for people, 23-case injection set (Oracle regex has no \b - fixed), 30-day history; LLM wording through an APEX Generative AI service when added; G-AI met |
+| I29-4 | Q42 | `oan_volunteer_pkg`, 5 causes, pages 79 Volunteering and 791 Organise a drive, moderator review on 107, J-22 route card, admin summary on page 100; 11 synthetic drives in 7 Indian cities |
+| I29-5 | Checks | 168/168 (18 suites incl. `ut_oan_w8` 8/8 + page smoke 201 queries x 5 personas); harness 158 queries / 210 blocks; links, page security, base tables, brand, APEXLang validation pass; app 200 imported (96 pages) |
+| I29-6 | Published | `docs/OAN-APEX-Page-Catalogue.pdf` (16 pages, generated from the export by `ci/gen-page-catalogue.py`); board, status report, README, GitHub Project |
+| I29-7 | Progress | WS0 15 of 15 (complete); W0-W7 93% (63 of 67 tasks); whole plan 76% of person-days |

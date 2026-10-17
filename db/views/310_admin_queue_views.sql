@@ -233,7 +233,8 @@ select k.event_code,
                          when 'SEARCH_TO_PROFILE_PCT' then 'Search to profile (%)'
                          when 'ARTICLE_VIEW' then 'Articles read' when 'EVENT_VIEW' then 'Events viewed'
                          when 'EVENT_REGISTER' then 'Event registrations' when 'EVENT_RETURN_VISIT' then 'Event return visits'
-                         when 'CAREERS_CLICK' then 'Careers clicks' else initcap(replace(k.event_code, '_', ' ')) end label,
+                         when 'CAREERS_CLICK' then 'Careers clicks' when 'AI_QUESTION' then 'AI assistant questions'
+                         when 'VOLUNTEER_SIGNUP' then 'Volunteering sign-ups' else initcap(replace(k.event_code, '_', ' ')) end label,
        k.event_day, k.event_count
   from oan_kpi_daily k
  where sys_context('OAN_CTX','IS_ADMIN') = 'Y';
@@ -289,6 +290,12 @@ select 'NEED', 'Partner need', r.id, r.title, substr(r.description, 1, 400), r.c
        (select o.name from oan_organisations o where o.id = r.org_id)
   from oan_talent_requests r
  where r.status = 'PENDING_REVIEW' and nvl(r.posted_by, -1) != to_number(sys_context('OAN_CTX','VIEWER_ID'))
+   and (sys_context('OAN_CTX','IS_MODERATOR') = 'Y' or sys_context('OAN_CTX','IS_ADMIN') = 'Y')
+union all
+select 'DRIVE', 'Volunteering drive', d.id, d.title, substr(d.description, 1, 400), d.created_at,
+       (select x.first_name || ' ' || x.last_name from oan_profiles x where x.user_id = d.organiser_id)
+  from oan_volunteer_drives d
+ where d.status = 'PENDING_REVIEW' and nvl(d.organiser_id, -1) != to_number(sys_context('OAN_CTX','VIEWER_ID'))
    and (sys_context('OAN_CTX','IS_MODERATOR') = 'Y' or sys_context('OAN_CTX','IS_ADMIN') = 'Y');
 
 -- Mentoring feedback for Platform Admins (P25: private, never public ratings)
@@ -330,4 +337,31 @@ select 80, 'Appeals', count(*), 119 from oan_appeals where status = 'OPEN' union
 select 90, 'Privacy requests', count(*), 121 from oan_privacy_requests where status in ('RECEIVED','IN_PROGRESS') union all
 select 100, 'Profile update requests', count(*), 128 from oan_profile_update_requests where status = 'OPEN'
 ) q
+ where sys_context('OAN_CTX','IS_ADMIN') = 'Y';
+
+-- W0.9 AI assistant usage for Platform Admins (counts only, never questions or answers)
+create or replace view oan_admin_ai_usage_v as
+select m.answer_mode, nvl(m.topic, 'GENERAL') topic,
+       count(case when m.created_at > systimestamp - interval '7' day then 1 end) answers_7d,
+       count(*) answers_30d,
+       count(distinct m.user_id) members_30d
+  from oan_ai_messages m
+ where m.role = 'ASSISTANT' and sys_context('OAN_CTX','IS_ADMIN') = 'Y'
+ group by m.answer_mode, nvl(m.topic, 'GENERAL');
+
+create or replace view oan_admin_volunteering_v as
+select c.label cause_label, l.name city_name,
+       count(distinct d.id) drives, count(case when s.status in ('SIGNED_UP','ATTENDED') then 1 end) volunteers,
+       nvl(sum(s.hours), 0) hours
+  from oan_volunteer_drives d
+  join oan_volunteer_causes c on c.code = d.cause_code
+  join oan_locations l on l.id = d.city_id
+  left join oan_volunteer_signups s on s.drive_id = d.id
+ where d.status in ('OPEN','CLOSED') and sys_context('OAN_CTX','IS_ADMIN') = 'Y'
+ group by c.label, l.name;
+
+-- Feature options with their DPIA sign-off and gate (Platform Admins; W0.20, Q41)
+create or replace view oan_admin_feature_options_v as
+select f.option_code, f.build_option, f.description, f.dpia_required, f.dpia_reference, f.dpia_signed_at, f.gate_open, f.gate_opened_at
+  from oan_feature_options f
  where sys_context('OAN_CTX','IS_ADMIN') = 'Y';

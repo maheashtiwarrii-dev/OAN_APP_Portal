@@ -18,7 +18,7 @@ create or replace package body oan_kpi_pkg as
     pragma autonomous_transaction;
   begin
     if p_code not in ('DIRECTORY_SEARCH','DIRECTORY_PROFILE_OPEN','ARTICLE_VIEW','EVENT_VIEW','EVENT_REGISTER',
-                      'EVENT_RETURN_VISIT','CAREERS_CLICK') then
+                      'EVENT_RETURN_VISIT','CAREERS_CLICK','AI_QUESTION','VOLUNTEER_SIGNUP') then
       return;                                       -- only known counters; derived codes are rollup-only
     end if;
     merge into oan_kpi_daily k

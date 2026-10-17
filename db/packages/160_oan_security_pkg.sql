@@ -40,6 +40,8 @@ create or replace package oan_security_pkg authid definer as
   procedure set_option_gate(p_option in varchar2, p_open in varchar2);
 
   procedure suspend_user(p_user_id in number, p_until in timestamp with time zone, p_reason in varchar2);
+  -- Q40: without e-mail, a Platform Admin issues a one-time temporary password (shown once, audited)
+  function admin_reset_password(p_user_id in number) return varchar2;
   procedure reactivate_user(p_user_id in number);
   procedure end_user_sessions(p_user_id in number);
   procedure revoke_unattested_privileges;                            -- job: 12 months + 30 days
@@ -180,10 +182,8 @@ create or replace package body oan_security_pkg as
     select count(*) into l_cnt from oan_users where id = p_user_id and status = 'ACTIVE';
     oan_util.assert(l_cnt = 1, 'Staff roles are granted to active accounts only.');
     if l_priv then
-      -- NFR-01 as amended by Q37 (16 Oct 2026): every account signs in with email + password; privileged roles
-      -- need a verified email address and the granting admin's access review, renewed every 12 months (P08)
-      select count(*) into l_cnt from oan_users where id = p_user_id and email_verified = 'Y';
-      oan_util.assert(l_cnt = 1, 'Privileged roles need an account with a verified email address.', oan_util.c_err_forbidden);
+      -- NFR-01 as amended by Q37/Q40: every account signs in with email + password; privileged roles need an
+      -- approved (active) membership - checked above - and the granting admin's access review, renewed yearly (P08)
       oan_util.assert(p_mfa_attested = 'Y',
         'Confirm that you have reviewed why this person needs this role (annual access review).');
       update oan_users set mfa_attested_at = l_now, mfa_attested_by = l_me where id = p_user_id;
@@ -354,6 +354,25 @@ create or replace package body oan_security_pkg as
     oan_notify_pkg.notify(p_user_id, 'MODERATION_DECISION', 'Your account has been suspended', p_reason);
   end suspend_user;
 
+  function admin_reset_password(p_user_id in number) return varchar2 is
+    l_pwd varchar2(30);
+    l_cnt number;
+  begin
+    require_admin;
+    oan_auth_pkg.require_reauth;
+    require_not_self(p_user_id);
+    select count(*) into l_cnt from oan_local_credentials where user_id = p_user_id;
+    oan_util.assert(l_cnt = 1, 'This account has no password to reset.', oan_util.c_err_conflict);
+    l_pwd := 'Oan-' || substr(rawtohex(dbms_crypto.randombytes(6)), 1, 10) || '-' || lower(substr(rawtohex(dbms_crypto.randombytes(3)), 1, 4));
+    oan_auth_pkg.set_local_password(p_user_id, l_pwd);
+    update oan_local_credentials set failed_count = 0, locked_until = null where user_id = p_user_id;
+    oan_audit_pkg.log('PASSWORD_RESET_BY_ADMIN', 'USER', p_user_id, p_user_id, null);
+    oan_notify_pkg.notify(p_user_id, 'SECURITY_ALERT', 'An administrator reset your OAN password',
+      'Sign in with the temporary password you were given, then change it on Account settings.');
+    end_user_sessions(p_user_id);
+    return l_pwd;
+  end admin_reset_password;
+
   procedure reactivate_user(p_user_id in number) is
   begin
     require_admin;
@@ -403,7 +422,6 @@ create or replace package body oan_security_pkg as
      where application_id = p_app_id and role_static_id = 'ADMIN';
     oan_util.assert(l_count = 0, 'An administrator already exists; use the admin pages.');
     select * into l_user from oan_users where lower(email) = lower(p_email) and status = 'ACTIVE';
-    oan_util.assert(l_user.email_verified = 'Y', 'The first admin needs a verified email address.');
     apex_acl.add_user_role(p_application_id => p_app_id, p_user_name => l_user.username, p_role_static_id => 'ADMIN');
     update oan_users set mfa_attested_at = systimestamp where id = l_user.id;
     oan_audit_pkg.log('ROLE_GRANT_BOOTSTRAP', 'USER', l_user.id, l_user.id, json_object('role' value 'ADMIN'));

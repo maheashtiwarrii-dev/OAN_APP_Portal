@@ -224,7 +224,7 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 | 0.4 | Workspace probe; deployment files; SQLcl connections | skill | 0.5 | Dev | [!] workspace name |
 | 0.5 | `git init`, layout, `.gitignore` | NFR-14 | 0.25 | Dev | [x] |
 | 0.6 | Google OIDC client | NFR-01 | 0.5 | OAN/Dev | [-] removed (Q37: no Google OAuth) |
-| 0.7 | OCI Email Delivery + APEX SMTP | FR-23 | 0.5 | OAN/Dev | [!] 16 Oct: `db/grants/40_email_delivery.sql` ready (ADMIN; prompts for the SMTP host, credential and sender; OCI Email Delivery or Gmail; sends a test). Needs OAN's SMTP credential - then sign-up with any e-mail (Gmail included) works end to end |
+| 0.7 | OCI Email Delivery + APEX SMTP | FR-23 | 0.5 | OAN/Dev | [-] removed 17 Oct (Q40: e-mail delivery not required; sign-up works without e-mail) |
 | 0.8 | utPLSQL on dev | DoD | 0.25 | Dev | [x] 13 Oct: utPLSQL 3.2.3 (checksum verified) in schema UT3 |
 | 0.9 | CI:<br>• base-table scan;<br>• authz on every component (with a negative test);<br>• utPLSQL;<br>• gitleaks;<br>• Advisor;<br>• offline `apex validate`;<br>• **page-registry check (S19)**;<br>• **brand check: no Oracle logos or marks in pages, static files or email templates (Q30, `ci/check-brand.ps1`)**;<br>• **org-page group/actions check (S09)**. | NFR-02/03/04 | 2.5 | Dev | [x] 16 Oct: GitHub Actions: brand, links, page security, base tables, dev-script guard, changelog = install.sql, gitleaks, offline validate; deploy-dev runs Liquibase, import and all utPLSQL suites |
 | 0.10 | **Spike:** `apex_release` = 26.2 on dev and planned PROD; ADB upgrade policy (R30) | Q27 | 0.25 | Dev | [x] dev = 26.1.5 (13 Oct); PROD on 26.2 is a gate 8.0 check |
@@ -237,7 +237,7 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 | 0.16b | Deploy wrapper:<br>• `set_workspace`, `set_application_id(103)`;<br>• live `runtime validate` gate;<br>• DEV-only Build Option script. | NFR-14 | 0.75 | Dev | [~] `ci/deploy-apex-app.ps1` |
 | 0.16c | Scratch-schema rebuild every sprint | NFR-14 | 0.5 | Dev | [-] removed 16 Oct: a second schema cannot be installed beside OAN_DATA on the single shared ADB (OAN_CTX is database-wide, Q34); the changelog check and Liquibase status cover drift |
 | 0.17 | **Spike (webhooks):**<br>• raw-body HMAC with the secret read from `OAN_SECRETS`;<br>• constant-time compare;<br>• enqueue a scheduler job;<br>• respond in under 1s (S02). | R02 | 1.5 | Dev | [-] removed (Q38) |
-| 0.18 | **Spike (GenAI):** APEX GenAI service on ADB; read-only tool pattern | R15 | 0.5 | Dev | [G] G-AI (AI assistant gated) |
+| 0.18 | **Spike (GenAI):** APEX GenAI service on ADB; read-only tool pattern | R15 | 0.5 | Dev | [x] 17 Oct: APEX_AI and DBMS_CLOUD_AI available on the ADB; assistant uses an APEX Generative AI service when one is configured (Q41) |
 | 0.19 | External procurement (OAN): Slack app, WhatsApp Business + templates (Oracle HR arrangement not pursued, Q29) | G-CH | — | OAN | [-] removed (Q38) |
 | 0.20 | **ORDS install (S15):**<br>• REST-enabled `OAN_API` schema with EXECUTE on `oan_channel_pkg` entry points only;<br>• `db/ords/900_channels.sql` under Liquibase label `channels`;<br>• Slack `url_verification` and WhatsApp GET verify handling. | R02, NFR-15 | 1 | Dev | [-] removed (Q38: no ORDS modules needed) |
 
@@ -295,7 +295,7 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 | W0.6 | 109 Access denied | NFR-02 | 0.25 | — | [A] 13 Oct |
 | W0.7 | `oan_chat_pkg`:<br>• deterministic onboarding; profile answers go to the draft profile/application;<br>• **role answers stored on the chat session as option IDs only, within the 90-day retention** (S30);<br>• purge rule + test (S08). | FR-34, R21 | 3 | — | [A] 13 Oct: steps, resume, codes-only transcript, 90-day purge, routing after approval; 9 utPLSQL tests |
 | W0.8 | 115 Onboarding conversation | FR-34, R21 | 2.5 | — | [A] 13 Oct: Comments-template transcript, per-step regions, page submit (Ajax send after live validation) |
-| W0.9 | `AI_ASSISTANT`: GenAI service + Web Credential (static id) + ACE; read-only, requester-scoped; opt-in; injection set ≥ 20 | R15 | 3 | — | [G] G-AI |
+| W0.9 | `AI_ASSISTANT`: GenAI service + Web Credential (static id) + ACE; read-only, requester-scoped; opt-in; injection set ≥ 20 | R15 | 3 | — | [A] 17 Oct (Q41): `oan_ai_pkg`, page 48 Ask OAN (conversations, sources as links), page 129 admin; opt-in, read-only, requester-scoped, AI_INCLUSION for people, 23-case injection set, 30-day history; LLM wording when an APEX AI service is added |
 | W0.10 | 1010, 1011 Approvals | FR-01/25 | 2 | 4.2 | [A] 13 Oct: queue summary + overdue-first ordering; review shows onboarding answers; decide with row_version |
 | W0.11 | 1020, 1021 Members (staff roles via the 1.31 API, scopes) | FR-24, R16 | 3 | 4.3 | [A] 13 Oct: search; role grant/revoke with re-auth + MFA attestation; attest; suspend/reactivate (roles list extends with 1.31) |
 | W0.12 | 1030, 1031 Chapters | FR-16 | 1.5 | 4.4 | [A] 13 Oct: chapter tree, create chapter, assign/remove Chapter Admins (IdP + 2-step rule, re-auth); requests decided with note |
@@ -375,6 +375,7 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 | W6.8 | 56 Initiatives; 57 Success stories; set `live_yn` for W6 journeys | Should | FR-06/12 | 6.25 | [A] 15 Oct: 77 Initiatives (start, interest, shortlist, close), 78 Success stories; W6 journeys set live |
 | W6.7 | 54 Marketplace (no journey depends on it after S25-Y) | Could | FR-46 | 2 | [ ] descope lane |
 | W6.9 | Recognition: endorsements, badges, contributions | Could | FR-11/45 | 3 | [A] 15 Oct: endorsements only (page 22); badges and contribution scores stay in the descope lane |
+| W6.10 | Volunteering by city and cause (Q42): 79 Volunteering, 791 Organise a drive; review on 107; J-22 | Should | Q42 | 3 | [A] 17 Oct: `oan_volunteer_pkg`, causes, drives, sign-ups with waitlist, attendance and hours, admin summary; `ut_oan_w8` |
 
 ### W7 — Reporting and hardening (S11)
 | ID | Page(s) / task | Delivers | Est | Status |
@@ -419,7 +420,7 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 | ID | Task | Due | Status |
 |---|---|---|---|
 | 7.1a | Core DPIA + RoPA + lawful bases for the merged scope, incl. the **R09 antivirus residual-risk acceptance** | End S2 | [ ] |
-| 7.1b | DPIA annex `AI_ASSISTANT` | End S3 (G-AI) | [ ] |
+| 7.1b | DPIA annex `AI_ASSISTANT` | End S3 (G-AI) | [x] 17 Oct: approved by the product owner (Q41) |
 | 7.1c | DPIA annex `CHANNELS` | End S6 (G-CH) | [-] removed (Q38) |
 | 7.1d | DPIA annex `CAREERS_FEED` | End S7 (G-CF) | [ ] |
 | 7.2a | DPAs: OCI and the e-mail provider (Google/LinkedIn not used, Q37); transfer mechanism after OI-2 | End S6 | [ ] |

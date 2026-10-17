@@ -627,7 +627,7 @@ page 107 (
     )
 
     region r107_w6 (
-        name: Groups, trainings and partner needs waiting for review
+        name: Groups, trainings, partner needs and volunteering drives waiting for review
         type: classicReport
         source {
             location: localDatabase
@@ -856,6 +856,7 @@ page 107 (
                         when 'GROUP'    then oan_community_pkg.decide_proposal(to_number(:P107_W6_ID), l_yn);
                         when 'TRAINING' then oan_training_pkg.review(to_number(:P107_W6_ID), l_yn);
                         when 'NEED'     then oan_talent_pkg.review_need(to_number(:P107_W6_ID), l_yn);
+                        when 'DRIVE'    then oan_volunteer_pkg.review_drive(to_number(:P107_W6_ID), l_yn);
                     end case;
                     apex_util.redirect_url(apex_page.get_url(p_page => 107));
                 end;

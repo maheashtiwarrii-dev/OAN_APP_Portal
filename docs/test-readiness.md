@@ -1,4 +1,4 @@
-# OAN Portal - test readiness (16 Oct 2026)
+# OAN Portal - test readiness (17 Oct 2026)
 
 Generated from the APEXLang export by `ci/gen-test-readiness.py`. All pages are deployed to app 200 on the dev
 database (`aiatp`). Test data is synthetic only (Q12); the test accounts end in `@synthetic.oan.invalid` and their
@@ -27,9 +27,9 @@ A staff member never decides their own item (P25): for example, use tester.asha 
 
 ## Pages by tester
 
-- Active member: 34 pages
+- Active member: 37 pages
 - Any signed-in user: 19 pages
-- Platform Admin: 16 pages
+- Platform Admin: 17 pages
 - Anyone (signed out): 11 pages
 - Pending applicant: 3 pages
 - Company contact: 3 pages
@@ -78,6 +78,7 @@ A staff member never decides their own item (P25): for example, use tester.asha 
 | 41 | Notifications | Any signed-in user | tester.asha |  |
 | 42 | Notification settings | Any signed-in user | tester.asha |  |
 | 44 | Unsubscribe | Anyone (signed out) | - | Opened from an e-mail link (needs a signed token) |
+| 48 | Ask OAN | Active member | tester.asha or tester.chen |  |
 | 50 | Opportunities | Active member | tester.asha or tester.chen |  |
 | 51 | Opportunity | Any signed-in user | tester.asha |  |
 | 52 | My applications | Active member | tester.asha or tester.chen |  |
@@ -100,6 +101,7 @@ A staff member never decides their own item (P25): for example, use tester.asha 
 | 76 | Register your company with OAN | Anyone (signed out) | - | Approval e-mail not delivered on dev (0.7) |
 | 77 | Initiatives | Active member | tester.asha or tester.chen |  |
 | 78 | Success stories | Active member | tester.asha or tester.chen |  |
+| 79 | Volunteering | Active member | tester.asha or tester.chen |  |
 | 80 | Report a concern | Active member | tester.asha or tester.chen |  |
 | 81 | Moderation decisions about you | Any signed-in user | tester.asha |  |
 | 90 | Suggest a term | Active member | tester.asha or tester.chen |  |
@@ -124,11 +126,13 @@ A staff member never decides their own item (P25): for example, use tester.asha 
 | 125 | Screening deny-list | Platform Admin | tester.bala |  |
 | 126 | Breached passwords | Platform Admin | tester.bala |  |
 | 128 | Profile update requests | Platform Admin | tester.bala |  |
+| 129 | AI assistant | Platform Admin | tester.bala |  |
 | 231 | Oracle tenure | Any signed-in user | tester.asha |  |
 | 232 | Experience | Any signed-in user | tester.asha |  |
 | 233 | Education | Any signed-in user | tester.asha |  |
 | 234 | Certification or achievement | Any signed-in user | tester.asha |  |
 | 301 | Write an article | Active member | tester.asha or tester.chen |  |
 | 331 | Event | Active member | tester.asha or tester.chen |  |
+| 791 | Organise a volunteering drive | Active member | tester.asha or tester.chen |  |
 | 9000 | OAN Portal health | Anyone (signed out) | - | Public health check for OCI Health Checks |
 | 9001 | System health | Platform Admin | tester.bala |  |

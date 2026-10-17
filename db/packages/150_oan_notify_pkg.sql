@@ -93,6 +93,10 @@ create or replace package body oan_notify_pkg as
                        p_link_url in varchar2 default null, p_link_text in varchar2 default null,
                        p_unsubscribe_url in varchar2 default null) is
   begin
+    -- Q40: e-mail is optional; with EMAIL_ENABLED = N members rely on in-app notifications only
+    if nvl(oan_util.get_config('EMAIL_ENABLED'), 'N') != 'Y' then
+      return;
+    end if;
     -- Jobs and tests run without an APEX session: the template lookup needs the workspace
     if sys_context('APEX$SESSION', 'APP_SESSION') is null then
       begin

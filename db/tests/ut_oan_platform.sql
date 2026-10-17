@@ -13,7 +13,7 @@ create or replace package ut_oan_platform as
   procedure retention_purges_old_rows_only;
   --%test(1.37 A feature option is ready only with an open gate and a signed DPIA)
   procedure option_needs_dpia_and_gate;
-  --%test(R16 / Q37 Privileged roles need a verified email; local accounts are fine)
+  --%test(R16 / Q37 / Q40 Privileged roles need an approved member; local accounts are fine)
   procedure staff_grant_refuses_local_account;
   --%test(R16 Granting needs recent re-authentication)
   procedure staff_grant_needs_reauth;
@@ -130,10 +130,10 @@ create or replace package body ut_oan_platform as
     l_target number := new_member('Local');
     l_ok     varchar2(1);
   begin
-    update oan_users set email_verified = 'N' where id = l_target;
-    expect_error(oan_util.c_err_forbidden, 'an unverified email must not become a moderator',
+    update oan_users set status = 'PENDING_REGISTRATION' where id = l_target;
+    expect_error(oan_util.c_err_validation, 'a member not yet approved must not become a moderator',
                  'oan_security_pkg.grant_staff_role(' || l_target || ', ''MODERATOR'', ''GLOBAL'', null, ''Y'');');
-    update oan_users set email_verified = 'Y' where id = l_target;
+    update oan_users set status = 'ACTIVE', email_verified = 'N' where id = l_target;
     expect_error(oan_util.c_err_validation, 'the access review must be confirmed',
                  'oan_security_pkg.grant_staff_role(' || l_target || ', ''MODERATOR'', ''GLOBAL'', null, ''N'');');
     oan_security_pkg.grant_staff_role(l_target, 'MODERATOR', 'GLOBAL', null, 'Y');

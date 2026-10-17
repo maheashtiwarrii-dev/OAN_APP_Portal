@@ -24,6 +24,7 @@
 | 1.2.2 | 13/10/2026 | User decisions Q29 (proceed without Oracle HR: no HR brokering in v1; FR-44, B7, B8, B10.8, B10.10 updated) and Q30 (no Oracle logos, CI brand check). |
 | 1.2.3 | 13/10/2026 | Q31 Build Pack alignment: page numbers follow the APEX Build Pack v1.1 (map in `docs/06-build-pack-alignment.md`; page ids elsewhere in this PRD are the pre-Q31 ids); intent codes renamed to the OAN_CHAT_API skeleton codes (JOB_SEARCH...). |
 | 1.2.4 | 16/10/2026 | Q37: no Google OAuth - everyone signs in with e-mail and password (Gmail included); staff roles need a verified e-mail, re-authentication and an annual access review (NFR-01 rewritten). Q38: Slack and WhatsApp removed (FR-48 and J-21 withdrawn; notifications are in-app and e-mail). |
+| 1.2.5 | 17/10/2026 | Q40: sign-up without an e-mail confirmation step, e-mail optional, admin-issued temporary passwords. Q41: AI assistant (FR-AI / W0.9) approved after the privacy impact assessment. Q42: new volunteering capability (W6.10, journey J-22). |
 
 ---
 

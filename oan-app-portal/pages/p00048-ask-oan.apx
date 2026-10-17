@@ -1,0 +1,337 @@
+page 48 (
+    name: Ask OAN
+    alias: ASK-OAN
+    title: Ask OAN
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        warnOnUnsavedChanges: false
+    }
+    security {
+        authorizationScheme: @is-active
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+    comments {
+        comments: W0.9 AI assistant (R15; DPIA approved 17 Oct 2026, Q41). Conversation page: the member turns the assistant on (consent AI_ASSISTANT), asks questions and gets answers built only from what they can already see in OAN, with links. Read-only; injection attempts are refused; people appear only with consent AI_INCLUSION; history is private and kept 30 days. OAN_AI_PKG does the work; LLM wording is used when an APEX Generative AI service exists.
+    }
+
+    region r48_optin (
+        name: Meet your OAN assistant
+        type: staticContent
+        source {
+            htmlCode: <p>Ask in your own words about opportunities, events, volunteering drives, experts, mentors, trainings, groups or your profile. The assistant only uses what you can already see in OAN, never changes anything, and shows the links it used. Other members appear only if they have agreed to be suggested by the assistant. Your questions are kept for 30 days so you can come back to them, and you can delete them at any time.</p>
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: expression
+            language: plsql
+            plsqlExpression: oan_ai_pkg.opted_in = 'N'
+        }
+    )
+
+    region r48_chat (
+        name: Conversation
+        type: dynamicContent
+        source {
+            plsqlFunctionBody:
+                ```plsql
+                declare
+                    l_conv number := to_number(:P48_CONV);
+                    l_html clob;
+                    l_any  boolean := false;
+
+                    function url(p_conv in number, p_request in varchar2 default null) return varchar2 is
+                    begin
+                        return apex_page.get_url(p_page => 48, p_items => 'P48_CONV', p_values => p_conv, p_request => p_request);
+                    end url;
+                begin
+                    l_html := '<div class="oan-chat' || case when l_conv is not null then ' has-thread' end || '">'
+                        || '<nav class="oan-chat-list" aria-label="Your conversations"><h2>Ask OAN</h2>'
+                        || '<a class="oan-thread" href="' || apex_page.get_url(p_page => 48, p_clear_cache => '48') || '"><span class="oan-thread-av is-team" aria-hidden="true">+</span>'
+                        || '<span class="oan-thread-main"><span class="oan-thread-title">New conversation</span></span></a>';
+                    for c in (select id, title, last_at, questions from oan_my_ai_conversations_v order by last_at desc fetch first 30 rows only) loop
+                        l_html := l_html || '<a class="oan-thread" href="' || url(c.id) || '"' || case when c.id = l_conv then ' aria-current="true"' end || '>'
+                            || '<span class="oan-thread-main"><span class="oan-thread-title">' || apex_escape.html(c.title) || '</span>'
+                            || '<span class="oan-thread-last" style="display:block">' || c.questions || case c.questions when 1 then ' question' else ' questions' end
+                            || ' &middot; ' || to_char(c.last_at, 'DD Mon HH24:MI') || '</span></span></a>';
+                    end loop;
+                    l_html := l_html || '</nav><section class="oan-chat-pane" aria-label="Messages"><div class="oan-chat-body" aria-live="polite">';
+                    for m in (select id, role, content, sources, answer_mode, created_at from oan_my_ai_messages_v
+                               where conversation_id = l_conv order by id) loop
+                        l_any := true;
+                        l_html := l_html || '<div class="oan-bubble' || case when m.role = 'USER' then ' is-mine' end || '">'
+                            || '<span class="oan-bubble-meta">' || case when m.role = 'USER' then 'You' else 'OAN assistant' end || '</span>'
+                            || apex_escape.html(m.content);
+                        if m.role = 'ASSISTANT' and m.sources is not null and m.sources != '[]' then
+                            l_html := l_html || '<span class="oan-ai-sources">';
+                            for s in (select t, p, i, v from json_table(m.sources, '$[*]'
+                                        columns (t varchar2(200) path '$.t', p number path '$.p', i varchar2(30) path '$.i', v varchar2(30) path '$.v'))) loop
+                                l_html := l_html || '<a href="' || apex_page.get_url(p_page => s.p, p_items => s.i, p_values => s.v) || '">'
+                                    || apex_escape.html(s.t) || '</a>';
+                            end loop;
+                            l_html := l_html || '</span>';
+                        end if;
+                        l_html := l_html || '<span class="oan-bubble-meta" style="margin:4px 0 0">' || to_char(m.created_at, 'HH24:MI')
+                            || case m.answer_mode when 'LLM' then ' &middot; worded by AI from OAN data' when 'BLOCKED' then ' &middot; request refused' end
+                            || '</span></div>';
+                    end loop;
+                    if not l_any then
+                        l_html := l_html || '<div class="oan-chat-empty"><p><strong>What can I help you find?</strong></p>'
+                            || '<p>Try: "Volunteering for tree plantation in Pune" &middot; "Jobs that match my skills" &middot; '
+                            || '"Events in Mumbai" &middot; "Find a mentor for cloud migration" &middot; "What should I add to my profile?"</p></div>';
+                    end if;
+                    return l_html || '</div></section></div>';
+                end;
+                ```
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--hideHeader js-addHiddenHeadingRoleDesc
+            ]
+        }
+        serverSideCondition {
+            type: expression
+            language: plsql
+            plsqlExpression: oan_ai_pkg.opted_in = 'Y'
+        }
+    )
+
+    region r48_ask (
+        name: Your question
+        type: staticContent
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: expression
+            language: plsql
+            plsqlExpression: oan_ai_pkg.opted_in = 'Y'
+        }
+    )
+
+    region r48_manage (
+        name: Your assistant history
+        type: staticContent
+        source {
+            htmlCode: <p>Conversations are private to you and deleted automatically after 30 days.</p>
+        }
+        layout {
+            sequence: 40
+            slot: body
+        }
+        appearance {
+            template: @/collapsible
+            templateOptions: [
+                #DEFAULT#
+                is-collapsed
+            ]
+        }
+        serverSideCondition {
+            type: expression
+            language: plsql
+            plsqlExpression: oan_ai_pkg.opted_in = 'Y'
+        }
+    )
+
+    pageItem P48_CONV (
+        type: hidden
+        layout {
+            sequence: 1
+            region: @r48_ask
+            slot: regionBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P48_Q (
+        type: textarea
+        label {
+            label: Ask a question (up to 500 characters)
+        }
+        layout {
+            sequence: 10
+            region: @r48_ask
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            maxLength: 500
+        }
+    )
+
+    button ask (
+        buttonName: ASK
+        label: Ask
+        layout {
+            sequence: 10
+            region: @r48_ask
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button turn-on (
+        buttonName: TURN_ON
+        label: Turn on the assistant
+        layout {
+            sequence: 10
+            region: @r48_optin
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button delete-conv (
+        buttonName: DELETE_CONV
+        label: Delete this conversation
+        layout {
+            sequence: 10
+            region: @r48_manage
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P48_CONV
+        }
+    )
+
+    button clear (
+        buttonName: CLEAR_HISTORY
+        label: Delete all my conversations
+        layout {
+            sequence: 20
+            region: @r48_manage
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button turn-off (
+        buttonName: TURN_OFF
+        label: Turn off the assistant
+        layout {
+            sequence: 30
+            region: @r48_manage
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process ask (
+        name: Ask the assistant
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                :P48_CONV := oan_ai_pkg.ask(to_number(:P48_CONV), :P48_Q);
+                :P48_Q := null;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        serverSideCondition {
+            whenButtonPressed: @ask
+        }
+    )
+
+    process opt (
+        name: Turn on, turn off, delete
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                case :REQUEST
+                    when 'TURN_ON'       then oan_ai_pkg.set_opt_in('Y');
+                    when 'TURN_OFF'      then oan_ai_pkg.set_opt_in('N');
+                    when 'DELETE_CONV'   then oan_ai_pkg.delete_conversation(to_number(:P48_CONV)); :P48_CONV := null;
+                    when 'CLEAR_HISTORY' then oan_ai_pkg.clear_history; :P48_CONV := null;
+                end case;
+                ```
+        }
+        execution {
+            sequence: 20
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: TURN_ON,TURN_OFF,DELETE_CONV,CLEAR_HISTORY
+        }
+    )
+
+    branch back (
+        name: Back to this page
+        behavior {
+            type: pageOrUrl
+            target: {
+                page: 48
+                items: {
+                    P48_CONV: &P48_CONV.
+                }
+            }
+        }
+        execution {
+            point: afterProcessing
+            sequence: 10
+        }
+    )
+
+)

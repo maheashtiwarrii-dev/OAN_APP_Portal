@@ -81,7 +81,7 @@ page 116 (
         name: Account status
         type: staticContent
         source {
-            htmlCode: <p>Suspending signs the member out everywhere at once and sends them the reason you give. Reactivating restores access.</p>
+            htmlCode: <p>Suspending signs the member out everywhere at once and sends them the reason you give. Reactivating restores access. A temporary password is shown to you once; give it to the member in person or by phone and ask them to change it.</p>
         }
         layout {
             sequence: 40
@@ -384,6 +384,28 @@ page 116 (
         }
     )
 
+    button temp-password (
+        buttonName: TEMP_PASSWORD
+        label: Issue a temporary password
+        layout {
+            sequence: 5
+            region: @account-status
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: item=value
+            item: P116_STATUS
+            value: ACTIVE
+        }
+    )
+
     button suspend (
         buttonName: SUSPEND
         label: Suspend member
@@ -482,6 +504,24 @@ page 116 (
         execution {
             sequence: 10
             point: beforeHeader
+        }
+    )
+
+    process temp-password (
+        name: Issue a temporary password (Q40)
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                apex_application.g_print_success_message := 'Temporary password: ' || oan_security_pkg.admin_reset_password(to_number(:P116_USER_ID))
+                    || ' - shown only now. Give it to the member directly and ask them to change it on Account settings.';
+                ```
+        }
+        execution {
+            sequence: 5
+        }
+        serverSideCondition {
+            whenButtonPressed: @temp-password
         }
     )
 

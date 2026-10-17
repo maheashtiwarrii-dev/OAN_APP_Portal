@@ -130,6 +130,11 @@
       <n0:source><![CDATA[ddl/110_remove_channels.sql]]></n0:source>
     </n0:runOracleScript>
   </changeSet>
+  <changeSet id="ddl-111-ai-assistant-volunteering" author="oan" runOnChange="false" failOnError="true">
+    <n0:runOracleScript objectName="111_ai_assistant_volunteering" ownerName="OAN_DATA" sourceType="FILE">
+      <n0:source><![CDATA[ddl/111_ai_assistant_volunteering.sql]]></n0:source>
+    </n0:runOracleScript>
+  </changeSet>
   <changeSet id="packages-100-oan-util" author="oan" runOnChange="true" failOnError="true">
     <n0:runOracleScript objectName="100_oan_util" ownerName="OAN_DATA" sourceType="FILE">
       <n0:source><![CDATA[packages/100_oan_util.sql]]></n0:source>
@@ -263,6 +268,16 @@
   <changeSet id="packages-247-oan-training-pkg" author="oan" runOnChange="true" failOnError="true">
     <n0:runOracleScript objectName="247_oan_training_pkg" ownerName="OAN_DATA" sourceType="FILE">
       <n0:source><![CDATA[packages/247_oan_training_pkg.sql]]></n0:source>
+    </n0:runOracleScript>
+  </changeSet>
+  <changeSet id="packages-248-oan-volunteer-pkg" author="oan" runOnChange="true" failOnError="true">
+    <n0:runOracleScript objectName="248_oan_volunteer_pkg" ownerName="OAN_DATA" sourceType="FILE">
+      <n0:source><![CDATA[packages/248_oan_volunteer_pkg.sql]]></n0:source>
+    </n0:runOracleScript>
+  </changeSet>
+  <changeSet id="packages-249-oan-ai-pkg" author="oan" runOnChange="true" failOnError="true">
+    <n0:runOracleScript objectName="249_oan_ai_pkg" ownerName="OAN_DATA" sourceType="FILE">
+      <n0:source><![CDATA[packages/249_oan_ai_pkg.sql]]></n0:source>
     </n0:runOracleScript>
   </changeSet>
   <changeSet id="packages-250-oan-moderation-pkg" author="oan" runOnChange="true" failOnError="true">
@@ -443,6 +458,11 @@
   <changeSet id="tests-ut-oan-w7" author="oan" runOnChange="true" failOnError="true">
     <n0:runOracleScript objectName="ut_oan_w7" ownerName="OAN_DATA" sourceType="FILE">
       <n0:source><![CDATA[tests/ut_oan_w7.sql]]></n0:source>
+    </n0:runOracleScript>
+  </changeSet>
+  <changeSet id="tests-ut-oan-w8" author="oan" runOnChange="true" failOnError="true">
+    <n0:runOracleScript objectName="ut_oan_w8" ownerName="OAN_DATA" sourceType="FILE">
+      <n0:source><![CDATA[tests/ut_oan_w8.sql]]></n0:source>
     </n0:runOracleScript>
   </changeSet>
 </databaseChangeLog>

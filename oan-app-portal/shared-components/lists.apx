@@ -367,6 +367,64 @@ list navigation-menu (
         }
     )
 
+    entry ask-oan (
+        label: Ask OAN
+        icon {
+            imageIconCssClasses: fa-comments-o
+        }
+        layout {
+            sequence: 59
+        }
+        isCurrent {
+            type: pages
+            pages: [
+                48
+            ]
+        }
+        link {
+            target: {
+                page: 48
+            }
+        }
+        security {
+            authorizationScheme: @is-active
+        }
+        config {
+            buildOption: @oan-ai-assistant
+        }
+        comments {
+            comments: W0.9 AI assistant (page 48), behind Build Option OAN_AI_ASSISTANT.
+        }
+    )
+
+    entry volunteering (
+        label: Volunteering
+        icon {
+            imageIconCssClasses: fa-heart-o
+        }
+        layout {
+            sequence: 64
+        }
+        isCurrent {
+            type: pages
+            pages: [
+                79
+                791
+            ]
+        }
+        link {
+            target: {
+                page: 79
+            }
+        }
+        security {
+            authorizationScheme: @is-active
+        }
+        comments {
+            comments: W6.10 volunteering by city and cause (pages 79, 791).
+        }
+    )
+
     entry discussions (
         label: Community
         icon {
@@ -562,6 +620,34 @@ list navigation-menu (
         }
         config {
             buildOption: @oan-admin
+        }
+    )
+
+    entry ai-admin (
+        label: AI assistant
+        icon {
+            imageIconCssClasses: fa-cog
+        }
+        layout {
+            sequence: 106
+            parentEntry: @administration
+        }
+        isCurrent {
+            type: pages
+            pages: [
+                129
+            ]
+        }
+        link {
+            target: {
+                page: 129
+            }
+        }
+        security {
+            authorizationScheme: @administration-rights
+        }
+        comments {
+            comments: W0.9 AI assistant status and usage (page 129).
         }
     )
 

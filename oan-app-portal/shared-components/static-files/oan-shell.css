@@ -205,3 +205,17 @@ a.oan-event:hover { border-color: var(--oan-accent); }
 .oan-route.is-primary { border-left: 4px solid var(--oan-accent); }
 .oan-route span { display: block; margin-top: 4px; font-size: 12px; font-weight: 400; color: var(--oan-muted); }
 .oan-health { font-size: 18px; text-align: center; }
+
+/* ------------------------------------------ AI assistant (page 48) -- */
+.oan-ai-sources { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; white-space: normal; }
+.oan-ai-sources a { font-size: 12px; padding: 2px 8px; border: 1px solid var(--oan-border); border-radius: 12px; background: #fff; color: var(--oan-link); text-decoration: none; }
+.oan-ai-sources a:hover, .oan-ai-sources a:focus-visible { border-color: var(--oan-accent); }
+
+/* --------------------------------------- volunteering causes (page 79) -- */
+.oan-causes { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; }
+.oan-cause { display: grid; gap: 4px; padding: 12px 14px; border: 1px solid var(--oan-border); border-radius: var(--oan-radius);
+             background: var(--oan-surface); color: var(--oan-ink); text-decoration: none; }
+.oan-cause .fa { color: var(--oan-accent); font-size: 18px; }
+.oan-cause span:not(.fa) { font-size: 12px; color: var(--oan-muted); }
+.oan-cause em { font-style: normal; font-size: 12px; font-weight: 600; }
+.oan-cause:hover, .oan-cause:focus-visible, .oan-cause.is-current { border-color: var(--oan-accent); }

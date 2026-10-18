@@ -331,3 +331,4 @@
 | I29-5 | Checks | 168/168 (18 suites incl. `ut_oan_w8` 8/8 + page smoke 201 queries x 5 personas); harness 158 queries / 210 blocks; links, page security, base tables, brand, APEXLang validation pass; app 200 imported (96 pages) |
 | I29-6 | Published | `docs/OAN-APEX-Page-Catalogue.pdf` (16 pages, generated from the export by `ci/gen-page-catalogue.py`); board, status report, README, GitHub Project |
 | I29-7 | Progress | WS0 15 of 15 (complete); W0-W7 93% (63 of 67 tasks); whole plan 76% of person-days |
+| I29-8 | Publish pending pages (user request, 18 Oct) | All 96 repository pages are on dev. Two built areas were hidden on dev: build options W2_DIRECTORY (Alumni directory menu) and OAN_AI_ASSISTANT (Ask OAN menu) had kept an old Exclude status on re-import ("keep status on upgrade"). `ci/post-import.sql` now switches the release options (OAN_ADMIN, W2_DIRECTORY, OAN_AI_ASSISTANT) on after every import; gated integration options are untouched |

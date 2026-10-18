@@ -332,3 +332,11 @@
 | I29-6 | Published | `docs/OAN-APEX-Page-Catalogue.pdf` (16 pages, generated from the export by `ci/gen-page-catalogue.py`); board, status report, README, GitHub Project |
 | I29-7 | Progress | WS0 15 of 15 (complete); W0-W7 93% (63 of 67 tasks); whole plan 76% of person-days |
 | I29-8 | Publish pending pages (user request, 18 Oct) | All 96 repository pages are on dev. Two built areas were hidden on dev: build options W2_DIRECTORY (Alumni directory menu) and OAN_AI_ASSISTANT (Ask OAN menu) had kept an old Exclude status on re-import ("keep status on upgrade"). `ci/post-import.sql` now switches the release options (OAN_ADMIN, W2_DIRECTORY, OAN_AI_ASSISTANT) on after every import; gated integration options are untouched |
+
+## Iteration 30 — Marathon, fitness, yoga and meditation on the volunteering page (18 Oct 2026)
+| Step | Action | Result |
+|---|---|---|
+| I30-1 | User request | Include enrolment for marathon events, fitness, yoga and meditation classes on the volunteering page; publish on dev |
+| I30-2 | Q43 | `112_wellbeing_activities.sql`: cause category (CAUSE / WELLBEING) and 4 activities; page 79 shows two groups (social causes; marathons, fitness, yoga and meditation) with "Enrol"; page 791 "Cause or activity"; AI assistant understands the activities; J-22 keywords |
+| I30-3 | Dev | Deployed with `lb update` (4 changesets); 8 synthetic wellbeing events and classes in Mumbai, Pune, Bengaluru, Hyderabad, Chennai and Delhi NCR; app 200 imported (96 pages) |
+| I30-4 | Checks | 169/169 tests (`ut_oan_w8` 9/9 incl. wellbeing enrolment); harness 158 queries / 210 blocks; APEXLang validation passes; page catalogue PDF regenerated |

@@ -83,6 +83,34 @@ begin
                 'Plant mangrove saplings and clear plastic with the forest department team.',
                 'Mangrove park, Airoli', 8, 7, 3, 50, l_asha);
 
+  -- Q43 wellbeing: marathon events, fitness sessions, yoga and meditation classes
+  l_id := drive('MARATHON', 'Mumbai', 'Marathon training run on Marine Drive',
+                'Easy-paced 10 km group run to prepare for the city marathon; pacers for 6, 7 and 8 minutes per km.',
+                'Marine Drive, Nariman Point', 4, 6, 2, 80, l_chen);
+  insert into oan_volunteer_signups (drive_id, user_id) values (l_id, l_asha);
+  l_id := drive('MARATHON', 'Pune', 'Half marathon: run or volunteer at water stations',
+                'Run the 21 km course with OAN colleagues or help at a water station near the 10 km mark.',
+                'Pune University Circle', 18, 5, 5, 120, l_asha);
+  l_id := drive('FITNESS', 'Bengaluru', 'Saturday outdoor fitness bootcamp',
+                'Bodyweight circuits and stretching for all levels; bring water and a mat.',
+                'Cubbon Park', 2, 7, 1, 30, l_chen);
+  l_id := drive('FITNESS', 'Hyderabad', 'Lunch-time walking club',
+                'A brisk 45-minute walk around the lake every Wednesday.',
+                'Hussain Sagar lake front', 5, 13, 1, null, l_asha);
+  l_id := drive('YOGA', 'Pune', 'Beginners yoga - 4-week course',
+                'Gentle hatha yoga for beginners, one hour every Sunday morning for four weeks.',
+                'Community hall, Aundh', 6, 7, 1, 25, l_asha);
+  insert into oan_volunteer_signups (drive_id, user_id) values (l_id, l_chen);
+  l_id := drive('YOGA', 'Chennai', 'Sunrise yoga by the beach',
+                'Sun salutations and breathing on the beach; mats provided.',
+                'Elliot''s Beach, Besant Nagar', 3, 6, 1, 40, l_chen);
+  l_id := drive('MEDITATION', 'Delhi NCR', 'Guided meditation evening',
+                'A 45-minute guided meditation and a short talk on managing stress at work.',
+                'Community centre, Gurugram', 7, 19, 1, 35, l_chen);
+  l_id := drive('MEDITATION', 'Hyderabad', 'Mindfulness and breathing workshop',
+                'Breathing techniques and mindfulness practice for busy professionals.',
+                'Library hall, Madhapur', 11, 18, 2, 30, l_asha);
+
   -- a finished drive with recorded hours
   l_n := city('Bengaluru');
   insert into oan_volunteer_drives (cause_code, city_id, title, description, venue, starts_at, ends_at, capacity, organiser_id, status, published_at)
@@ -100,6 +128,6 @@ begin
     insert into oan_consents (user_id, consent_type, granted) values (u.id, 'AI_INCLUSION', 'Y');
   end loop;
   commit;
-  dbms_output.put_line('11 sample drives created');
+  dbms_output.put_line('19 sample drives, events and classes created');
 end;
 /

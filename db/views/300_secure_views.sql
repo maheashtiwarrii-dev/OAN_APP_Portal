@@ -1423,7 +1423,7 @@ select s.user_id member_id, s.term_id, s.skill, count(e.endorser_id) endorsement
 -- Drives members can see: open and finished drives for everyone active; pending, rejected or cancelled drives
 -- only for their organiser and moderators. Places left counts SIGNED_UP only.
 create or replace view oan_volunteer_drives_v as
-select d.id, d.cause_code, c.label cause_label, c.icon cause_icon, d.city_id, l.name city_name, d.title, d.description, d.venue,
+select d.id, d.cause_code, c.label cause_label, c.icon cause_icon, c.category cause_category, d.city_id, l.name city_name, d.title, d.description, d.venue,
        d.starts_at, d.ends_at, to_char(d.starts_at, 'Dy DD Mon YYYY, HH24:MI') when_label, d.capacity, d.status,
        initcap(replace(d.status, '_', ' ')) status_label, d.cancel_reason, d.created_at, d.published_at,
        (select count(*) from oan_volunteer_signups s where s.drive_id = d.id and s.status in ('SIGNED_UP','ATTENDED')) signed_up,
@@ -1446,7 +1446,8 @@ create or replace view oan_cities_lov_v as
 select l.name d, l.id r from oan_locations l where l.loc_level = 'CITY';
 
 create or replace view oan_volunteer_causes_v as
-select c.code, c.label, c.description, c.icon, c.sort_order,
+select c.code, c.label, c.description, c.icon, c.sort_order, c.category,
+       case c.category when 'WELLBEING' then 'Marathons, fitness, yoga and meditation' else 'Social causes' end category_label,
        (select count(*) from oan_volunteer_drives d where d.cause_code = c.code and d.status = 'OPEN' and d.starts_at > systimestamp) open_drives
   from oan_volunteer_causes c
  where c.active_yn = 'Y';

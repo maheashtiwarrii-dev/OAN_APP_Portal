@@ -598,8 +598,8 @@ from oan_stories_v
 order by created_at desc~'; g_l(144) := 'p00078-success-stories#1';
     g_q(145) := q'~select id, title, cause_label, city_name, when_label, venue, signed_up,
 case when places_left is null then 'Open' when places_left = 0 then 'Full - waitlist' else places_left || ' places' end places_label,
-case my_status when 'SIGNED_UP' then 'Signed up' when 'WAITLIST' then 'On the waitlist' end my_label,
-case when nvl(my_status, 'WITHDRAWN') = 'WITHDRAWN' then 'Sign up' end signup_label,
+case my_status when 'SIGNED_UP' then 'Enrolled' when 'WAITLIST' then 'On the waitlist' end my_label,
+case when nvl(my_status, 'WITHDRAWN') = 'WITHDRAWN' then 'Enrol' end signup_label,
 case when my_status in ('SIGNED_UP','WAITLIST') then 'Withdraw' end withdraw_label,
 'Details' details_label
 from oan_volunteer_drives_v

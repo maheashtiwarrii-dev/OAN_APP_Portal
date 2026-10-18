@@ -219,3 +219,5 @@ a.oan-event:hover { border-color: var(--oan-accent); }
 .oan-cause span:not(.fa) { font-size: 12px; color: var(--oan-muted); }
 .oan-cause em { font-style: normal; font-size: 12px; font-weight: 600; }
 .oan-cause:hover, .oan-cause:focus-visible, .oan-cause.is-current { border-color: var(--oan-accent); }
+.oan-cause-group { font-size: 15px; margin: 4px 0 8px; }
+.oan-causes + .oan-cause-group { margin-top: 18px; }

@@ -135,6 +135,11 @@
       <n0:source><![CDATA[ddl/111_ai_assistant_volunteering.sql]]></n0:source>
     </n0:runOracleScript>
   </changeSet>
+  <changeSet id="ddl-112-wellbeing-activities" author="oan" runOnChange="false" failOnError="true">
+    <n0:runOracleScript objectName="112_wellbeing_activities" ownerName="OAN_DATA" sourceType="FILE">
+      <n0:source><![CDATA[ddl/112_wellbeing_activities.sql]]></n0:source>
+    </n0:runOracleScript>
+  </changeSet>
   <changeSet id="packages-100-oan-util" author="oan" runOnChange="true" failOnError="true">
     <n0:runOracleScript objectName="100_oan_util" ownerName="OAN_DATA" sourceType="FILE">
       <n0:source><![CDATA[packages/100_oan_util.sql]]></n0:source>

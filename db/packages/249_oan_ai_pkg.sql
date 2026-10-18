@@ -108,7 +108,7 @@ create or replace package body oan_ai_pkg as
     l_t varchar2(4000) := ' ' || lower(p_text) || ' ';
   begin
     return case
-      when has_any(l_t, 'volunteer,social cause,ngo,charity,educate one,nutrition,medical camp,dental,tree,plantation,mother and child,child welfare,rural') then 'VOLUNTEERING'
+      when has_any(l_t, 'volunteer,social cause,ngo,charity,educate one,nutrition,medical camp,dental,tree,plantation,mother and child,child welfare,rural,marathon,running,half marathon,fitness,workout,yoga,meditation,mindfulness') then 'VOLUNTEERING'
       when has_any(l_t, ' job,jobs,role,opening,vacanc,hiring,opportunit,gig,contract,position,career,employ') then 'OPPORTUNITIES'
       when has_any(l_t, 'event,meetup,webinar,conference,session on,workshop on') then 'EVENTS'
       when has_any(l_t, 'mentor,coach,guidance') then 'MENTORS'
@@ -155,6 +155,10 @@ create or replace package body oan_ai_pkg as
     l_t varchar2(4000) := lower(p_text);
   begin
     return case
+      when has_any(l_t, 'marathon,running,half marathon, run ') then 'MARATHON'
+      when has_any(l_t, 'yoga') then 'YOGA'
+      when has_any(l_t, 'meditation,mindfulness,breathing') then 'MEDITATION'
+      when has_any(l_t, 'fitness,workout,bootcamp,exercise,gym') then 'FITNESS'
       when has_any(l_t, 'educate,teach,literacy,tutor') then 'EACH_ONE_EDUCATE_ONE'
       when has_any(l_t, 'nutrition,meal,food,school lunch') then 'SCHOOL_NUTRITION'
       when has_any(l_t, 'medical,dental,health camp,doctor,dentist') then 'MEDICAL_DENTAL_CAMPS'
@@ -268,7 +272,7 @@ create or replace package body oan_ai_pkg as
   ------------------------------------------------------------------ answer --
   function local_answer(p_topic in varchar2, p_scope in varchar2, p_count in pls_integer, p_lines in varchar2) return varchar2 is
     l_what varchar2(100) := case p_topic
-      when 'VOLUNTEERING' then 'volunteering drives' when 'OPPORTUNITIES' then 'opportunities' when 'EVENTS' then 'upcoming events'
+      when 'VOLUNTEERING' then 'volunteering drives and activities' when 'OPPORTUNITIES' then 'opportunities' when 'EVENTS' then 'upcoming events'
       when 'EXPERTS' then 'experts' when 'MENTORS' then 'mentors with free places' when 'TRAINING' then 'open trainings'
       when 'GROUPS' then 'groups' when 'PROFILE' then 'next steps for your profile' when 'HELP' then 'places that can help'
       else 'results' end;

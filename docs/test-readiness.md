@@ -1,4 +1,4 @@
-# OAN Portal - test readiness (17 Oct 2026)
+# OAN Portal - test readiness (18 Oct 2026)
 
 Generated from the APEXLang export by `ci/gen-test-readiness.py`. All pages are deployed to app 200 on the dev
 database (`aiatp`). Test data is synthetic only (Q12); the test accounts end in `@synthetic.oan.invalid` and their
@@ -133,6 +133,6 @@ A staff member never decides their own item (P25): for example, use tester.asha 
 | 234 | Certification or achievement | Any signed-in user | tester.asha |  |
 | 301 | Write an article | Active member | tester.asha or tester.chen |  |
 | 331 | Event | Active member | tester.asha or tester.chen |  |
-| 791 | Organise a volunteering drive | Active member | tester.asha or tester.chen |  |
+| 791 | Organise a drive, event or class | Active member | tester.asha or tester.chen |  |
 | 9000 | OAN Portal health | Anyone (signed out) | - | Public health check for OCI Health Checks |
 | 9001 | System health | Platform Admin | tester.bala |  |

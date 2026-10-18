@@ -35,6 +35,7 @@ prompt == DDL
 @@ddl/109_w0_w7_completion.sql
 @@ddl/110_remove_channels.sql
 @@ddl/111_ai_assistant_volunteering.sql
+@@ddl/112_wellbeing_activities.sql
 
 prompt == Packages (bodies with forward references compile at the end)
 whenever sqlerror continue

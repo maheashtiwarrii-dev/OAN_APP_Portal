@@ -375,7 +375,7 @@ v1 = Build Plan waves **W0–W7** (PRD §B3, Q25). **Go-live requires every Must
 | W6.8 | 56 Initiatives; 57 Success stories; set `live_yn` for W6 journeys | Should | FR-06/12 | 6.25 | [A] 15 Oct: 77 Initiatives (start, interest, shortlist, close), 78 Success stories; W6 journeys set live |
 | W6.7 | 54 Marketplace (no journey depends on it after S25-Y) | Could | FR-46 | 2 | [ ] descope lane |
 | W6.9 | Recognition: endorsements, badges, contributions | Could | FR-11/45 | 3 | [A] 15 Oct: endorsements only (page 22); badges and contribution scores stay in the descope lane |
-| W6.10 | Volunteering by city and cause (Q42): 79 Volunteering, 791 Organise a drive; review on 107; J-22 | Should | Q42 | 3 | [A] 17 Oct: `oan_volunteer_pkg`, causes, drives, sign-ups with waitlist, attendance and hours, admin summary; `ut_oan_w8` |
+| W6.10 | Volunteering by city and cause (Q42) and wellbeing activities - marathon, fitness, yoga, meditation (Q43): 79 Volunteering, 791 Organise; review on 107; J-22 | Should | Q42 | 3 | [A] 17-18 Oct: `oan_volunteer_pkg`, 5 causes + 4 wellbeing activities, drives/events/classes, enrolment with waitlist, attendance and hours, admin summary; `ut_oan_w8` |
 
 ### W7 — Reporting and hardening (S11)
 | ID | Page(s) / task | Delivers | Est | Status |

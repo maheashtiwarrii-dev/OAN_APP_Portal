@@ -25,6 +25,8 @@ create or replace package ut_oan_w8 as
   procedure ai_people_need_consent;
   --%test(R15: members see and delete only their own conversations)
   procedure ai_history_is_private;
+  --%test(Q43: marathon, fitness, yoga and meditation activities exist and members enrol like for drives)
+  procedure wellbeing_enrolment;
 end ut_oan_w8;
 /
 
@@ -261,6 +263,24 @@ create or replace package body ut_oan_w8 as
     select count(*) into l_cnt from oan_ai_messages where conversation_id = l_conv;
     ut.expect(l_cnt, 'deleting removes its messages').to_equal(0);
   end ai_history_is_private;
+
+  procedure wellbeing_enrolment is
+    l_cnt number;
+    l_d   number;
+    l_st  varchar2(20);
+  begin
+    select count(*) into l_cnt from oan_volunteer_causes
+     where category = 'WELLBEING' and code in ('MARATHON','FITNESS','YOGA','MEDITATION') and active_yn = 'Y';
+    ut.expect(l_cnt, 'four wellbeing activities').to_equal(4);
+    oan_ctx_pkg.set_test_viewer(g_mod, 'MEMBER', 'N', 'MODERATOR');
+    l_d := oan_volunteer_pkg.propose_drive('YOGA', g_city, 'UT yoga class', 'Gentle yoga for beginners.', 'UT hall',
+                                           systimestamp + interval '2' day, null, 10);
+    as_member(g_a);
+    oan_volunteer_pkg.sign_up(l_d);
+    select my_status into l_st from oan_volunteer_drives_v where id = l_d;
+    ut.expect(l_st, 'enrolled in the yoga class').to_equal('SIGNED_UP');
+    ut.expect(oan_ai_pkg.topic_of('Any yoga or meditation classes near me?'), 'the assistant knows these activities').to_equal('VOLUNTEERING');
+  end wellbeing_enrolment;
 
 end ut_oan_w8;
 /

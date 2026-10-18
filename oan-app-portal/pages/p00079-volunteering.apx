@@ -16,26 +16,34 @@ page 79 (
         formAutoComplete: false
     }
     comments {
-        comments: W6.10 Volunteering by city and cause (Q42): each one educate one, free nutrition in government schools, free medical camps and dental checks, mother and child welfare in rural areas, tree plantation. Filter by city and cause, sign up (waitlist when full) or withdraw, see your hours. Organisers use page 791. Notifications and the AI assistant link here with P79_ID, so the page and its filter items are unrestricted; OAN_VOLUNTEER_DRIVES_V and OAN_VOLUNTEER_PKG decide access.
+        comments: W6.10 Volunteering by city and cause (Q42): each one educate one, free nutrition in government schools, free medical camps and dental checks, mother and child welfare in rural areas, tree plantation; and wellbeing activities (Q43): marathon events, fitness sessions, yoga and meditation classes. Filter by city and cause, sign up (waitlist when full) or withdraw, see your hours. Organisers use page 791. Notifications and the AI assistant link here with P79_ID, so the page and its filter items are unrestricted; OAN_VOLUNTEER_DRIVES_V and OAN_VOLUNTEER_PKG decide access.
     }
 
     region r79_causes (
-        name: Causes
+        name: Causes and activities
         type: dynamicContent
         source {
             plsqlFunctionBody:
                 ```plsql
                 declare
                     l_html varchar2(32767);
+                    l_cat  varchar2(12);
                 begin
-                    for c in (select code, label, description, icon, open_drives from oan_volunteer_causes_v order by sort_order) loop
+                    for c in (select code, label, description, icon, open_drives, category, category_label
+                                from oan_volunteer_causes_v order by case category when 'CAUSE' then 0 else 1 end, sort_order) loop
+                        if l_cat is null or l_cat != c.category then
+                            l_html := l_html || case when l_cat is not null then '</div>' end
+                                || '<h3 class="oan-cause-group">' || apex_escape.html(c.category_label) || '</h3><div class="oan-causes">';
+                            l_cat := c.category;
+                        end if;
                         l_html := l_html || '<a class="oan-cause' || case when c.code = :P79_CAUSE then ' is-current' end || '" href="'
                             || apex_page.get_url(p_page => 79, p_items => 'P79_CAUSE,P79_CITY', p_values => c.code || ',' || :P79_CITY) || '">'
                             || '<span class="fa ' || apex_escape.html_attribute(c.icon) || '" aria-hidden="true"></span>'
                             || '<b>' || apex_escape.html(c.label) || '</b><span>' || apex_escape.html(c.description) || '</span>'
-                            || '<em>' || c.open_drives || case c.open_drives when 1 then ' open drive' else ' open drives' end || '</em></a>';
+                            || '<em>' || c.open_drives || case when c.category = 'WELLBEING' then case c.open_drives when 1 then ' upcoming event or class' else ' upcoming events and classes' end
+                                                            else case c.open_drives when 1 then ' open drive' else ' open drives' end end || '</em></a>';
                     end loop;
-                    return '<div class="oan-causes">' || l_html || '</div>';
+                    return l_html || case when l_html is not null then '</div>' end;
                 end;
                 ```
         }
@@ -89,7 +97,7 @@ page 79 (
     )
 
     region r79_drives (
-        name: Upcoming drives
+        name: Upcoming drives, events and classes
         type: classicReport
         source {
             location: localDatabase
@@ -98,8 +106,8 @@ page 79 (
                 ```sql
                 select id, title, cause_label, city_name, when_label, venue, signed_up,
                        case when places_left is null then 'Open' when places_left = 0 then 'Full - waitlist' else places_left || ' places' end places_label,
-                       case my_status when 'SIGNED_UP' then 'Signed up' when 'WAITLIST' then 'On the waitlist' end my_label,
-                       case when nvl(my_status, 'WITHDRAWN') = 'WITHDRAWN' then 'Sign up' end signup_label,
+                       case my_status when 'SIGNED_UP' then 'Enrolled' when 'WAITLIST' then 'On the waitlist' end my_label,
+                       case when nvl(my_status, 'WITHDRAWN') = 'WITHDRAWN' then 'Enrol' end signup_label,
                        case when my_status in ('SIGNED_UP','WAITLIST') then 'Withdraw' end withdraw_label,
                        'Details' details_label
                   from oan_volunteer_drives_v
@@ -122,7 +130,7 @@ page 79 (
             templateOptions: #DEFAULT#
         }
         messages {
-            whenNoDataFound: No upcoming drives here yet. Organise one!
+            whenNoDataFound: Nothing scheduled here yet. Organise a drive, run, fitness session or class!
         }
 
         column ID (
@@ -227,7 +235,7 @@ page 79 (
             derivedColumn: N
             type: link
             heading {
-                heading: Sign up
+                heading: Enrol
             }
             layout {
                 sequence: 10
@@ -326,7 +334,7 @@ page 79 (
             sqlQuery: select 1 from oan_my_volunteering_v where status != 'WITHDRAWN'
         }
         messages {
-            whenNoDataFound: You have not signed up for a drive yet.
+            whenNoDataFound: You have not enrolled for a drive, event or class yet.
         }
 
         column DRIVE_ID (
@@ -501,7 +509,7 @@ page 79 (
 
     button organise (
         buttonName: ORGANISE
-        label: Organise a drive
+        label: Organise a drive, event or class
         layout {
             sequence: 10
             region: @r79_drives

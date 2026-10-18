@@ -1,7 +1,7 @@
 page 791 (
     name: Organise Drive
     alias: ORGANISE-DRIVE
-    title: Organise a volunteering drive
+    title: Organise a drive, event or class
     appearance {
         pageTemplate: @/standard
         templateOptions: #DEFAULT#
@@ -20,7 +20,7 @@ page 791 (
     }
 
     region r791_new (
-        name: Propose a drive
+        name: Propose a drive, event or class
         type: staticContent
         source {
             htmlCode: <p>Describe what volunteers will do, where and when. Do not share anyone's personal or medical details.</p>
@@ -388,7 +388,7 @@ page 791 (
     pageItem P791_CAUSE (
         type: selectList
         label {
-            label: Cause
+            label: Cause or activity
         }
         lov {
             type: sqlQuery
@@ -558,7 +558,7 @@ page 791 (
     pageItem P791_CAPACITY (
         type: numberField
         label {
-            label: Volunteers needed (empty = no limit)
+            label: Places (empty = no limit)
         }
         layout {
             sequence: 90

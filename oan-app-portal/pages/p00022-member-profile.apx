@@ -43,7 +43,12 @@ page 22 (
                                  || '<span class="fa fa-linkedin-square" aria-hidden="true"></span> View LinkedIn profile'
                                  || '<span class="u-VisuallyHidden"> (opens in a new tab)</span></a>'
                             when linkedin_url is not null then apex_escape.html(linkedin_url)
-                            else 'Not shared with you' end linkedin
+                            else 'Not shared with you' end linkedin,
+                       case when photo_file_id is not null
+                            then '<img class="oan-profile-photo" src="f?p=' || :APP_ID || ':1:' || :APP_SESSION
+                                 || ':APPLICATION_PROCESS=OAN_PHOTO:::OAN_PHOTO_ID:' || photo_file_id || '" alt="Photo of '
+                                 || apex_escape.html_attribute(display_name) || '">'
+                            else 'No photo shared' end photo
                   from oan_profile_v
                  where user_id = :P22_USER_ID
                 ```
@@ -193,6 +198,20 @@ page 22 (
             }
             layout {
                 sequence: 12
+            }
+        )
+
+        column PHOTO (
+            reportColumnQueryId: 14
+            derivedColumn: N
+            heading {
+                heading: Photo
+            }
+            layout {
+                sequence: 0
+            }
+            security {
+                escapeSpecialChars: false
             }
         )
 

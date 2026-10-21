@@ -112,6 +112,8 @@ order by s.score desc~'; g_l(23) := 'p00019-search#1';
     g_q(24) := q'~select d.user_id,
 d.display_name,
 coalesce(d.initials, '?') initials,
+case when d.photo_file_id is not null
+then 'f?p=' || cast(null as varchar2(4000)) || ':1:' || cast(null as varchar2(4000)) || ':APPLICATION_PROCESS=OAN_PHOTO::cast(null as varchar2(4000)):' || d.photo_file_id end photo_url,
 coalesce(d.job_title, '—') || ' · ' || coalesce(d.current_org, '—') role_org,
 coalesce(d.location_name, '—') || ' · ' || coalesce(d.primary_chapter, '—') where_text,
 coalesce(d.skills, '—') skills_text,
@@ -138,6 +140,8 @@ from table(oan_directory_search_pkg.directory_rows) d~'; g_l(24) := 'p00021-dire
     g_q(25) := q'~with base as (select d.user_id,
 d.display_name,
 coalesce(d.initials, '?') initials,
+case when d.photo_file_id is not null
+then 'f?p=' || cast(null as varchar2(4000)) || ':1:' || cast(null as varchar2(4000)) || ':APPLICATION_PROCESS=OAN_PHOTO::cast(null as varchar2(4000)):' || d.photo_file_id end photo_url,
 coalesce(d.job_title, '—') || ' · ' || coalesce(d.current_org, '—') role_org,
 coalesce(d.location_name, '—') || ' · ' || coalesce(d.primary_chapter, '—') where_text,
 coalesce(d.skills, '—') skills_text,
@@ -178,7 +182,12 @@ then '<a href="' || apex_escape.html_attribute(linkedin_url) || '" target="_blan
 || '<span class="fa fa-linkedin-square" aria-hidden="true"></span> View LinkedIn profile'
 || '<span class="u-VisuallyHidden"> (opens in a new tab)</span></a>'
 when linkedin_url is not null then apex_escape.html(linkedin_url)
-else 'Not shared with you' end linkedin
+else 'Not shared with you' end linkedin,
+case when photo_file_id is not null
+then '<img class="oan-profile-photo" src="f?p=' || cast(null as varchar2(4000)) || ':1:' || cast(null as varchar2(4000))
+|| ':APPLICATION_PROCESS=OAN_PHOTO::cast(null as varchar2(4000)):' || photo_file_id || '" alt="Photo of '
+|| apex_escape.html_attribute(display_name) || '">'
+else 'No photo shared' end photo
 from oan_profile_v
 where user_id = cast(null as varchar2(4000))~'; g_l(26) := 'p00022-member-profile#1';
     g_q(27) := q'~select case availability when 'ACTIVELY_LOOKING' then 'Actively looking'

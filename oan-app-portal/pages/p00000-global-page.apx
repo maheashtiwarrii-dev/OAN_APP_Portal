@@ -64,14 +64,18 @@ page 0 (
             plsqlFunctionBody:
                 ```plsql
                 -- Build Pack §3.2 profile card; oan-shell.js moves it to the top of the left rail.
-                -- Initials only: photos follow the PHOTO section visibility and arrive with W2.
+                -- Photo when the member has one (OAN_PHOTO process), otherwise initials.
                 declare
                     l_html clob;
                 begin
-                    for s in (select display_name, initials, headline, primary_chapter, completeness
+                    for s in (select display_name, initials, headline, primary_chapter, completeness, photo_file_id
                                 from oan_my_shell_v) loop
                         l_html := '<a class="oan-profile-card" href="' || apex_page.get_url(p_page => 23) || '">'
-                               || '<span class="oan-avatar" aria-hidden="true">' || apex_escape.html(nvl(s.initials, '?')) || '</span>'
+                               || '<span class="oan-avatar" aria-hidden="true">'
+                               || case when s.photo_file_id is not null
+                                       then '<img src="' || 'f?p=' || v('APP_ID') || ':1:' || v('APP_SESSION') || ':APPLICATION_PROCESS=OAN_PHOTO:::OAN_PHOTO_ID:' || s.photo_file_id || '" alt="">'
+                                       else apex_escape.html(nvl(s.initials, '?')) end
+                               || '</span>'
                                || '<span class="oan-pc-text"><span class="oan-pc-name">' || apex_escape.html(s.display_name) || '</span>'
                                || case when s.headline is not null
                                        then '<span class="oan-pc-meta">' || apex_escape.html(s.headline) || '</span>' end

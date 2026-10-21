@@ -438,6 +438,7 @@ select a.user_id,
        coalesce(a.headline, a.job_title) headline,
        a.current_org,
        a.completeness,
+       a.photo_file_id,
        (select c.name from oan_chapters c where c.id = a.primary_chapter_id) primary_chapter,
        (select count(*) from oan_notifications n where n.user_id = a.user_id and n.is_read = 'N') unread_notifications,
        (select listagg(s.section || '=' || s.vis_level, ':') within group (order by s.sort_order)

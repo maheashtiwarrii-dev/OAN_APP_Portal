@@ -49,6 +49,8 @@ page 21 (
                 select d.user_id,
                        d.display_name,
                        coalesce(d.initials, '?') initials,
+                       case when d.photo_file_id is not null
+                            then 'f?p=' || :APP_ID || ':1:' || :APP_SESSION || ':APPLICATION_PROCESS=OAN_PHOTO:::OAN_PHOTO_ID:' || d.photo_file_id end photo_url,
                        coalesce(d.job_title, '—') || ' · ' || coalesce(d.current_org, '—') role_org,
                        coalesce(d.location_name, '—') || ' · ' || coalesce(d.primary_chapter, '—') where_text,
                        coalesce(d.skills, '—') skills_text,
@@ -99,7 +101,7 @@ page 21 (
             advancedFormatting: true
             htmlExpression:
                 ```html
-                <span class="oan-dcard-top"><span class="oan-dcard-avatar &AV_CLASS!ATTR." aria-hidden="true">&INITIALS!HTML.</span><span><span class="oan-dcard-name" style="display:block">&DISPLAY_NAME!HTML.</span><span class="oan-dcard-line" style="display:block">&LINE2!HTML.</span><span class="oan-dcard-org" style="display:block">&ORG_TEXT!HTML.</span><span class="oan-dcard-loc" style="display:block">&LOC_TEXT!HTML.</span></span></span>
+                <span class="oan-dcard-top"><span class="oan-dcard-avatar &AV_CLASS!ATTR." aria-hidden="true">{if ?PHOTO_URL/}<img src="&PHOTO_URL!ATTR." alt="">{else/}&INITIALS!HTML.{endif/}</span><span><span class="oan-dcard-name" style="display:block">&DISPLAY_NAME!HTML.</span><span class="oan-dcard-line" style="display:block">&LINE2!HTML.</span><span class="oan-dcard-org" style="display:block">&ORG_TEXT!HTML.</span><span class="oan-dcard-loc" style="display:block">&LOC_TEXT!HTML.</span></span></span>
                 ```
         }
         body {

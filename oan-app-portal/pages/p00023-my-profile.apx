@@ -35,6 +35,39 @@ page 23 (
         }
     )
 
+    region my-photo (
+        name: Your photo
+        type: dynamicContent
+        source {
+            plsqlFunctionBody:
+                ```plsql
+                -- FR-33: the saved photo, so members can see that the upload worked
+                declare
+                    l_html varchar2(4000);
+                begin
+                    for a in (select photo_file_id, initials from oan_my_shell_v) loop
+                        l_html := case when a.photo_file_id is not null
+                                       then '<div class="oan-my-photo"><img src="' || 'f?p=' || v('APP_ID') || ':1:' || v('APP_SESSION') || ':APPLICATION_PROCESS=OAN_PHOTO:::OAN_PHOTO_ID:' || a.photo_file_id
+                                            || '" alt="Your profile photo"><p>This is your current photo. To change it, choose a new file under '
+                                            || '"Profile photo" below and select Save.</p></div>'
+                                       else '<div class="oan-my-photo"><span class="oan-avatar" aria-hidden="true">'
+                                            || apex_escape.html(nvl(a.initials, '?')) || '</span><p>No photo yet. Add one under '
+                                            || '"Profile photo" below and select Save.</p></div>' end;
+                    end loop;
+                    return l_html;
+                end;
+                ```
+        }
+        layout {
+            sequence: 8
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: #DEFAULT#
+        }
+    )
+
     region basics (
         name: Basic profile
         type: staticContent

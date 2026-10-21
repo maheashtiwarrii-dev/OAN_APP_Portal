@@ -78,3 +78,12 @@ appItem AI_UNREAD_NOTIFICATIONS (
         comments: Build Pack §2.4. Unread notification count for the navigation-bar badge; empty when zero. Refreshed every 60s by the OAN_UNREAD_COUNT callback (oan-shell.js).
     }
 )
+
+appItem OAN_PHOTO_ID (
+    security {
+        sessionStateProtection: unrestricted
+    }
+    comments {
+        comments: File id for the OAN_PHOTO On Demand process (profile photos in img tags). Unrestricted on purpose: OAN_DOWNLOAD_V decides who may see each photo (PHOTO section visibility, blocks).
+    }
+)

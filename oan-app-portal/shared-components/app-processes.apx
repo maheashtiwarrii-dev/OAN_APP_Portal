@@ -119,3 +119,47 @@ appProcess oan-unread-count (
         authorizationScheme: @is-signed-in
     }
 )
+
+appProcess oan-photo (
+    name: OAN_PHOTO
+    type: executeCode
+    execution {
+        point: ajaxCallback
+        sequence: 10
+    }
+    source {
+        location: localDatabase
+        language: plsql
+        plsqlCode:
+            ```plsql
+            -- FR-33 profile photo for <img src="f?p=APP:1:SESSION:APPLICATION_PROCESS=OAN_PHOTO:::OAN_PHOTO_ID:id">.
+            -- OAN_DOWNLOAD_V applies the PHOTO section visibility and blocks; anything else is a 404.
+            declare
+                l_blob blob;
+                l_mime varchar2(200);
+            begin
+                begin
+                    select d.content, d.mime_type
+                      into l_blob, l_mime
+                      from oan_download_v d
+                     where d.file_id = to_number(:OAN_PHOTO_ID default null on conversion error)
+                       and d.mime_type in ('image/png', 'image/jpeg');
+                exception
+                    when no_data_found then
+                        sys.owa_util.status_line(404, 'Not Found', true);
+                        apex_application.stop_apex_engine;
+                end;
+                sys.owa_util.mime_header(l_mime, false);
+                sys.htp.p('Content-Length: ' || dbms_lob.getlength(l_blob));
+                sys.htp.p('Cache-Control: private, max-age=3600');
+                sys.htp.p('X-Content-Type-Options: nosniff');
+                sys.owa_util.http_header_close;
+                sys.wpg_docload.download_file(l_blob);
+                apex_application.stop_apex_engine;
+            end;
+            ```
+    }
+    comments {
+        comments: Serves profile photos to signed-in members (FR-33). Access is decided by OAN_DOWNLOAD_V.
+    }
+)

@@ -31,6 +31,8 @@ create or replace package ut_oan_career as
   procedure cv_owner_only;
   --%test(Deleting the current CV promotes the newest remaining version)
   procedure cv_delete_promotes_latest;
+  --%test(Q44: a CV over 1 MB is refused; exactly 1 MB is accepted)
+  procedure cv_max_one_mb;
 end ut_oan_career;
 /
 
@@ -220,6 +222,29 @@ create or replace package body ut_oan_career as
     select is_current into l_cur from oan_member_cv where id = l_first;
     ut.expect(l_cur).to_equal('Y');
   end cv_delete_promotes_latest;
+
+  procedure cv_max_one_mb is
+    l_blob blob;
+    l_file number;
+    l_err  varchar2(4000);
+  begin
+    as_viewer(g_owner);
+    dbms_lob.createtemporary(l_blob, true);
+    dbms_lob.writeappend(l_blob, 8, hextoraw('255044462D312E37'));   -- "%PDF-1.7"
+    while dbms_lob.getlength(l_blob) < 1024 * 1024 loop
+      dbms_lob.writeappend(l_blob, least(32000, 1024 * 1024 - dbms_lob.getlength(l_blob)),
+                           utl_raw.copies(hextoraw('20'), least(32000, 1024 * 1024 - dbms_lob.getlength(l_blob))));
+    end loop;
+    l_file := oan_file_pkg.store_blob(l_blob, 'cv.pdf', null, 'CV', g_owner);   -- exactly 1 MB
+    ut.expect(l_file).to_be_not_null();
+    dbms_lob.writeappend(l_blob, 1, hextoraw('20'));                          -- one byte over
+    begin
+      l_file := oan_file_pkg.store_blob(l_blob, 'cv.pdf', null, 'CV', g_owner);
+    exception
+      when others then l_err := sqlerrm;
+    end;
+    ut.expect(l_err).to_be_like('%1 MB or smaller%');
+  end cv_max_one_mb;
 
 end ut_oan_career;
 /

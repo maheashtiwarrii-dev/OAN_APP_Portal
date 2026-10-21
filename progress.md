@@ -367,3 +367,10 @@
 | I33-1 | User report | "After uploading a photo as bala, the photo is not getting saved". The upload was saved (file stored, profile linked); no page displayed photos yet (initials everywhere) |
 | I33-2 | Fix | On Demand process `OAN_PHOTO` serves a photo only through `OAN_DOWNLOAD_V` (PHOTO section visibility, blocks; PNG/JPEG only; 404 otherwise, also for anonymous requests). Photos now show in the left-rail profile card, directory cards (page 21), the member profile (page 22, "Photo" row) and a new "Your photo" panel on My profile (page 23) confirming the saved photo; initials remain when there is no photo or it is not shared |
 | I33-3 | Checks | 169/169 tests; CI checks pass; in a browser as tester.bala the photo loads on home and My profile; anonymous request returns 404 |
+
+## Iteration 34 — CV uploads limited to 1 MB (21 Oct 2026)
+| Step | Action | Result |
+|---|---|---|
+| I34-1 | User request (Q44) | Restrict CV upload to 1 MB and publish the pages |
+| I34-2 | Change | Pages 23 (My profile) and 24 (My CV): upload limit 1 MB in the browser, labels and help say "max 1 MB"; `oan_file_pkg.validate` refuses CVs over 1 MB on the server ("Your CV must be 1 MB or smaller."); photos and library documents unchanged |
+| I34-3 | Checks | 170/170 tests (new `ut_oan_career.cv_max_one_mb`: 1 MB accepted, 1 MB + 1 byte refused); app 200 imported on dev; pages 23 and 24 show the 1 MB limit for tester.bala |

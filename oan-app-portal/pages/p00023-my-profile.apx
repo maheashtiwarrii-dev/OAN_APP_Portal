@@ -1007,7 +1007,7 @@ page 23 (
     pageItem P23_CV (
         type: fileUpload
         label {
-            label: Upload a CV (PDF or Word .docx, max 20 MB)
+            label: Upload a CV (PDF or Word .docx, max 1 MB)
         }
         display {
             displayAs: inlineDropzone
@@ -1016,7 +1016,7 @@ page 23 (
             type: appTempFiles
             purgeFileAt: endOfRequest
             fileTypes: application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document
-            maxFileSize: 20480
+            maxFileSize: 1024
         }
         layout {
             sequence: 10

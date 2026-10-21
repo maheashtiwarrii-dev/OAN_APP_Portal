@@ -16,6 +16,7 @@ end oan_file_pkg;
 
 create or replace package body oan_file_pkg as
   c_max_size  constant number := 20 * 1024 * 1024;
+  c_max_cv_size constant number := 1024 * 1024;   -- Q44: CVs up to 1 MB
 
   function ext_of(p_name in varchar2) return varchar2 is
   begin
@@ -32,6 +33,8 @@ create or replace package body oan_file_pkg as
       oan_util.assert(l_ext in ('png','jpg','jpeg'), 'Profile photos must be PNG or JPG.');
     elsif p_object_type = 'CV' then
       oan_util.assert(l_ext in ('pdf','docx'), 'Your CV must be a PDF or Word (.docx) file.');
+      -- Q44 (21 Oct 2026): CVs are limited to 1 MB
+      oan_util.assert(dbms_lob.getlength(p_blob) <= c_max_cv_size, 'Your CV must be 1 MB or smaller.');
     elsif p_object_type = 'IMPORT_BATCH' then
       -- W3.5 library import (admins only): a UTF-8 CSV with a header row; text, so no magic bytes
       oan_util.assert(l_ext = 'csv', 'Upload the library import as a .csv file.');

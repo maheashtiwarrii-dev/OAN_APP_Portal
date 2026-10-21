@@ -48,7 +48,7 @@ page 24 (
         name: Upload your CV
         type: staticContent
         source {
-            htmlCode: <p>Upload a PDF or Word (.docx) file up to 20 MB. The newest upload becomes your current CV, and the last three versions are kept. Your CV is private: only you, and connections you share it with, can open it.</p>
+            htmlCode: <p>Upload a PDF or Word (.docx) file up to 1 MB. The newest upload becomes your current CV, and the last three versions are kept. Your CV is private: only you, and connections you share it with, can open it.</p>
         }
         layout {
             sequence: 10
@@ -678,7 +678,7 @@ page 24 (
     pageItem P24_CV (
         type: fileUpload
         label {
-            label: CV file (PDF or Word .docx, max 20 MB)
+            label: CV file (PDF or Word .docx, max 1 MB)
         }
         display {
             displayAs: inlineDropzone
@@ -687,7 +687,7 @@ page 24 (
             type: appTempFiles
             purgeFileAt: endOfRequest
             fileTypes: application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document
-            maxFileSize: 20480
+            maxFileSize: 1024
         }
         layout {
             sequence: 10

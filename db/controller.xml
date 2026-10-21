@@ -245,6 +245,11 @@
       <n0:source><![CDATA[packages/235_oan_directory_pkg.sql]]></n0:source>
     </n0:runOracleScript>
   </changeSet>
+  <changeSet id="packages-236-oan-directory-search-pkg" author="oan" runOnChange="true" failOnError="true">
+    <n0:runOracleScript objectName="236_oan_directory_search_pkg" ownerName="OAN_DATA" sourceType="FILE">
+      <n0:source><![CDATA[packages/236_oan_directory_search_pkg.sql]]></n0:source>
+    </n0:runOracleScript>
+  </changeSet>
   <changeSet id="packages-238-oan-event-pkg" author="oan" runOnChange="true" failOnError="true">
     <n0:runOracleScript objectName="238_oan_event_pkg" ownerName="OAN_DATA" sourceType="FILE">
       <n0:source><![CDATA[packages/238_oan_event_pkg.sql]]></n0:source>

@@ -7,6 +7,7 @@ page 55 (
         templateOptions: #DEFAULT#
     }
     navigation {
+        cursorFocus: doNotFocusCursor
         warnOnUnsavedChanges: false
     }
     security {
@@ -361,10 +362,11 @@ page 55 (
             type: sqlQuery
             sqlQuery:
                 ```sql
-                select 'My requests' d, 'MINE' r, 1 s from dual
-                union all select 'Open queue (support)', 'QUEUE', 2 from dual where oan_helpdesk_pkg.is_agent = 'Y'
-                union all select 'All requests (support)', 'ALL', 3 from dual where oan_helpdesk_pkg.is_agent = 'Y'
-                order by 3
+                select d, r from (
+                  select 'My requests' d, 'MINE' r, 1 s from dual
+                  union all select 'Open queue (support)', 'QUEUE', 2 from dual where oan_helpdesk_pkg.is_agent = 'Y'
+                  union all select 'All requests (support)', 'ALL', 3 from dual where oan_helpdesk_pkg.is_agent = 'Y'
+                ) order by s
                 ```
             displayExtraValues: false
             displayNullValue: false

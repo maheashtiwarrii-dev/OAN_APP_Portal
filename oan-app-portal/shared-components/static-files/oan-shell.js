@@ -63,14 +63,18 @@
 
     /* 3. Global search ----------------------------------------------------- */
     function initSearch() {
-        $(document).on("submit", "#oan-global-search", function (e) {
-            var $form = $(this),
-                q = $.trim($form.find("input[type=search]").val() || "")
-                    .replace(/[:,\\]/g, " ")      // f?p separators
-                    .substring(0, 200);
+        // The search box is a <div>, not a <form>: a nested form closes APEX's page form (wwvFlowForm) early and
+        // leaves the page body outside it (blank first screen after sign-in, item values lost on submit).
+        $(document).on("keydown", "#oan-global-search-q", function (e) {
+            var q;
+            if (e.key !== "Enter") { return; }
             e.preventDefault();
+            e.stopPropagation();
+            q = $.trim($(this).val() || "")
+                .replace(/[:,\\]/g, " ")      // f?p separators
+                .substring(0, 200);
             if (q.length) {
-                apex.navigation.redirect($form.data("url") + encodeURIComponent(q));
+                apex.navigation.redirect($("#oan-global-search").data("url") + encodeURIComponent(q));
             }
         });
     }

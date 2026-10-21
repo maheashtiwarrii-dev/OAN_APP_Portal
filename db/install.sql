@@ -60,6 +60,7 @@ whenever sqlerror continue
 @@packages/230_oan_library_pkg.sql
 @@packages/232_oan_insight_pkg.sql
 @@packages/235_oan_directory_pkg.sql
+@@packages/236_oan_directory_search_pkg.sql
 @@packages/238_oan_event_pkg.sql
 @@packages/240_oan_group_pkg.sql
 @@packages/242_oan_community_pkg.sql

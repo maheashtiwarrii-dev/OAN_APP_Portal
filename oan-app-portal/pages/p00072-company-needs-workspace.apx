@@ -8,6 +8,7 @@ page 72 (
         templateOptions: #DEFAULT#
     }
     navigation {
+        cursorFocus: doNotFocusCursor
         warnOnUnsavedChanges: false
     }
     security {

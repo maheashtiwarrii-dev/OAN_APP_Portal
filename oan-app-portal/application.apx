@@ -32,9 +32,8 @@ app OAN-APP-PORTAL (
     navigationMenu {
         listTemplate: @/side-navigation-menu
         templateOptions: [
-            #DEFAULT#
+            js-navCollapsed--default
             t-TreeNav--styleA
-            js-navCollapsed--hidden
         ]
         list: @navigation-menu
     }

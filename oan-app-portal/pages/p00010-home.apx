@@ -49,6 +49,9 @@ page 10 (
             template: @/hero
             templateOptions: #DEFAULT#
         }
+        image {
+            fileUrl: #APP_FILES#icons/app-icon-512.png
+        }
     )
     region onboarding (
         name: Get started
@@ -72,6 +75,7 @@ page 10 (
         appearance {
             template: @/standard
             templateOptions: #DEFAULT#
+            cssClasses: oan-checklist
         }
         componentAppearance {
             template: @/standard

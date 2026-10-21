@@ -7,6 +7,7 @@ page 53 (
         templateOptions: #DEFAULT#
     }
     navigation {
+        cursorFocus: doNotFocusCursor
         warnOnUnsavedChanges: false
     }
     security {
@@ -43,11 +44,12 @@ page 53 (
             type: sqlQuery
             sqlQuery:
                 ```sql
-                select 'Member gig' d, 'GIG' r, 1 s from dual where sys_context('OAN_CTX','VIEWER_TYPE') = 'MEMBER'
-                union all select 'Member contract', 'CONTRACT', 2 from dual where sys_context('OAN_CTX','VIEWER_TYPE') = 'MEMBER'
-                union all select 'My company (verified)', 'COMPANY', 3 from dual where oan_org_pkg.is_org_contact = 'Y'
-                union all select 'Oracle role (Careers link)', 'ORACLE', 4 from dual where oan_security_pkg.authz('CONTENT_EDITOR') = 'Y'
-                order by 3
+                select d, r from (
+                  select 'Member gig' d, 'GIG' r, 1 s from dual where sys_context('OAN_CTX','VIEWER_TYPE') = 'MEMBER'
+                  union all select 'Member contract', 'CONTRACT', 2 from dual where sys_context('OAN_CTX','VIEWER_TYPE') = 'MEMBER'
+                  union all select 'My company (verified)', 'COMPANY', 3 from dual where oan_org_pkg.is_org_contact = 'Y'
+                  union all select 'Oracle role (Careers link)', 'ORACLE', 4 from dual where oan_security_pkg.authz('CONTENT_EDITOR') = 'Y'
+                ) order by s
                 ```
             displayExtraValues: false
             displayNullValue: false

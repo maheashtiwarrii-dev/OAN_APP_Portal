@@ -340,3 +340,13 @@
 | I30-2 | Q43 | `112_wellbeing_activities.sql`: cause category (CAUSE / WELLBEING) and 4 activities; page 79 shows two groups (social causes; marathons, fitness, yoga and meditation) with "Enrol"; page 791 "Cause or activity"; AI assistant understands the activities; J-22 keywords |
 | I30-3 | Dev | Deployed with `lb update` (4 changesets); 8 synthetic wellbeing events and classes in Mumbai, Pune, Bengaluru, Hyderabad, Chennai and Delhi NCR; app 200 imported (96 pages) |
 | I30-4 | Checks | 169/169 tests (`ut_oan_w8` 9/9 incl. wellbeing enrolment); harness 158 queries / 210 blocks; APEXLang validation passes; page catalogue PDF regenerated |
+
+## Iteration 31 — Redwood Light, blank first screen and navigation errors fixed (21 Oct 2026)
+| Step | Action | Result |
+|---|---|---|
+| I31-1 | User request | Apply Redwood Light to all pages; fix errors when tester.asha and tester.bala navigate, and the blank screen after sign-in (home page appeared only after scrolling); make pages more intuitive |
+| I31-2 | Blank first screen | Root cause: the header search on page 0 was a `<form>` inside APEX's page form, which closed `wwvFlowForm` early, so the page body sat below a full-height empty grid. Now a `<div>`; Enter in the box opens Search (`oan-shell.js`) |
+| I31-3 | Navigation errors | Page 55 Helpdesk and page 53 Post an opportunity returned HTTP 400: their LOVs selected 3 columns (display, return, sort). Wrapped as `select d, r from (...) order by s`; new CI check `ci/check-lov-columns.py`. Page 21 faceted search: ORA-64630 (SQL macro inside the WITH clause APEX adds) fixed with the table function `oan_directory_search_pkg.directory_rows`; the smoke suite now also runs faceted-search and report queries wrapped in WITH (203 queries) |
+| I31-4 | Redwood Light | Theme style Redwood Light for all pages; OAN stylesheet keeps only OAN components (no custom header or rail colours). Navigation menu shows labels by default (was icons only) and collapses to icons |
+| I31-5 | Easier to use | No jump to a form field below the fold on 72 pages (cursor focus off; sign-in, sign-up, password reset and dialogs keep it); OAN monogram replaces the default rocket icon (login, home, browser tab; no Oracle marks); home checklist as a plain step list; directory shows "Members found" and card figures no longer wrap |
+| I31-6 | Checks | 169/169 tests; link, page-security, base-table, LOV and brand checks pass; app 200 imported on dev (96 pages); browser crawl of every visible link: tester.asha 148 pages and tester.bala 236 pages, no errors or access-denied pages |

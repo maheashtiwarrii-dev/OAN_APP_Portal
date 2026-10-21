@@ -4,7 +4,7 @@
 moderator/staff and company contact - with page items bound to a NULL string (as APEX binds them).
 
 It proves at runtime what the offline checks cannot: no query raises (wrong column, conversion error, ORA-00600,
-mutating table) for any persona. A query that a secure view or package correctly refuses (ORA-20403) counts as
+mutating table, a SQL macro inside the WITH clause APEX adds for faceted search - ORA-64630) for any persona. A query that a secure view or package correctly refuses (ORA-20403) counts as
 denied, not failed. Needs the synthetic test accounts (610), sample data and 710 (dev staff roles).
 
 usage: python3 ci/gen-page-smoke.py [app dir] [out file]
@@ -20,10 +20,14 @@ queries = []
 for f in sorted(glob.glob(app + '/pages/*.apx')) + [app + '/shared-components/lovs.apx']:
     s = open(f, encoding='utf-8').read()
     name = re.split(r'[\\/]', f)[-1].replace('.apx', '')
+    wraps = re.search(r'type: (facetedSearch|interactiveReport|interactiveGrid|smartFilters)', s) is not None
     for k, m in enumerate(re.finditer(r'```sql\n(.*?)\n\s*```', s, re.S), 1):
         q = '\n'.join(l.strip() for l in m.group(1).split('\n')).strip().rstrip(';')
         q = re.sub(r"(?<!')\:([A-Z][A-Z0-9_]*)\b", 'cast(null as varchar2(4000))', q)        # page and application items -> NULL
         queries.append((f'{name}#{k}', q))
+        if wraps and k == 1:
+            # APEX wraps faceted-search and interactive-report sources in WITH clauses; SQL macros are not allowed there
+            queries.append((f'{name}#{k}-with', f'with base as ({q}) select * from base'))
     for k, m in enumerate(re.finditer(r'\n\s+sqlQuery: ([^\n`]+)\n', s), 1):  # one-line conditions
         q = re.sub(r"(?<!')\:([A-Z][A-Z0-9_]*)\b", 'cast(null as varchar2(4000))', m.group(1).strip().rstrip(';'))
         queries.append((f'{name}#c{k}', q))

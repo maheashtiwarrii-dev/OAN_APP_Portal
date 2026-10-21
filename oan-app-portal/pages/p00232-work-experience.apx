@@ -12,6 +12,7 @@ page 232 (
         resizable: false
     }
     navigation {
+        cursorFocus: doNotFocusCursor
         warnOnUnsavedChanges: false
     }
     security {

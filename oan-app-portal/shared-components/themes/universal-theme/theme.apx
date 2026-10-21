@@ -3,7 +3,7 @@ theme universal-theme (
     themeNumber: 42
     baseTheme: ut-26.1
     style {
-        currentThemeStyle: @/iris
+        currentThemeStyle: @/redwood-light
     }
     javaScript {
         fileUrls: [

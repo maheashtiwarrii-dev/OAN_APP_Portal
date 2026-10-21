@@ -33,6 +33,9 @@ jobs:
       - name: "Base-table check (NFR-03, views and granted packages only)"
         run: python3 ci/check-base-tables.py oan-app-portal db
 
+      - name: "LOV column check (display and return only)"
+        run: python3 ci/check-lov-columns.py oan-app-portal
+
       - name: Liquibase changelog matches install.sql (task 0.16a)
         run: |
           python3 ci/gen-changelog.py

@@ -15,7 +15,7 @@ page 21 (
         formAutoComplete: false
     }
     comments {
-        comments: Build Pack page 21 Directory results (FR-35 AC1-AC3, W2.5). Faceted search over OAN_DIRECTORY_V only. Every facet value is already masked by its section level, so filtering cannot reveal a hidden value. Missing values show as a dash (FSD BR-05). Availability is CAREER_STATUS-masked (connections only by default, R13), so members only filter on what they may see.
+        comments: Build Pack page 21 Directory results (FR-35 AC1-AC3, W2.5). Faceted search over OAN_DIRECTORY_V only, read through OAN_DIRECTORY_SEARCH_PKG.DIRECTORY_ROWS (faceted search wraps queries in WITH clauses, which the OAN_VIS SQL macros do not allow, ORA-64630). Every facet value is already masked by its section level, so filtering cannot reveal a hidden value. Missing values show as a dash (FSD BR-05). Availability is CAREER_STATUS-masked (connections only by default, R13), so members only filter on what they may see.
     }
 
     region button-bar (
@@ -71,7 +71,7 @@ page 21 (
                        nvl(d.oracle_years, '—') oracle_years,
                        nvl(to_char(d.follower_count), '—') followers,
                        case when d.i_follow > 0 then 'Following' else 'Follow' end follow_label
-                  from oan_directory_v d
+                  from table(oan_directory_search_pkg.directory_rows) d
                 ```
         }
         orderBy {
@@ -206,6 +206,7 @@ page 21 (
             showCurrentFacets: selector
             currentFacetsSelector: #active_facets
             showTotalRowCount: true
+            totalRowCountLabel: Members found
         }
 
         facet P21_SEARCH (

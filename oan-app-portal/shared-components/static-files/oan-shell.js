@@ -74,7 +74,9 @@
                 .replace(/[:,\\]/g, " ")      // f?p separators
                 .substring(0, 200);
             if (q.length) {
-                apex.navigation.redirect($("#oan-global-search").data("url") + encodeURIComponent(q));
+                // APEX renders data-url as a friendly URL (search?p19_q=OANQUERY&clear=RP&session=...), so the
+                // text replaces the placeholder rather than being appended to the end.
+                apex.navigation.redirect(String($("#oan-global-search").data("url")).replace("OANQUERY", encodeURIComponent(q)));
             }
         });
     }

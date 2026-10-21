@@ -350,3 +350,13 @@
 | I31-4 | Redwood Light | Theme style Redwood Light for all pages; OAN stylesheet keeps only OAN components (no custom header or rail colours). Navigation menu shows labels by default (was icons only) and collapses to icons |
 | I31-5 | Easier to use | No jump to a form field below the fold on 72 pages (cursor focus off; sign-in, sign-up, password reset and dialogs keep it); OAN monogram replaces the default rocket icon (login, home, browser tab; no Oracle marks); home checklist as a plain step list; directory shows "Members found" and card figures no longer wrap |
 | I31-6 | Checks | 169/169 tests; link, page-security, base-table, LOV and brand checks pass; app 200 imported on dev (96 pages); browser crawl of every visible link: tester.asha 148 pages and tester.bala 236 pages, no errors or access-denied pages |
+
+## Iteration 32 — Sign-in message, LinkedIn on the member profile, header search fix (21 Oct 2026)
+| Step | Action | Result |
+|---|---|---|
+| I32-1 | User report | "Login password not working". Dev sign-in log: the recent failures used `tester.bala` without `@synthetic.oan.invalid`; accounts were not locked (0 failed attempts). Sign-in now says "Enter your full e-mail address, for example name@example.com." when there is no @ (no account is revealed); the field placeholder shows the format. Both tester logins verified in a browser |
+| I32-2 | User request | LinkedIn on the member profile (page 22): own "LinkedIn" row with "View LinkedIn profile" (opens in a new tab, https://linkedin.com links only); shown only when the member shares Contact (OAN_PROFILE_V). "Contact" row renamed "Email" |
+| I32-3 | Found while testing | Header search returned HTTP 400: APEX renders the page-19 link as a friendly URL, so the text was appended after `&clear=RP`. The search text now replaces a placeholder in the link |
+| I32-4 | Easier to read | Label / value lists (member profile and similar) show one field per row with the label on the left |
+| I32-5 | Dev data | `db/dev/740_sample_linkedin.sql` (dev only): placeholder `/in/oan-synthetic-*` links and contact e-mails for tester.asha, tester.bala and tester.chen, contact shared with members |
+| I32-6 | Checks | 169/169 tests; link, page-security, base-table, LOV and brand checks pass; app 200 imported on dev |

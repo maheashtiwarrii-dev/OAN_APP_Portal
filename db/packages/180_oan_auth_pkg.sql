@@ -114,6 +114,13 @@ create or replace package body oan_auth_pkg as
     l_cred   oan_local_credentials%rowtype;
     l_dummy  raw(64);
   begin
+    -- Accounts are found by full e-mail address only; say so instead of "invalid password" (21 Oct 2026:
+    -- testers typed "tester.bala" without the domain). Reveals nothing about which accounts exist.
+    if instr(l_email, '@') = 0 then
+      record_attempt(l_email, 'N');
+      apex_util.set_custom_auth_status('Enter your full e-mail address, for example name@example.com.');
+      return false;
+    end if;
     if ip_blocked then
       record_attempt(l_email, 'N');
       oan_audit_pkg.log_autonomous('LOGIN_IP_BLOCKED', null, null, null, json_object('ip' value oan_util.client_ip));

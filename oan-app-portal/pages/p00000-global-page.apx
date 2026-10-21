@@ -33,7 +33,7 @@ page 0 (
         source {
             htmlCode:
                 ```html
-                <div id="oan-global-search" class="oan-search" role="search" data-url="f?p=&APP_ID.:19:&APP_SESSION.::NO:RP:P19_Q:">
+                <div id="oan-global-search" class="oan-search" role="search" data-url="f?p=&APP_ID.:19:&APP_SESSION.::NO:RP:P19_Q:OANQUERY">
                   <label for="oan-global-search-q" class="u-VisuallyHidden">Search OAN</label>
                   <input id="oan-global-search-q" type="search" maxlength="200" placeholder="Search people, insights, posts" autocomplete="off">
                 </div>

@@ -171,7 +171,14 @@ coalesce(skills, 'Not shared with you') skills,
 coalesce(experience_band, 'Not shared with you') experience,
 coalesce(location_name, 'Not shared with you') location_name,
 coalesce(chapters, 'Not shared with you') chapters,
-coalesce(contact_email || case when linkedin_url is not null then ' | ' || linkedin_url end, 'Not shared with you') contact
+coalesce(contact_email, 'Not shared with you') contact,
+-- LinkedIn as a link (only https://linkedin.com addresses; OAN_PROFILE_V hides it unless CONTACT is shared)
+case when regexp_like(linkedin_url, '^https://([a-z]+\.)?linkedin\.com/', 'i')
+then '<a href="' || apex_escape.html_attribute(linkedin_url) || '" target="_blank" rel="noopener noreferrer">'
+|| '<span class="fa fa-linkedin-square" aria-hidden="true"></span> View LinkedIn profile'
+|| '<span class="u-VisuallyHidden"> (opens in a new tab)</span></a>'
+when linkedin_url is not null then apex_escape.html(linkedin_url)
+else 'Not shared with you' end linkedin
 from oan_profile_v
 where user_id = cast(null as varchar2(4000))~'; g_l(26) := 'p00022-member-profile#1';
     g_q(27) := q'~select case availability when 'ACTIVELY_LOOKING' then 'Actively looking'

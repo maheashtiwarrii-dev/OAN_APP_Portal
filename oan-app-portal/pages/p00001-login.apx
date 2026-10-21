@@ -74,7 +74,7 @@ page 1 (
             templateOptions: #DEFAULT#
             icon: fa-envelope-o
             width: 40
-            valuePlaceholder: Email
+            valuePlaceholder: Email address (name@example.com)
         }
         validation {
             maxLength: 320

@@ -35,6 +35,20 @@
 .oan-search input[type=search]::placeholder { color: var(--oan-muted); }
 @media (max-width: 640px) { .oan-search { display: none; } }
 
+/* ----------------------------- label / value lists (member profile etc.) -- */
+/* One row per field, label left and value right, instead of one flowing line */
+.t-Body-content .t-AVPList { display: grid; grid-template-columns: minmax(120px, 220px) 1fr; column-gap: 16px; margin: 0; }
+.t-Body-content .t-AVPList-label, .t-Body-content .t-AVPList-value {
+    float: none; width: auto; display: block; margin: 0; padding: 8px 0;
+    border-bottom: 1px solid var(--oan-border); text-align: left;
+}
+.t-Body-content .t-AVPList-label { color: var(--oan-muted); font-weight: 600; }
+.t-Body-content .t-AVPList-value .fa-linkedin-square { color: #0a66c2; margin-right: 4px; }
+@media (max-width: 640px) {
+    .t-Body-content .t-AVPList { grid-template-columns: 1fr; }
+    .t-Body-content .t-AVPList-label { border-bottom: 0; padding-bottom: 0; }
+}
+
 /* ------------------------------------------ home onboarding checklist -- */
 /* A plain step list, not a sortable table */
 .oan-checklist .t-Report-report { width: 100%; border: 0; }

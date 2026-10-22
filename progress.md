@@ -383,3 +383,11 @@
 | I35-3 | Fix | `oan_ai_pkg`: 26 step-by-step guides (CV upload with the 1 MB limit, photo, password, e-mail, LinkedIn, who can see what, profile, notifications, finding members, messages, connections, posting and applying for opportunities, referrals, events, volunteering enrolment, groups, mentors, experts, articles, reporting, data download and deletion, Helpdesk, chapters, company registration, AI history) with a link to the right page and live results where useful (e.g. marathons after the enrolment steps). "Find / any / which ..." questions keep their live results. A city narrows results only when the question names one. Skill words match inside skill names. Empty results link to the page to browse; off-topic questions say what the assistant can do |
 | I35-4 | Session message | "Your session has ended" in the screenshot is the 30-minute idle timeout (8 hours maximum), not an error; signing in again continues |
 | I35-5 | Checks | 171/171 tests (new `ut_oan_w8.ai_howto_guides`); 15 real questions asked on page 48 as tester.bala and the answers reviewed |
+
+## Iteration 36 — Ask OAN answers any question about OAN (22 Oct 2026)
+| Step | Action | Result |
+|---|---|---|
+| I36-1 | User request | Ask OAN should respond to all queries related to OAN, not only events and other listings |
+| I36-2 | New answers | Facts about OAN (what OAN is, who can join and how approval works, independence from Oracle, payments, chapters, Community Guidelines, privacy, the assistant itself, companies and partners, the Knowledge Library, who runs OAN, what members can do); the Knowledge Library, insights, success stories, initiatives, partner needs, news and chapters (a region lists its city chapters); the member's own status (membership application, job applications, events, volunteering, mentoring, trainings, Helpdesk requests, connections, referrals, notifications). Other questions search the site on their key words |
+| I36-3 | R15 | Search-based answers name members only with consent AI_INCLUSION (previously the general search could list members) |
+| I36-4 | Checks | 172/172 tests (new `ut_oan_w8.ai_answers_about_oan`; consent test extended); 20 real questions asked on page 48 as tester.bala and reviewed, then the test conversations deleted; page 48 intro lists what can be asked |

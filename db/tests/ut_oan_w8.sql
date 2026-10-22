@@ -29,6 +29,8 @@ create or replace package ut_oan_w8 as
   procedure wellbeing_enrolment;
   --%test(R15: "how do I" questions get step-by-step guides; finder questions keep their live results)
   procedure ai_howto_guides;
+  --%test(R15: questions about OAN itself, its content and the member's own status get answers)
+  procedure ai_answers_about_oan;
 end ut_oan_w8;
 /
 
@@ -241,6 +243,9 @@ create or replace package body ut_oan_w8 as
     l_conv := oan_ai_pkg.ask(null, 'Can you find an expert for me?');
     select sources into l_src from oan_my_ai_messages_v where conversation_id = l_conv and role = 'ASSISTANT';
     ut.expect(instr(l_src, 'Xpert Weight'), 'not shown without consent').to_equal(0);
+    l_conv := oan_ai_pkg.ask(null, 'Tell me about Xpert Weight');
+    select sources into l_src from oan_my_ai_messages_v where conversation_id = l_conv and role = 'ASSISTANT';
+    ut.expect(instr(l_src, 'Xpert Weight'), 'not named by a general search without consent').to_equal(0);
     insert into oan_consents (user_id, consent_type, granted) values (l_x, 'AI_INCLUSION', 'Y');
     l_conv := oan_ai_pkg.ask(null, 'Can you find an expert for me?');
     select sources into l_src from oan_my_ai_messages_v where conversation_id = l_conv and role = 'ASSISTANT';
@@ -309,8 +314,36 @@ create or replace package body ut_oan_w8 as
     ut.expect(oan_ai_pkg.topic_of('what is the weather today'), 'off-topic').to_equal('GENERAL');
     l_conv := oan_ai_pkg.ask(null, 'what is the weather today');
     select content into l_answer from oan_my_ai_messages_v where conversation_id = l_conv and role = 'ASSISTANT';
-    ut.expect(l_answer, 'says what it can help with').to_be_like('I can help with things in OAN%');
+    ut.expect(l_answer, 'says what it can help with').to_be_like('I can help with anything in OAN%');
   end ai_howto_guides;
+
+  procedure ai_answers_about_oan is
+    l_conv   number;
+    l_answer varchar2(4000);
+  begin
+    ut.expect(oan_ai_pkg.topic_of('What is OAN?'), 'about OAN').to_equal('ABOUT');
+    ut.expect(oan_ai_pkg.topic_of('Who can join?'), 'membership').to_equal('ABOUT');
+    ut.expect(oan_ai_pkg.topic_of('Is OAN part of Oracle?'), 'independence').to_equal('ABOUT');
+    ut.expect(oan_ai_pkg.topic_of('Is there a membership fee?'), 'payments').to_equal('ABOUT');
+    ut.expect(oan_ai_pkg.topic_of('What are the community rules?'), 'guidelines').to_equal('ABOUT');
+    ut.expect(oan_ai_pkg.topic_of('Library items on payroll'), 'library').to_equal('LIBRARY');
+    ut.expect(oan_ai_pkg.topic_of('Any articles about cloud migration?'), 'insights').to_equal('INSIGHTS');
+    ut.expect(oan_ai_pkg.topic_of('Which chapters are there in India?'), 'chapters').to_equal('CHAPTERS');
+    ut.expect(oan_ai_pkg.topic_of('What is new?'), 'news').to_equal('NEWS');
+    ut.expect(oan_ai_pkg.topic_of('Show my applications'), 'own status').to_equal('MY');
+    ut.expect(oan_ai_pkg.topic_of('Which events am I registered for?'), 'own events').to_equal('MY');
+    ut.expect(oan_ai_pkg.topic_of('Volunteer for free medical camps in Chennai'), 'free is not about fees').to_equal('VOLUNTEERING');
+    ut.expect(oan_ai_pkg.topic_of('Any events in Mumbai next month?'), 'events stay events').to_equal('EVENTS');
+    ut.expect(oan_ai_pkg.kw_score('Payroll best practices for Fusion HCM', 'payroll fusion apex'), 'key words count').to_equal(2);
+    as_member(g_a);
+    oan_ai_pkg.set_opt_in('Y');
+    l_conv := oan_ai_pkg.ask(null, 'What is OAN?');
+    select content into l_answer from oan_my_ai_messages_v where conversation_id = l_conv and role = 'ASSISTANT';
+    ut.expect(l_answer, 'explains OAN').to_be_like('OAN (Oracle Alumni Network) is an independent community%');
+    l_conv := oan_ai_pkg.ask(null, 'My applications');
+    select content into l_answer from oan_my_ai_messages_v where conversation_id = l_conv and role = 'ASSISTANT';
+    ut.expect(l_answer, 'answers about the member').to_be_like('%');
+  end ai_answers_about_oan;
 
 end ut_oan_w8;
 /

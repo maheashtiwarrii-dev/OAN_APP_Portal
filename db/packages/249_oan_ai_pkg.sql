@@ -12,6 +12,9 @@
 --     from the facts directly (mode LOCAL). History is kept 30 days (retention registry).
 --   * "How do I ..." questions get step-by-step guides with a link to the right page (topic HOWTO, 21 Oct 2026);
 --     a city narrows results only when the question names one.
+--   * Any question about OAN (22 Oct 2026): facts about OAN itself (ABOUT), the Knowledge Library, insights,
+--     chapters, initiatives, success stories, partner needs, news, and the member's own status (MY); anything
+--     else falls back to site search on the question's key words.
 --------------------------------------------------------------------------------
 create or replace package oan_ai_pkg authid definer as
   function opted_in return varchar2;                                          -- Y/N for the viewer
@@ -23,6 +26,8 @@ create or replace package oan_ai_pkg authid definer as
   procedure clear_history;
   function is_injection(p_text in varchar2) return varchar2;                  -- Y/N
   function topic_of(p_text in varchar2) return varchar2;
+  -- How many of the space-separated key words occur in a text; public because the assistant's queries call it in SQL
+  function kw_score(p_text in varchar2, p_kws in varchar2) return number;
 end oan_ai_pkg;
 /
 
@@ -35,6 +40,8 @@ create or replace package body oan_ai_pkg as
   type t_guide is record (keys varchar2(1000), title varchar2(200), steps varchar2(1500), page number, related varchar2(30));
   type t_guides is table of t_guide index by pls_integer;
   g_guides t_guides;
+  g_faq    t_guides;      -- facts about OAN itself (topic ABOUT); same shape as the guides
+  g_faq_score pls_integer;
 
   function me return number is
     l_me number := oan_util.viewer_id;
@@ -225,6 +232,83 @@ create or replace package body oan_ai_pkg as
       || 'turn the assistant off.', 48);
   end load_guides;
 
+  procedure add_faq(p_keys in varchar2, p_title in varchar2, p_answer in varchar2, p_page in number) is
+    l_i pls_integer := g_faq.count + 1;
+  begin
+    g_faq(l_i).keys := p_keys;
+    g_faq(l_i).title := p_title;
+    g_faq(l_i).steps := p_answer;
+    g_faq(l_i).page := p_page;
+  end add_faq;
+
+  -- Facts from the Welcome page, the PRD and the Community Guidelines (GOV-03); keep in step with them
+  procedure load_faq is
+  begin
+    if g_faq.count > 0 then
+      return;
+    end if;
+    add_faq('what is oan,about oan,tell me about oan,what does oan do,purpose of oan,oan portal,oracle alumni network,what is this portal,what is this site',
+      'About OAN',
+      'OAN (Oracle Alumni Network) is an independent community for former Oracle employees. It helps members connect the right '
+      || 'people, skills, knowledge, opportunities and ideas: Consolidate, Discover, Connect, Collaborate, Grow. Members get the '
+      || 'Knowledge Library, groups, regional chapters, a professional profile where they decide who sees each section, '
+      || 'opportunities, events, mentoring, experts and trainers, volunteering, and this assistant.', 11);
+    add_faq('who can join,can i join,eligible,eligibility,become a member,join oan,membership,how do i join,requirements to join,new member',
+      'Membership',
+      'Membership is for former Oracle employees aged 18 or over. You create an account with any e-mail address, give your '
+      || 'Oracle tenure and choose a primary chapter. A chapter or platform administrator reviews every application; undecided '
+      || 'applications go to platform administrators after 3 business days. If an application is not approved you see the '
+      || 'reason and can apply again after 30 days.', 11);
+    add_faq('affiliated,endorsed,official oracle,part of oracle,owned by oracle,run by oracle,oracle corporation,oracle hr,connected to oracle',
+      'OAN and Oracle',
+      'OAN is an independent alumni community. It is not affiliated with or endorsed by Oracle Corporation, and it does not '
+      || 'handle Oracle HR matters or documents.', 12);
+    add_faq('cost of,costs,fee,price,payment,pay for,pay to,paid membership,membership fee,membership cost,annual fee,subscription,charges,charge for,is it free,free to join,free of charge',
+      'Payments',
+      'The OAN portal does not take payments or charge commissions. There is nothing to pay on the portal.', 11);
+    add_faq('what is a chapter,what are chapters,chapters work,regional chapter,local chapter,primary chapter',
+      'Chapters',
+      'Chapters are OAN''s regional communities, from region down to city. Your primary chapter is suggested from your '
+      || 'location; you can belong to more chapters (My profile) and ask for a new one on the Chapters page. Chapter '
+      || 'administrators look after their chapter and approve new members.', 74);
+    add_faq('guidelines,community rules,rules,code of conduct,what can i post,allowed to post,not allowed,conduct,etiquette,confidential',
+      'Community Guidelines',
+      'The Community Guidelines cover professional conduct, acceptable content, harassment, spam, commercial promotion (only in '
+      || 'requirements and partner posts), confidential information (no Oracle-confidential or customer-confidential material), '
+      || 'intellectual property, misrepresentation, networking abuse and conflicts of interest. You accept them when you join; '
+      || 'the current version is on the Terms page. Moderators review reports.', 12);
+    add_faq('privacy,personal data,my data,gdpr,dpdp,data protection,how is my data used,who sees my data,data safe,secure',
+      'Privacy',
+      'You decide who sees each section of your profile (private, connections, chapter, members, or members and partners). '
+      || 'In the Privacy centre you can download your data or delete your account; a deleted account is removed after 30 days. '
+      || 'OAN follows the GDPR and India''s DPDP Act.', 27);
+    add_faq('ask oan,assistant,this assistant,ai assistant,chatbot,artificial intelligence,how do you work,what can you do,what can i ask,are you',
+      'Ask OAN',
+      'I am Ask OAN. I answer from what you can already see in OAN, never change anything, and show the links I used. Other '
+      || 'members appear in my answers only if they agreed. Your questions are kept for 30 days and you can delete them. Ask me '
+      || 'about OAN, how to do something ("How do I upload my CV?"), or to find things ("Yoga classes in Pune", "Any APEX jobs?", '
+      || '"Library items on payroll", "What is new?", "My applications").', 48);
+    add_faq('partner,partners,companies,company,employer,hiring company,recruiter',
+      'Companies and partners',
+      'Companies and partners register with "Register your company" on the sign-in page. After verification their contacts can '
+      || 'post opportunities and partner needs, and they see members only where members allow partners.', 69);
+    add_faq('knowledge library,what is the library,library contain,what is in the library',
+      'Knowledge Library',
+      'The Knowledge Library holds curated OAN sales, training and best-practice content. Members can open it, mark items as '
+      || 'helpful and submit their own (reviewed before publishing).', 34);
+    add_faq('who runs,run by,administrator,admins,moderator,moderators,who manages,team behind,privacy officer',
+      'Who runs OAN',
+      'Platform administrators run the portal; chapter administrators look after their chapters and approve new members; '
+      || 'moderators review posts, submissions and reports; a privacy officer handles data requests. Reach the team through '
+      || 'the Helpdesk.', 55);
+    add_faq('features,what can i do,what is available,menu,sections of the portal,what does the portal offer,overview',
+      'What you can do in OAN',
+      'In OAN you can: find members in the Alumni directory; message and connect; read and write insights; use the Knowledge '
+      || 'Library; join groups and chapters; find opportunities and ask for referrals; register for events; find experts, '
+      || 'mentors and trainings; volunteer for social causes, marathons, fitness, yoga and meditation; raise Helpdesk requests; '
+      || 'and manage your profile, CV and privacy.', 10);
+  end load_faq;
+
   function has_word(p_norm in varchar2, p_words in varchar2) return pls_integer is
     l_w   apex_t_varchar2 := apex_string.split(p_words, ',');
     l_hit pls_integer := 0;
@@ -261,6 +345,64 @@ create or replace package body oan_ai_pkg as
     return l_best;
   end guide_of;
 
+  -- The fact about OAN that best fits the question; 0 when none. g_faq_score keeps the match strength.
+  function faq_of(p_text in varchar2) return pls_integer is
+    l_t    varchar2(4000) := norm(p_text);
+    l_best pls_integer := 0;
+    l_s    pls_integer;
+  begin
+    load_faq;
+    g_faq_score := 0;
+    for i in 1 .. g_faq.count loop
+      l_s := has_word(l_t, g_faq(i).keys);
+      if l_s > g_faq_score then
+        g_faq_score := l_s;
+        l_best := i;
+      end if;
+    end loop;
+    return l_best;
+  end faq_of;
+
+  -- The distinctive words of a question (common words, question words and topic words removed), space separated
+  function keywords(p_text in varchar2) return varchar2 is
+    l_out  varchar2(4000);
+    l_norm varchar2(4000) := trim(norm(p_text));   -- private functions cannot be called in SQL (PLS-00231)
+  begin
+    for w in (select column_value word from table(apex_string.split(l_norm, ' '))
+               where length(column_value) >= 3
+                 and column_value not in ('any','the','for','and','with','about','show','find','list','give','tell','what','which',
+                   'who','how','where','when','why','are','there','can','could','would','should','get','need','want','looking',
+                   'near','this','that','these','those','some','from','have','has','had','was','were','been','will','please',
+                   'you','your','our','oan','all','new','latest','recent','today','week','month','year','next','last','into',
+                   'library','libraries','item','items','document','documents','material','materials','resource','resources',
+                   'insight','insights','article','articles','blog','story','stories','success','initiative','initiatives',
+                   'chapter','chapters','partner','partners','need','needs','requirement','requirements','news','announcement',
+                   'announcements','job','jobs','event','events','group','groups','training','trainings','course','courses',
+                   'mentor','mentors','expert','experts','opportunity','opportunities','read','learn','more','info','information'))
+    loop
+      if instr(' ' || l_out || ' ', ' ' || w.word || ' ') = 0 then
+        l_out := trim(l_out || ' ' || w.word);
+      end if;
+    end loop;
+    return substr(l_out, 1, 200);
+  end keywords;
+
+  -- How many of the key words occur in a text (0 when there are none to look for)
+  function kw_score(p_text in varchar2, p_kws in varchar2) return number is
+    l_n pls_integer := 0;
+    l_t varchar2(32767) := norm(p_text);
+  begin
+    if p_kws is null then
+      return 0;
+    end if;
+    for w in (select column_value word from table(apex_string.split(p_kws, ' '))) loop
+      if instr(l_t, ' ' || w.word) > 0 then
+        l_n := l_n + 1;
+      end if;
+    end loop;
+    return l_n;
+  end kw_score;
+
   function topic_of(p_text in varchar2) return varchar2 is
     l_t    varchar2(4000) := ' ' || lower(p_text) || ' ';
     l_base varchar2(30);
@@ -272,16 +414,37 @@ create or replace package body oan_ai_pkg as
       when has_any(l_t, 'mentor,coach,guidance') then 'MENTORS'
       when has_any(l_t, 'expert,specialist,who knows,ask someone') then 'EXPERTS'
       when has_any(l_t, 'training,course,learn,mock project,certif,upskill') then 'TRAINING'
+      when has_any(l_t, 'library,document,whitepaper,white paper,best practice,playbook,template,presentation,collateral,material,resource') then 'LIBRARY'
+      when has_any(l_t, 'insight,article,blog,perspective,thought leadership') then 'INSIGHTS'
+      when has_any(l_t, 'success stor,stories') then 'STORIES'
+      when has_any(l_t, 'initiative,startup idea,start-up idea,project idea') then 'INITIATIVES'
+      when has_any(l_t, 'partner need,company need,requirement,rfp,proposal') then 'PARTNER_NEEDS'
+      when has_any(l_t, 'what''s new,whats new,what is new,anything new,new on oan,new in oan,news,announcement,latest,leadership letter,update from oan') then 'NEWS'
+      when has_any(l_t, 'chapter') then 'CHAPTERS'
       when has_any(l_t, 'group,community,discussion,forum') then 'GROUPS'
       when has_any(l_t, 'my profile,my cv,resume,complete my,update my') then 'PROFILE'
       when has_any(l_t, 'how do i,how to,where can i,help me with,contact,support,helpdesk') then 'HELP'
       else 'GENERAL' end;
+    -- The member's own status: "my applications", "am I registered", "events I am going to"
+    if has_word(norm(p_text), 'how') = 0
+       and has_word(norm(p_text), 'my application,my membership,my registration,am i approved,approved yet,my status,my events,'
+                                || 'am i registered,registered for,going to,my volunteering,my drives,my mentor,my mentoring,'
+                                || 'my training,my courses,my learning,my requests,my tickets,my helpdesk,my connections,'
+                                || 'my referrals,my notifications,pending for me,waiting for me,my activity,my summary,'
+                                || 'my bookings,my enrolments,my enrollments,signed up for') > 0 then
+      return 'MY';
+    end if;
     -- "How do I ..." gets a guide, unless the member asks to find or list things the finder topics return
     if guide_of(p_text) > 0
-       and not (l_base in ('VOLUNTEERING','OPPORTUNITIES','EVENTS','MENTORS','EXPERTS','TRAINING','GROUPS')
+       and not (l_base in ('VOLUNTEERING','OPPORTUNITIES','EVENTS','MENTORS','EXPERTS','TRAINING','GROUPS','LIBRARY',
+                           'INSIGHTS','STORIES','INITIATIVES','PARTNER_NEEDS','NEWS','CHAPTERS')
                 and has_word(norm(p_text), 'find,any,search,looking for,list,show me,recommend,suggest,near,which,what') > 0
                 and has_word(norm(p_text), 'how') = 0) then
       return 'HOWTO';
+    end if;
+    -- Facts about OAN itself; a long, specific match ("who can join") wins over a passing topic word
+    if faq_of(p_text) > 0 and (l_base in ('GENERAL','HELP','PROFILE') or g_faq_score >= 10) then
+      return 'ABOUT';
     end if;
     return l_base;
   end topic_of;
@@ -354,12 +517,96 @@ create or replace package body oan_ai_pkg as
     p_lines := substr(p_lines || '- ' || p_title || case when p_detail is not null then ' (' || p_detail || ')' end || chr(10), 1, 3500);
   end add_src;
 
+  -- The member's own status from the my_* views; one area when the question names it, otherwise a summary
+  procedure my_status(p_text in varchar2, p_src in out nocopy t_src, p_lines in out nocopy varchar2) is
+    l_t   varchar2(4000) := norm(p_text);
+    l_all boolean := has_word(l_t, 'application,membership,registration,approved,event,registered,going,volunteer,drive,'
+                                 || 'mentor,training,course,learning,request,ticket,helpdesk,connection,referral,notification,'
+                                 || 'booking,enrol,signed up') = 0;
+    l_n   number;
+  begin
+    if l_all or has_word(l_t, 'membership,registration,approved') > 0 then
+      for r in (select status, decision_reason, more_info_request from oan_my_registration_v) loop
+        add_src(p_src, p_lines, 'Membership application: ' || lower(replace(r.status, '_', ' ')),
+                case when r.status = 'MORE_INFO' then 'more information requested: ' || r.more_info_request
+                     when r.status = 'REJECTED' then r.decision_reason end, 5);
+      end loop;
+    end if;
+    if l_all or has_word(l_t, 'application') > 0 and has_word(l_t, 'membership,registration') = 0 then
+      for r in (select job_id, title, company_name, status_label from oan_my_applications_v order by updated_at desc fetch first 5 rows only) loop
+        add_src(p_src, p_lines, 'Application: ' || r.title, r.company_name || ', ' || r.status_label, 51, 'P51_ID', to_char(r.job_id));
+      end loop;
+    end if;
+    if l_all or has_word(l_t, 'event,registered,going,booking') > 0 then
+      for r in (select id, title, when_local, my_status from oan_events_v
+                 where my_status in ('GOING','WAITLIST') and is_past = 'N' order by starts_at fetch first 5 rows only) loop
+        add_src(p_src, p_lines, 'Event: ' || r.title, r.when_local || case when r.my_status = 'WAITLIST' then ', on the waitlist' else ', you are going' end,
+                33, 'P33_EVENT_ID', to_char(r.id));
+      end loop;
+    end if;
+    if l_all or has_word(l_t, 'volunteer,drive,enrol,signed up') > 0 then
+      for r in (select drive_id, title, city_name, starts_at, status_label from oan_my_volunteering_v
+                 where starts_at > systimestamp - interval '1' day order by starts_at fetch first 5 rows only) loop
+        add_src(p_src, p_lines, 'Volunteering: ' || r.title, r.city_name || ', ' || to_char(r.starts_at, 'DD Mon YYYY') || ', ' || r.status_label,
+                79, 'P79_ID', to_char(r.drive_id));
+      end loop;
+    end if;
+    if l_all or has_word(l_t, 'mentor') > 0 then
+      for r in (select other_name, my_side, status_label from oan_my_mentorships_v where status not in ('CLOSED','COMPLETED','ENDED','DECLINED','CANCELLED','WITHDRAWN')
+                 order by created_at desc fetch first 3 rows only) loop
+        add_src(p_src, p_lines, 'Mentoring with ' || r.other_name, lower(r.my_side) || ', ' || r.status_label, 65);
+      end loop;
+    end if;
+    if l_all or has_word(l_t, 'training,course,learning') > 0 then
+      for r in (select title, status_label from oan_my_learning_v order by enrolled_at desc fetch first 3 rows only) loop
+        add_src(p_src, p_lines, 'Training: ' || r.title, r.status_label, 67);
+      end loop;
+    end if;
+    if l_all or has_word(l_t, 'request,ticket,helpdesk') > 0 then
+      for r in (select reference, subject, status_label from oan_service_requests_v where is_mine = 'Y'
+                 order by updated_at desc fetch first 3 rows only) loop
+        add_src(p_src, p_lines, 'Helpdesk ' || r.reference || ': ' || r.subject, r.status_label, 55);
+      end loop;
+    end if;
+    if l_all or has_word(l_t, 'connection') > 0 then
+      select count(*) into l_n from oan_my_connections_v;
+      add_src(p_src, p_lines, 'Connections: ' || l_n, null, 28);
+      select count(*) into l_n from oan_my_connection_requests_v where direction = 'INCOMING';
+      if l_n > 0 then
+        add_src(p_src, p_lines, 'Connection requests waiting for you: ' || l_n, null, 28);
+      end if;
+    end if;
+    if l_all or has_word(l_t, 'referral') > 0 then
+      for r in (select job_title, company_name, direction, status_label from oan_my_referrals_v order by created_at desc fetch first 3 rows only) loop
+        add_src(p_src, p_lines, 'Referral: ' || r.job_title, r.company_name || ', ' || lower(r.direction) || ', ' || r.status_label, 54);
+      end loop;
+    end if;
+    if l_all or has_word(l_t, 'notification') > 0 then
+      select count(*) into l_n from oan_my_notifications_v where is_read = 'N';
+      add_src(p_src, p_lines, 'Unread notifications: ' || l_n, null, 41);
+    end if;
+    if p_src.count = 0 then
+      -- nothing yet in the area asked about: link to where it will appear
+      if has_word(l_t, 'membership,registration,approved') > 0 then add_src(p_src, p_lines, 'Open Application status', null, 5);
+      elsif has_word(l_t, 'application') > 0 then add_src(p_src, p_lines, 'Open My applications', null, 52);
+      elsif has_word(l_t, 'event,registered,going,booking') > 0 then add_src(p_src, p_lines, 'Browse Events', null, 32);
+      elsif has_word(l_t, 'volunteer,drive,enrol,signed up') > 0 then add_src(p_src, p_lines, 'Browse Volunteering', null, 79);
+      elsif has_word(l_t, 'mentor') > 0 then add_src(p_src, p_lines, 'Open Mentoring', null, 65);
+      elsif has_word(l_t, 'training,course,learning') > 0 then add_src(p_src, p_lines, 'Browse Training', null, 67);
+      elsif has_word(l_t, 'request,ticket,helpdesk') > 0 then add_src(p_src, p_lines, 'Open the Helpdesk', null, 55);
+      elsif has_word(l_t, 'referral') > 0 then add_src(p_src, p_lines, 'Open Referrals', null, 54);
+      end if;
+      p_lines := null;
+    end if;
+  end my_status;
+
   procedure retrieve(p_topic in varchar2, p_text in varchar2, p_user_id in number, p_src in out nocopy t_src,
                      p_lines in out nocopy varchar2, p_scope out varchar2) is
     l_city  number := find_city(p_text, p_user_id);
     l_cname varchar2(200);
     l_skill varchar2(200) := find_skill(p_text);
     l_cause varchar2(30) := find_cause(p_text);
+    l_words varchar2(200) := keywords(p_text);   -- for SQL: private functions cannot be called there
   begin
     if l_city is not null then
       select name into l_cname from oan_locations where id = l_city;
@@ -368,6 +615,96 @@ create or replace package body oan_ai_pkg as
                  trim(case when l_cname is not null then 'in ' || l_cname end || case when l_skill is not null then ' for ' || l_skill end)
                end;
     case p_topic
+      when 'ABOUT' then
+        declare
+          l_f pls_integer := faq_of(p_text);
+        begin
+          add_src(p_src, p_lines, g_faq(l_f).title, null, g_faq(l_f).page);
+          p_lines := g_faq(l_f).steps || chr(10);
+        end;
+      when 'MY' then
+        my_status(p_text, p_src, p_lines);
+      when 'LIBRARY' then
+        declare
+          l_kw varchar2(200) := keywords(p_text);
+        begin
+          for r in (select id, title, item_type, category, provider
+                      from (select l.*, kw_score(l.title || ' ' || l.summary || ' ' || l.tags || ' ' || l.category, l_kw) sc
+                              from oan_library_v l)
+                     where l_kw is null or sc > 0
+                     order by sc desc, is_featured desc, published_at desc fetch first 6 rows only) loop
+            add_src(p_src, p_lines, r.title, initcap(r.item_type) || case when r.category is not null then ', ' || r.category end,
+                    35, 'P35_ID', to_char(r.id));
+          end loop;
+          p_scope := case when l_kw is not null then 'on "' || l_kw || '"' end;
+        end;
+      when 'INSIGHTS' then
+        declare
+          l_kw varchar2(200) := keywords(p_text);
+        begin
+          for r in (select id, title, type_label, author_name, read_minutes
+                      from (select i.*, kw_score(i.title || ' ' || i.summary || ' ' || i.tags, l_kw) sc from oan_insights_v i)
+                     where l_kw is null or sc > 0
+                     order by sc desc, is_featured desc, published_at desc fetch first 6 rows only) loop
+            add_src(p_src, p_lines, r.title, r.type_label || case when r.author_name is not null then ' by ' || r.author_name end
+                    || case when r.read_minutes is not null then ', ' || r.read_minutes || ' min read' end, 31, 'P31_ID', to_char(r.id));
+          end loop;
+          p_scope := case when l_kw is not null then 'on "' || l_kw || '"' end;
+        end;
+      when 'STORIES' then
+        for r in (select title, author_name, group_name from oan_stories_v order by created_at desc fetch first 6 rows only) loop
+          add_src(p_src, p_lines, r.title, 'by ' || r.author_name || case when r.group_name is not null then ', ' || r.group_name end, 78);
+        end loop;
+      when 'INITIATIVES' then
+        declare
+          l_kw varchar2(200) := keywords(p_text);
+        begin
+          for r in (select id, title, status_label, chapter_name, interested
+                      from (select i.*, kw_score(i.title || ' ' || i.summary || ' ' || i.needs, l_kw) sc from oan_initiatives_v i)
+                     where l_kw is null or sc > 0
+                     order by sc desc, created_at desc fetch first 6 rows only) loop
+            add_src(p_src, p_lines, r.title, r.status_label || case when r.chapter_name is not null then ', ' || r.chapter_name end
+                    || ', ' || r.interested || ' interested', 77, 'P77_ID', to_char(r.id));
+          end loop;
+        end;
+      when 'PARTNER_NEEDS' then
+        declare
+          l_kw varchar2(200) := keywords(p_text);
+        begin
+          for r in (select title, type_label, org_name, location
+                      from (select n.*, kw_score(n.title || ' ' || n.description || ' ' || n.skills, l_kw) sc from oan_partner_needs_v n)
+                     where l_kw is null or sc > 0
+                     order by sc desc, match_pct desc nulls last, published_at desc fetch first 6 rows only) loop
+            add_src(p_src, p_lines, r.title, r.type_label || ', ' || r.org_name || case when r.location is not null then ', ' || r.location end, 69);
+          end loop;
+        end;
+      when 'NEWS' then
+        for r in (select title, author_label, post_id from oan_announcements_v order by publish_from desc fetch first 4 rows only) loop
+          add_src(p_src, p_lines, r.title, r.author_label, case when r.post_id is not null then 62 else 10 end,
+                  case when r.post_id is not null then 'P62_ID' end, to_char(r.post_id));
+        end loop;
+        for r in (select id, title, type_label from oan_insights_v order by published_at desc fetch first 3 rows only) loop
+          add_src(p_src, p_lines, r.title, r.type_label, 31, 'P31_ID', to_char(r.id));
+        end loop;
+      when 'CHAPTERS' then
+        declare
+          l_kw varchar2(200) := keywords(p_text);
+        begin
+          -- chapters whose name matches, and the chapters inside them (path is the chapter hierarchy)
+          for r in (select c.name, c.chapter_level, c.member_count, c.my_status, c.upcoming_events
+                      from oan_chapters_dir_v c
+                     where (l_kw is null and l_cname is null)
+                        or exists (select 1 from oan_chapters_dir_v m
+                                    where c.path like m.path || '%'
+                                      and (kw_score(m.name, l_kw) > 0
+                                           or (l_cname is not null and instr(lower(m.name), lower(l_cname)) > 0)))
+                     order by c.path, c.member_count desc fetch first 8 rows only) loop
+            add_src(p_src, p_lines, r.name, initcap(r.chapter_level) || ', ' || r.member_count || ' members'
+                    || case when r.upcoming_events > 0 then ', ' || r.upcoming_events || ' upcoming events' end
+                    || case when r.my_status is not null then ', you: ' || lower(r.my_status) end, 74);
+          end loop;
+          p_scope := case when l_cname is not null then 'in ' || l_cname end;
+        end;
       when 'HOWTO' then
         declare
           l_g pls_integer := guide_of(p_text);
@@ -456,14 +793,26 @@ create or replace package body oan_ai_pkg as
         add_src(p_src, p_lines, 'Keep your CV and work profile current', null, 24);
       when 'HELP' then
         -- No step-by-step guide fits: offer what search finds for the question, then the Helpdesk
-        for r in (select result_type, object_id, title, snippet, link_page
-                    from table(oan_search_pkg.search(p_text, 4))) loop
+        for r in (select r.result_type, r.object_id, r.title, r.snippet, r.link_page
+                    from table(oan_search_pkg.search(nvl(l_words, p_text), 4)) r
+                   where 1 = 1
+                   and (r.result_type != 'MEMBER'
+                        or exists (select 1 from oan_consents c
+                                    where c.user_id = r.object_id and c.consent_type = 'AI_INCLUSION' and c.granted = 'Y'
+                                      and c.id = (select max(c2.id) from oan_consents c2
+                                                   where c2.user_id = r.object_id and c2.consent_type = 'AI_INCLUSION')))) loop
           add_src(p_src, p_lines, r.title, initcap(r.result_type), r.link_page);
         end loop;
         add_src(p_src, p_lines, 'Helpdesk: ask the OAN team', 'they reply on the same page', 55);
       else
-        for r in (select result_type, object_id, title, snippet, link_page
-                    from table(oan_search_pkg.search(p_text, 6))) loop
+        for r in (select r.result_type, r.object_id, r.title, r.snippet, r.link_page
+                    from table(oan_search_pkg.search(nvl(l_words, p_text), 6)) r
+                   where 1 = 1
+                   and (r.result_type != 'MEMBER'
+                        or exists (select 1 from oan_consents c
+                                    where c.user_id = r.object_id and c.consent_type = 'AI_INCLUSION' and c.granted = 'Y'
+                                      and c.id = (select max(c2.id) from oan_consents c2
+                                                   where c2.user_id = r.object_id and c2.consent_type = 'AI_INCLUSION')))) loop
           add_src(p_src, p_lines, r.title, initcap(r.result_type) || case when r.snippet is not null then ': ' || substr(r.snippet, 1, 120) end,
                   r.link_page,
                   case r.result_type when 'MEMBER' then null when 'POST' then 'P62_ID' when 'INSIGHT' then 'P31_ID' when 'LIBRARY' then 'P35_ID'
@@ -472,14 +821,36 @@ create or replace package body oan_ai_pkg as
                   case when r.result_type not in ('MEMBER','TRAINING') then to_char(r.object_id) end);
         end loop;
     end case;
-    if p_src.count = 0 and p_topic in ('VOLUNTEERING','OPPORTUNITIES','EVENTS','EXPERTS','MENTORS','TRAINING','GROUPS') then
+    if p_topic = 'GENERAL' and p_src.count = 0 then
+      -- all key words together found nothing: try them one at a time
+      for w in (select column_value word from table(apex_string.split(l_words, ' ')) where rownum <= 3) loop
+        for r in (select r.result_type, r.object_id, r.title, r.link_page from table(oan_search_pkg.search(w.word, 3)) r
+                   where 1 = 1
+                   and (r.result_type != 'MEMBER'
+                        or exists (select 1 from oan_consents c
+                                    where c.user_id = r.object_id and c.consent_type = 'AI_INCLUSION' and c.granted = 'Y'
+                                      and c.id = (select max(c2.id) from oan_consents c2
+                                                   where c2.user_id = r.object_id and c2.consent_type = 'AI_INCLUSION')))) loop
+          add_src(p_src, p_lines, r.title, initcap(r.result_type), r.link_page);
+        end loop;
+        exit when p_src.count >= 3;
+      end loop;
+    end if;
+    if p_src.count = 0 and p_topic in ('VOLUNTEERING','OPPORTUNITIES','EVENTS','EXPERTS','MENTORS','TRAINING','GROUPS',
+                                         'LIBRARY','INSIGHTS','STORIES','INITIATIVES','PARTNER_NEEDS','NEWS','CHAPTERS') then
       -- nothing matched: offer the page where the member can browse everything
       add_src(p_src, p_lines, case p_topic when 'VOLUNTEERING' then 'Browse Volunteering' when 'OPPORTUNITIES' then 'Browse Opportunities'
                                            when 'EVENTS' then 'Browse Events' when 'EXPERTS' then 'Browse Experts and trainers'
                                            when 'MENTORS' then 'Browse Mentoring' when 'TRAINING' then 'Browse Training'
+                                           when 'LIBRARY' then 'Browse the Knowledge Library' when 'INSIGHTS' then 'Browse Insights'
+                                           when 'STORIES' then 'Browse Success stories' when 'INITIATIVES' then 'Browse Initiatives'
+                                           when 'PARTNER_NEEDS' then 'Browse Company needs' when 'NEWS' then 'Open Home'
+                                           when 'CHAPTERS' then 'Browse Chapters'
                                            else 'Browse Community' end, null,
               case p_topic when 'VOLUNTEERING' then 79 when 'OPPORTUNITIES' then 50 when 'EVENTS' then 32 when 'EXPERTS' then 63
-                           when 'MENTORS' then 65 when 'TRAINING' then 67 else 60 end);
+                           when 'MENTORS' then 65 when 'TRAINING' then 67 when 'LIBRARY' then 34 when 'INSIGHTS' then 30
+                           when 'STORIES' then 78 when 'INITIATIVES' then 77 when 'PARTNER_NEEDS' then 69 when 'NEWS' then 10
+                           when 'CHAPTERS' then 74 else 60 end);
       p_lines := null;
     end if;
   end retrieve;
@@ -490,22 +861,33 @@ create or replace package body oan_ai_pkg as
       when 'VOLUNTEERING' then 'volunteering drives and activities' when 'OPPORTUNITIES' then 'opportunities' when 'EVENTS' then 'upcoming events'
       when 'EXPERTS' then 'experts' when 'MENTORS' then 'mentors with free places' when 'TRAINING' then 'open trainings'
       when 'GROUPS' then 'groups' when 'PROFILE' then 'next steps for your profile' when 'HELP' then 'places that can help'
+      when 'LIBRARY' then 'Knowledge Library items' when 'INSIGHTS' then 'insights' when 'STORIES' then 'success stories'
+      when 'INITIATIVES' then 'initiatives' when 'PARTNER_NEEDS' then 'partner needs' when 'NEWS' then 'the latest from OAN'
+      when 'CHAPTERS' then 'chapters'
       else 'results' end;
   begin
-    if p_topic = 'HOWTO' then
-      return p_lines;   -- the steps, then any live results
+    if p_topic in ('HOWTO', 'ABOUT') then
+      return p_lines;   -- the steps or the facts, then any live results
+    end if;
+    if p_topic = 'MY' then
+      return case when p_lines is null then 'You have nothing there yet.' || case when p_count > 0 then ' It will show on the page linked below.' end
+                  else 'Here is where you stand:' || chr(10) || p_lines end;
     end if;
     if p_topic = 'HELP' then
       return 'I do not have step-by-step help for that yet. These may help:' || chr(10) || p_lines
           || 'Try asking "How do I ..." with what you want to do, for example "How do I upload my CV?".';
     end if;
     if p_topic = 'GENERAL' and p_count = 0 then
-      return 'I can help with things in OAN: opportunities, events, volunteering, experts, mentors, trainings, groups, '
-          || 'and how to use the portal. Try "How do I upload my CV?", "Yoga classes in Pune" or "Any APEX jobs?".';
+      return 'I can help with anything in OAN: what OAN is and how it works, how to do something in the portal, and finding '
+          || 'opportunities, events, volunteering, experts, mentors, trainings, groups, chapters, library items, insights and news, '
+          || 'or your own applications and registrations. Try "What is OAN?", "How do I upload my CV?", "Library items on payroll" '
+          || 'or "My applications".';
     end if;
     if p_count = 0 or p_lines is null then
       return 'I could not find ' || l_what || case when p_scope is not null then ' ' || p_scope end
-          || ' right now. Try different words or another city, or browse the page linked below.';
+          || ' right now. Try different words'
+          || case when p_topic in ('VOLUNTEERING','OPPORTUNITIES','EVENTS','CHAPTERS') then ' or another city' end
+          || ', or browse the page linked below.';
     end if;
     return 'Here are ' || l_what || case when p_scope is not null then ' ' || p_scope end || ' that you can see in OAN:' || chr(10) || p_lines;
   end local_answer;

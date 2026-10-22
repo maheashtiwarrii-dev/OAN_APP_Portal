@@ -23,7 +23,7 @@ page 48 (
         name: Meet your OAN assistant
         type: staticContent
         source {
-            htmlCode: <p>Ask in your own words about opportunities, events, volunteering drives, experts, mentors, trainings, groups or your profile. The assistant only uses what you can already see in OAN, never changes anything, and shows the links it used. Other members appear only if they have agreed to be suggested by the assistant. Your questions are kept for 30 days so you can come back to them, and you can delete them at any time.</p>
+            htmlCode: <p>Ask anything about OAN in your own words: what OAN is and how it works, how to do something ("How do I upload my CV?"), finding opportunities, events, volunteering, experts, mentors, trainings, groups, chapters, library items, insights and news, or your own applications and registrations. The assistant only uses what you can already see in OAN, never changes anything, and shows the links it used. Other members appear only if they have agreed to be suggested by the assistant. Your questions are kept for 30 days so you can come back to them, and you can delete them at any time.</p>
         }
         layout {
             sequence: 10

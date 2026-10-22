@@ -374,3 +374,12 @@
 | I34-1 | User request (Q44) | Restrict CV upload to 1 MB and publish the pages |
 | I34-2 | Change | Pages 23 (My profile) and 24 (My CV): upload limit 1 MB in the browser, labels and help say "max 1 MB"; `oan_file_pkg.validate` refuses CVs over 1 MB on the server ("Your CV must be 1 MB or smaller."); photos and library documents unchanged |
 | I34-3 | Checks | 170/170 tests (new `ut_oan_career.cv_max_one_mb`: 1 MB accepted, 1 MB + 1 byte refused); app 200 imported on dev; pages 23 and 24 show the 1 MB limit for tester.bala |
+
+## Iteration 35 — Ask OAN answers "how do I" questions accurately (21–22 Oct 2026)
+| Step | Action | Result |
+|---|---|---|
+| I35-1 | User report | Ask OAN gave inaccurate answers: "How to upload CV" returned three fixed links (Helpdesk, Account settings, Notification settings) "in Berlin" |
+| I35-2 | Cause | Topic detection fell back to a generic HELP topic whose answer ignored the question; the member's home city was always added as scope; a bare skill word ("APEX") did not match the skill "Oracle APEX" |
+| I35-3 | Fix | `oan_ai_pkg`: 26 step-by-step guides (CV upload with the 1 MB limit, photo, password, e-mail, LinkedIn, who can see what, profile, notifications, finding members, messages, connections, posting and applying for opportunities, referrals, events, volunteering enrolment, groups, mentors, experts, articles, reporting, data download and deletion, Helpdesk, chapters, company registration, AI history) with a link to the right page and live results where useful (e.g. marathons after the enrolment steps). "Find / any / which ..." questions keep their live results. A city narrows results only when the question names one. Skill words match inside skill names. Empty results link to the page to browse; off-topic questions say what the assistant can do |
+| I35-4 | Session message | "Your session has ended" in the screenshot is the 30-minute idle timeout (8 hours maximum), not an error; signing in again continues |
+| I35-5 | Checks | 171/171 tests (new `ut_oan_w8.ai_howto_guides`); 15 real questions asked on page 48 as tester.bala and the answers reviewed |

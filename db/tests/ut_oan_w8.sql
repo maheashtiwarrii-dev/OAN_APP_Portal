@@ -27,6 +27,8 @@ create or replace package ut_oan_w8 as
   procedure ai_history_is_private;
   --%test(Q43: marathon, fitness, yoga and meditation activities exist and members enrol like for drives)
   procedure wellbeing_enrolment;
+  --%test(R15: "how do I" questions get step-by-step guides; finder questions keep their live results)
+  procedure ai_howto_guides;
 end ut_oan_w8;
 /
 
@@ -281,6 +283,34 @@ create or replace package body ut_oan_w8 as
     ut.expect(l_st, 'enrolled in the yoga class').to_equal('SIGNED_UP');
     ut.expect(oan_ai_pkg.topic_of('Any yoga or meditation classes near me?'), 'the assistant knows these activities').to_equal('VOLUNTEERING');
   end wellbeing_enrolment;
+
+  procedure ai_howto_guides is
+    l_conv   number;
+    l_answer varchar2(4000);
+    l_src    varchar2(4000);
+    l_topic  varchar2(30);
+  begin
+    ut.expect(oan_ai_pkg.topic_of('How to upload CV'), 'CV upload').to_equal('HOWTO');
+    ut.expect(oan_ai_pkg.topic_of('How do I change my password?'), 'password').to_equal('HOWTO');
+    ut.expect(oan_ai_pkg.topic_of('Where can I add my LinkedIn link?'), 'LinkedIn').to_equal('HOWTO');
+    ut.expect(oan_ai_pkg.topic_of('how do i add a photo'), 'photo').to_equal('HOWTO');
+    ut.expect(oan_ai_pkg.topic_of('Find a mentor for cloud migration'), 'finder stays').to_equal('MENTORS');
+    ut.expect(oan_ai_pkg.topic_of('Where can I volunteer for tree plantation in Pune?'), 'volunteering stays').to_equal('VOLUNTEERING');
+    ut.expect(oan_ai_pkg.topic_of('Any events in Mumbai next month?'), 'events stay').to_equal('EVENTS');
+    as_member(g_a);
+    oan_ai_pkg.set_opt_in('Y');
+    l_conv := oan_ai_pkg.ask(null, 'How to upload CV');
+    select content, sources, topic into l_answer, l_src, l_topic
+      from oan_my_ai_messages_v where conversation_id = l_conv and role = 'ASSISTANT';
+    ut.expect(l_topic).to_equal('HOWTO');
+    ut.expect(l_answer, 'gives the steps').to_be_like('%Upload your CV%1 MB%');
+    ut.expect(instr(l_src, '"p":24'), 'links to My CV').to_be_greater_than(0);
+    ut.expect(instr(l_answer, 'in Berlin') + instr(l_answer, 'Here are places'), 'no unrelated city or link list').to_equal(0);
+    ut.expect(oan_ai_pkg.topic_of('what is the weather today'), 'off-topic').to_equal('GENERAL');
+    l_conv := oan_ai_pkg.ask(null, 'what is the weather today');
+    select content into l_answer from oan_my_ai_messages_v where conversation_id = l_conv and role = 'ASSISTANT';
+    ut.expect(l_answer, 'says what it can help with').to_be_like('I can help with things in OAN%');
+  end ai_howto_guides;
 
 end ut_oan_w8;
 /
